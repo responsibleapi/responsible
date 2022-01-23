@@ -1,0 +1,11 @@
+{
+  "devDependencies": {
+    "tsm": "^2.2.1",
+    "typescript": "^4.5.5",
+    "uvu": "^0.5.3"
+  },
+  "private": true,
+  "scripts": {
+    "test": "uvu -r tsm src/ '.*.test.ts' "
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "ESNext"
+    ]
+  },
+  "extends": "./tsconfig.base.json",
+  "include": [
+    "src/"
+  ],
+  "exclude": [
+    "node_modules/",
+    "**/__tests__/"
+  ]
+}
