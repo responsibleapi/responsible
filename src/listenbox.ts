@@ -14,13 +14,13 @@ type Responses = Record<number, Response>
 
 type Endpoint =
   | {
-      name: string
+      name?: string
       method: "POST"
       requestBody: Schema
       responses: Responses
     }
   | {
-      name: string
+      name?: string
       method: "GET"
       responseBody: Schema
     }
@@ -38,14 +38,14 @@ const paths: Record<string, Scope> = {
     scopes: {
       "/auth": {
         responses: {
-          401: json()
-        }
-      }
+          401: json(),
+        },
+      },
     },
     paths: {
       "/login": {
         name: "requestOTP",
-      }
+      },
     },
   },
 }
@@ -54,10 +54,10 @@ export default {
   components: {
     securitySchemes: {
       JWTAuth: {
-        type: 'apiKey',
-        in: 'header',
-        name: 'Authorization',
-      }
-    }
-  }
+        type: "apiKey",
+        in: "header",
+        name: "Authorization",
+      },
+    },
+  },
 }
