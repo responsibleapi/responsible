@@ -8,29 +8,30 @@ import {
 } from "../dsl/schema"
 import { service } from "../dsl/endpoint"
 
-const YtDlInfo = external<object>("YtDlInfo")
-const YtDlOpts = external<object>("YtDlOpts")
-
 export default service(
   "yanic",
   {
+    YtDlInfo: external(),
+    YtDlOpts: external(),
+  },
+  {
     "/info": {
       POST: {
-        req: struct("InfoReq", {
+        req: struct({
           url: httpURL(),
-          opts: YtDlOpts,
+          opts: "YtDlOpts",
         }),
         res: {
-          200: YtDlInfo,
+          200: "YtDlInfo",
           400: string({ minLength: 1 }),
         },
       },
     },
     "/download": {
       POST: {
-        req: struct("DownloadReq", {
-          info: YtDlInfo,
-          opts: YtDlOpts,
+        req: struct({
+          info: "YtDlInfo",
+          opts: "YtDlOpts",
         }),
         res: {
           200: constant("ok"),

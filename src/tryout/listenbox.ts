@@ -6,33 +6,56 @@ import {
   httpURL,
   int32,
   newType,
+  Optionality,
+  Schema,
   string,
   stringEnum,
   struct,
   unknown,
 } from "../dsl/schema"
-import { Headers, scope, service } from "../dsl/endpoint"
+import { Endpoints, Headers, scope, service } from "../dsl/endpoint"
 
-const optionalAuthHeaders: Headers = {
+const schemas = {
+  ShowID: newType(string({ minLength: 10, maxLength: 11 })),
+
+  FeedID: newType(string({ minLength: 10, maxLength: 11 })),
+
+  get Show() {
+    return struct({
+      id: this.ShowID,
+      feed_id: this.FeedID,
+      title: string(),
+      image: { type: httpURL(), optional: true },
+      description: { type: string(), optional: true },
+      author: { type: string(), optional: true },
+      copyright: { type: string(), optional: true },
+      keywords: { type: string(), optional: true },
+      website: { type: httpURL(), optional: true },
+      language: string(),
+      explicit: { type: boolean(), optional: true },
+    })
+  },
+} as const
+
+const optionalAuthHeaders: Headers<typeof schemas> = {
   authorization: {
     type: string({ minLength: 1 }),
     optional: true,
   },
 }
 
-const ShowID = newType("ShowID", string({ minLength: 10, maxLength: 11 }))
-const Show = struct("Show",{})
-
-const japi: Parameters<typeof service>[1] = {
+const japi: Endpoints<typeof schemas> = {
   "/login": {
     POST: {
       name: "requestOtp",
-      req: struct("LoginReq", {
+      req: struct({
         email: email(),
         host: hostname(),
       }),
       res: {
-        200: struct("LoginResp", { login: stringEnum("EXISTING", "NEW") }),
+        200: struct({
+          login: stringEnum("EXISTING", "NEW"),
+        }),
       },
     },
   },
@@ -40,13 +63,13 @@ const japi: Parameters<typeof service>[1] = {
   "/otp": {
     POST: {
       name: "submitOtp",
-      req: struct("OtpReq", {
+      req: struct({
         email: email(),
         otp: string({ minLength: 1 }),
         updates: { type: boolean(), optional: true },
       }),
       res: {
-        201: struct("OtpResp", {
+        201: struct({
           jwt: string({ minLength: 1 }),
         }),
         401: unknown(),
@@ -59,11 +82,11 @@ const japi: Parameters<typeof service>[1] = {
       name: "submitUrl",
       req: {
         headers: optionalAuthHeaders,
-        body: struct("SubmitReq", { url: httpURL() }),
+        body: struct({ url: httpURL() }),
       },
       res: {
-        200: struct("SubmitResp", {
-          showID: ShowID,
+        200: struct({
+          showID: "ShowID",
           plan: stringEnum("free", "basic", "creator"),
         }),
         400: unknown(),
@@ -76,10 +99,10 @@ const japi: Parameters<typeof service>[1] = {
   "/show/:show_id": {
     GET: {
       name: "getShow",
-      params: { show_id: ShowID },
+      params: { show_id: "ShowID" },
       reqHeaders: optionalAuthHeaders,
       res: {
-        200: struct("Show", {}),
+        200: "Show",
         403: unknown(),
         404: unknown(),
       },
@@ -87,7 +110,7 @@ const japi: Parameters<typeof service>[1] = {
   },
 }
 
-export default service("listenbox", {
+export default service("listenbox", schemas, {
   "/japi": scope(japi, {
     req: { body: "application/json" },
     res: {
@@ -96,11 +119,11 @@ export default service("listenbox", {
         "content-length": int32({ minimum: 1 }),
       },
       codes: {
-        400: struct("ErrorStruct", {
+        400: struct({
           name: string(),
           value: string(),
           message: { type: string(), optional: true },
-          type: external<string>("ErrorType"),
+          type: external(),
         }),
       },
     },

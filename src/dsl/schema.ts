@@ -1,6 +1,15 @@
-export interface RObject<K extends string = string, V = unknown> {
+export type SchemaRec<T extends Record<string, Schema<T, unknown>>> = Record<
+  string,
+  Schema<T, unknown>
+>
+
+export interface RObject<
+  Schemas extends SchemaRec<Schemas>,
+  K extends string = string,
+  V = unknown,
+> {
   type: "object"
-  properties: Record<K, Schema<V>>
+  properties: Record<K, Schema<Schemas, V>>
   required?: K[]
 }
 
@@ -10,7 +19,7 @@ export interface Range {
   step: number
 }
 
-export type Schema<T> =
+export type Schema<Schemas extends SchemaRec<Schemas>, T> =
   | {
       type: "string"
       format?:
@@ -45,86 +54,99 @@ export type Schema<T> =
     }
   | { type: "boolean" }
   | { type: "unknown" }
-  | { type: "array"; items: Schema<unknown> }
-  | RObject
-  | { type: "union"; oneOf: Schema<unknown>[] }
+  | { type: "array"; items: Schema<Schemas, unknown> }
+  | RObject<Schemas>
+  | { type: "union"; oneOf: Schema<Schemas, unknown>[] }
+  | { type: "newtype"; underlying: Schema<Schemas, T> }
+  | { type: "external" }
 
-export interface Named<T> {
-  kind: "alias" | "newtype"
-  name: string
-  underlying: Schema<T>
-}
-
-interface External<T> {
-  kind: "external"
-  name: string
-}
-
-export interface Optionality<T> {
-  type: Schema<T> | Named<T> | External<T>
+export interface Optionality<Schemas extends SchemaRec<Schemas>, T> {
+  type: Schema<Schemas, T>
   optional: boolean
 }
 
-export const string = (opts?: {
+export const string = <Schemas extends SchemaRec<Schemas>>(opts?: {
   minLength?: number
   maxLength?: number
   pattern?: RegExp
-}): Schema<string> => ({ type: "string", ...opts })
+}): Schema<Schemas, string> => ({ type: "string", ...opts })
 
-const uuid = (): Schema<string> => ({ type: "string", format: "uuid" })
-
-export const newType = <T>(
-  name: string,
-  underlying: Schema<T> | Named<T>,
-): Named<T> => ({
-  kind: "newtype",
-  name,
-  underlying: "type" in underlying ? underlying : underlying.underlying,
+const uuid = <Schemas extends SchemaRec<Schemas>>(): Schema<
+  Schemas,
+  string
+> => ({
+  type: "string",
+  format: "uuid",
 })
 
-export const external = <T>(name: string): External<T> => ({
-  kind: "external",
-  name,
+export const newType = <Schemas extends SchemaRec<Schemas>, T>(
+  underlying: Schema<Schemas, T>,
+): Schema<Schemas, T> => ({
+  type: "newtype",
+  underlying,
 })
 
-export const boolean = (): Schema<boolean> => ({ type: "boolean" })
+export const external = <Schemas extends SchemaRec<Schemas>, T>(): Schema<
+  Schemas,
+  T
+> => ({
+  type: "external",
+})
 
-export type TheType<T> = Schema<T> | Named<T> | External<T>
+export const boolean = <Schemas extends SchemaRec<Schemas>>(): Schema<
+  Schemas,
+  boolean
+> => ({
+  type: "boolean",
+})
 
-export const unknown = (): Schema<unknown> => ({ type: "unknown" })
+export type TheType<Schemas extends SchemaRec<Schemas>, T> =
+  | Schema<Schemas, T>
+  | keyof Schemas
 
-export const struct = (
-  name: string,
-  fields: Record<string, TheType<unknown> | Optionality<unknown>>,
-): Named<object> => {
+export const unknown = <Schemas extends SchemaRec<Schemas>>(): Schema<
+  Schemas,
+  unknown
+> => ({
+  type: "unknown",
+})
+
+export const struct = <Schemas extends SchemaRec<Schemas>>(
+  fields: Record<
+    string,
+    TheType<Schemas, unknown> | Optionality<Schemas, unknown>
+  >,
+): Schema<Schemas, object> => {
   throw new Error("TODO")
 }
 
-export const int32 = (opts?: {
+export const int32 = <Schemas extends SchemaRec<Schemas>>(opts?: {
   minimum?: number
   maximum?: number
   range?: Range
   enum?: ReadonlyArray<number>
-}): Schema<number> => ({
+}): Schema<Schemas, number> => ({
   type: "number",
   format: "int32",
   ...opts,
 })
 
-export const template = (
+export const template = <Schemas extends SchemaRec<Schemas>>(
   strings: TemplateStringsArray,
-  ...expr: Schema<unknown>[]
-): Schema<string> => {
+  ...expr: Schema<Schemas, unknown>[]
+): Schema<Schemas, string> => {
   throw new Error("TODO")
 }
 
-export const union = (ss: ReadonlyArray<Schema<unknown>>): Schema<unknown> => {
+export const union = <Schemas extends SchemaRec<Schemas>>(
+  ss: ReadonlyArray<Schema<Schemas, unknown>>,
+): Schema<Schemas, unknown> => {
   throw new Error("TODO")
 }
 
-export const stringEnum = (
+export const stringEnum = <Schemas extends SchemaRec<Schemas>>(
   ...variants: ReadonlyArray<string>
-): Schema<string> => ({
+): Schema<Schemas, string> => ({
   type: "string",
   enum: variants,
 })
@@ -132,21 +154,32 @@ export const stringEnum = (
 /**
  * TODO just value
  */
-export const constant = (s: string): Schema<string> => ({
+export const constant = <Schemas extends SchemaRec<Schemas>>(
+  s: string,
+): Schema<Schemas, string> => ({
   type: "string",
   enum: [s],
 })
 
-export const email = (): Schema<string> => {
+export const email = <Schemas extends SchemaRec<Schemas>>(): Schema<
+  Schemas,
+  string
+> => {
   throw new Error("TODO pass format: email")
 }
 
-export const hostname = (): Schema<string> => {
+export const hostname = <Schemas extends SchemaRec<Schemas>>(): Schema<
+  Schemas,
+  string
+> => {
   throw new Error("TODO pass format: hostname")
   return string({ minLength: 1 })
 }
 
-export const httpURL = (): Schema<string> => {
+export const httpURL = <Schemas extends SchemaRec<Schemas>>(): Schema<
+  Schemas,
+  string
+> => {
   throw new Error("TODO pass format: uri")
   return template`http${stringEnum("s", "")}://${string()}`
 }

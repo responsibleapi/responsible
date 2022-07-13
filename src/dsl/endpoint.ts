@@ -1,78 +1,95 @@
-import { Named, Optionality, Schema, TheType } from "./schema"
+import { Optionality, SchemaRec, TheType } from "./schema"
 
-type PrimitiveSchema = Schema<string | number | boolean>
-type PrimitiveOptionality = Optionality<string | number | boolean>
-type PrimitiveNamed = Named<string | number | boolean>
+type PrimitiveSchema<Schemas extends SchemaRec<Schemas>> = TheType<
+  Schemas,
+  string | number | boolean
+>
 
-type Codes = Record<number, TheType<unknown>>
+type PrimitiveOptionality<Schemas extends SchemaRec<Schemas>> = Optionality<
+  Schemas,
+  string | number | boolean
+>
 
-export interface Bodyless {
+type Codes<Schemas extends SchemaRec<Schemas>> = Record<
+  number,
+  TheType<Schemas, unknown>
+>
+
+export interface Bodyless<Schemas extends SchemaRec<Schemas>> {
   name?: string
-  reqHeaders?: Headers
-  params?: Record<string, PrimitiveSchema | PrimitiveNamed>
+  reqHeaders?: Headers<Schemas>
+  params?: Record<string, PrimitiveSchema<Schemas>>
   query?: Record<
     string,
-    PrimitiveSchema | PrimitiveOptionality | PrimitiveNamed
+    PrimitiveSchema<Schemas> | PrimitiveOptionality<Schemas>
   >
-  res: Codes
+  res: Codes<Schemas>
 }
 
-export interface Bodied extends Bodyless {
+export interface Bodied<Schemas extends SchemaRec<Schemas>>
+  extends Bodyless<Schemas> {
   req:
-    | TheType<unknown>
+    | TheType<Schemas, unknown>
     | {
-        headers?: Headers
-        body: TheType<unknown>
+        headers?: Headers<Schemas>
+        body: TheType<Schemas, unknown>
       }
 }
 
-export type Headers = Record<
+export type Headers<Schemas extends SchemaRec<Schemas>> = Record<
   Lowercase<string>,
-  PrimitiveSchema | PrimitiveNamed | PrimitiveOptionality
+  PrimitiveSchema<Schemas> | PrimitiveOptionality<Schemas>
 >
 
-export interface ScopeOpts {
+export interface ScopeOpts<Schemas extends SchemaRec<Schemas>> {
   req?: {
     body: Mime
-    headers?: Headers
+    headers?: Headers<Schemas>
   }
   res?: {
     body: Mime
-    headers?: Headers
-    codes?: Codes
+    headers?: Headers<Schemas>
+    codes?: Codes<Schemas>
   }
 }
 
-export interface Scope {
-  endpoints: Endpoints
-  opts: ScopeOpts
+export interface Scope<Schemas extends SchemaRec<Schemas>> {
+  endpoints: Endpoints<Schemas>
+  opts: ScopeOpts<Schemas>
 }
 
-type Endpoints = Record<
+export type Endpoints<Schemas extends SchemaRec<Schemas>> = Record<
   `/${string}`,
   | {
-      GET?: Bodyless
-      HEAD?: Bodyless
-      DELETE?: Bodyless
+      GET?: Bodyless<Schemas>
+      HEAD?: Bodyless<Schemas>
+      DELETE?: Bodyless<Schemas>
 
-      POST?: Bodied
-      PUT?: Bodied
-      PATCH?: Bodied
+      POST?: Bodied<Schemas>
+      PUT?: Bodied<Schemas>
+      PATCH?: Bodied<Schemas>
     }
-  | Scope
+  | Scope<Schemas>
 >
 
-export const scope = (endpoints: Endpoints, opts: ScopeOpts): Scope => ({
+export const scope = <Schemas extends SchemaRec<Schemas>>(
+  endpoints: Endpoints<Schemas>,
+  opts: ScopeOpts<Schemas>,
+): Scope<Schemas> => ({
   endpoints,
   opts,
 })
 
 type Mime = `${string}/${string}`
 
-export const service = (
+export const service = <
+  Schemas extends SchemaRec<Schemas>,
+  Es extends Endpoints<Schemas>,
+>(
   name: string,
-  endpoints: Endpoints,
-  opts?: ScopeOpts,
+  schema: Schemas,
+  endpoints: Es,
+  opts?: ScopeOpts<Schemas>,
 ) => ({
   name,
   endpoints,

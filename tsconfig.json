@@ -1,15 +1,9 @@
 {
   "compilerOptions": {
-    "lib": [
-      "ESNext"
-    ]
+    "lib": ["ESNext"],
+    "target": "ES5"
   },
   "extends": "./tsconfig.base.json",
-  "include": [
-    "src/"
-  ],
-  "exclude": [
-    "node_modules/",
-    "**/__tests__/"
-  ]
+  "include": ["src/"],
+  "exclude": ["node_modules/", "**/__tests__/"]
 }
