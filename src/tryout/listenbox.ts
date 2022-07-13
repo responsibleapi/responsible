@@ -8,6 +8,7 @@ import {
   newType,
   Optionality,
   Schema,
+  SchemaRec,
   string,
   stringEnum,
   struct,
@@ -20,17 +21,22 @@ const schemas = {
 
   FeedID: newType(string({ minLength: 10, maxLength: 11 })),
 
+  ITunesCategory: struct({
+    category: string({ minLength: 1 }),
+    subcategory: string({ minLength: 1, optional: true }),
+  }),
+
   get Show() {
     return struct({
       id: this.ShowID,
       feed_id: this.FeedID,
       title: string(),
-      image: { type: httpURL(), optional: true },
-      description: { type: string(), optional: true },
-      author: { type: string(), optional: true },
-      copyright: { type: string(), optional: true },
-      keywords: { type: string(), optional: true },
-      website: { type: httpURL(), optional: true },
+      image: httpURL({ optional: true }),
+      description: string({ optional: true }),
+      author: string({ optional: true }),
+      copyright: string({ optional: true }),
+      keywords: string({ optional: true }),
+      website: httpURL({ optional: true }),
       language: string(),
       explicit: { type: boolean(), optional: true },
     })

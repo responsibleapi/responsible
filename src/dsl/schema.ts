@@ -65,11 +65,24 @@ export interface Optionality<Schemas extends SchemaRec<Schemas>, T> {
   optional: boolean
 }
 
-export const string = <Schemas extends SchemaRec<Schemas>>(opts?: {
+interface StringOpts {
   minLength?: number
   maxLength?: number
   pattern?: RegExp
-}): Schema<Schemas, string> => ({ type: "string", ...opts })
+}
+
+export function string<Schemas extends SchemaRec<Schemas>>(
+  opts?: StringOpts,
+): Schema<Schemas, string>
+export function string<Schemas extends SchemaRec<Schemas>>(
+  opts?: StringOpts & { optional: true },
+): Optionality<Schemas, string>
+export function string<Schemas extends SchemaRec<Schemas>>(
+  opts?: StringOpts & { optional?: true },
+): Schema<Schemas, string> | Optionality<Schemas, string> {
+  const type = { type: "string", ...opts } as const
+  return opts?.optional ? { optional: true, type } : type
+}
 
 const uuid = <Schemas extends SchemaRec<Schemas>>(): Schema<
   Schemas,
@@ -176,10 +189,16 @@ export const hostname = <Schemas extends SchemaRec<Schemas>>(): Schema<
   return string({ minLength: 1 })
 }
 
-export const httpURL = <Schemas extends SchemaRec<Schemas>>(): Schema<
+export function httpURL<Schemas extends SchemaRec<Schemas>>(): Schema<
   Schemas,
   string
-> => {
+>
+export function httpURL<Schemas extends SchemaRec<Schemas>>(opts: {
+  optional: true
+}): Optionality<Schemas, string>
+export function httpURL<Schemas extends SchemaRec<Schemas>>(opts?: {
+  optional: true
+}): Schema<Schemas, string> | Optionality<Schemas, string> {
   throw new Error("TODO pass format: uri")
-  return template`http${stringEnum("s", "")}://${string()}`
+  // return template`http${stringEnum("s", "")}://${string()}`
 }
