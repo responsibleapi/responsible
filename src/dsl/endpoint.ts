@@ -20,7 +20,6 @@ type Codes<Schemas extends RefsRec> = Record<
 export interface Bodiless<Schemas extends RefsRec> {
   name?: string
   reqHeaders?: Headers<Schemas>
-  params?: Record<string, PrimitiveSchema<Schemas>>
   query?: Record<
     string,
     PrimitiveSchema<Schemas> | PrimitiveOptionality<Schemas>
@@ -44,11 +43,11 @@ export type Headers<Schemas extends RefsRec> = Record<
 
 export interface ScopeOpts<Schemas extends RefsRec> {
   req?: {
-    body: Mime
+    body?: Mime
     headers?: Headers<Schemas>
   }
   res?: {
-    body: Mime
+    body?: Mime
     headers?: Headers<Schemas>
     codes?: Codes<Schemas>
   }
@@ -62,6 +61,8 @@ export interface Scope<Schemas extends RefsRec> {
 export type Endpoints<Schemas extends RefsRec> = Record<
   `/${string}`,
   | {
+      params?: Record<string, PrimitiveSchema<Schemas>>
+
       GET?: Bodiless<Schemas>
       HEAD?: Bodiless<Schemas>
       DELETE?: Bodiless<Schemas>

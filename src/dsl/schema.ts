@@ -19,7 +19,7 @@ type StringFormat =
   | "byte"
   | "binary"
 
-export type Schema<Refs extends RefsRec, T> =
+type Schema<Refs extends RefsRec, T> =
   | {
       type: "string"
       format?: StringFormat
@@ -43,7 +43,7 @@ export type Schema<Refs extends RefsRec, T> =
     }
   | { type: "boolean" }
   | { type: "unknown" }
-  | { type: "array"; items: Schema<Refs, unknown> }
+  | { type: "array"; items: SchemaOrRef<Refs, unknown> }
   | {
       type: "object"
       fields: Record<
@@ -54,18 +54,27 @@ export type Schema<Refs extends RefsRec, T> =
   | { type: "union"; oneOf: Schema<Refs, unknown>[] }
   | { type: "newtype"; underlying: Schema<Refs, T> }
   | { type: "external" }
+  | {
+      type: "dict"
+      k: SchemaOrRef<Refs, unknown>
+      v: SchemaOrRef<Refs, unknown>
+    }
 
 export interface Optional<Schemas extends RefsRec, T> {
-  schema: Schema<Schemas, T>
+  schema: SchemaOrRef<Schemas, T>
 }
 
 export const optional = <Schemas extends RefsRec, T>(
-  schema: Schema<Schemas, T>,
+  schema: SchemaOrRef<Schemas, T>,
 ): Optional<Schemas, T> => ({ schema })
 
-export const nat = <Schemas extends RefsRec>(
+export const nat32 = <Schemas extends RefsRec>(
   opts?: NumberOpts,
 ): Schema<Schemas, number> => newType(int32({ minimum: 0, ...opts }))
+
+export const nat64 = <Schemas extends RefsRec>(
+  opts?: NumberOpts,
+): Schema<Schemas, number> => newType(int64({ minimum: 0, ...opts }))
 
 export const utcMillis = <Schemas extends RefsRec>(): Schema<Schemas, number> =>
   newType(int64())
@@ -117,6 +126,15 @@ export const unknown = <Schemas extends RefsRec>(): Schema<
   type: "unknown",
 })
 
+export const dict = <Schemas extends RefsRec>(
+  k: SchemaOrRef<Schemas, unknown>,
+  v: SchemaOrRef<Schemas, unknown>,
+): Schema<Schemas, unknown> => ({
+  type: "dict",
+  k,
+  v,
+})
+
 export const struct = <Schemas extends RefsRec>(
   fields: Record<
     string,
@@ -142,7 +160,7 @@ export const int32 = <Schemas extends RefsRec>(
 })
 
 export const array = <Schemas extends RefsRec, X>(
-  items: Schema<Schemas, X>,
+  items: SchemaOrRef<Schemas, X>,
 ): Schema<Schemas, ReadonlyArray<X>> => ({
   type: "array",
   items,
