@@ -1,53 +1,90 @@
 import {
+  array,
   boolean,
+  dateTime,
   email,
   external,
   hostname,
   httpURL,
   int32,
+  mime,
+  nat,
   newType,
-  Optionality,
-  Schema,
-  SchemaRec,
+  optional,
+  seconds,
   string,
   stringEnum,
   struct,
   unknown,
+  utcMillis,
 } from "../dsl/schema"
 import { Endpoints, Headers, scope, service } from "../dsl/endpoint"
 
 const schemas = {
-  ShowID: newType(string({ minLength: 10, maxLength: 11 })),
+  ValidationExceptionErrorType: external(),
 
-  FeedID: newType(string({ minLength: 10, maxLength: 11 })),
+  FeedID: newType(string({ length: 11 })),
+
+  ShowID: newType(string({ minLength: 11, maxLength: 12 })),
+
+  ItemID: newType(string({ length: 11 })),
 
   ITunesCategory: struct({
     category: string({ minLength: 1 }),
-    subcategory: string({ minLength: 1, optional: true }),
+    subcategory: optional(string({ minLength: 1 })),
   }),
+
+  YouTubeFeedType: stringEnum("video", "playlist", "channel"),
 
   get Show() {
     return struct({
       id: this.ShowID,
       feed_id: this.FeedID,
       title: string(),
-      image: httpURL({ optional: true }),
-      description: string({ optional: true }),
-      author: string({ optional: true }),
-      copyright: string({ optional: true }),
-      keywords: string({ optional: true }),
-      website: httpURL({ optional: true }),
+      image: optional(httpURL()),
+      description: string(),
+      author: optional(string()),
+      copyright: optional(string()),
+      keywords: optional(string()),
+      website: optional(httpURL()),
       language: string(),
-      explicit: { type: boolean(), optional: true },
+      explicit: optional(boolean()),
+      owner: optional(string()),
+      ownerEmail: optional(email()),
+      primaryCategory: optional(this.ITunesCategory),
+      secondaryCategory: optional(this.ITunesCategory),
+      episodes: nat(),
+      audioFeedURL: httpURL(),
+      videoFeedURL: httpURL(),
+      refreshedUTC: optional(utcMillis()),
+      youtubeURL: httpURL(),
+      analyticsPrefix: optional(httpURL()),
+      reverse: optional(boolean()),
+      type: this.YouTubeFeedType,
+    })
+  },
+
+  get JsonItem() {
+    return struct({
+      id: this.ItemID,
+      title: string(),
+      image: optional(httpURL()),
+      webpage_url: httpURL(),
+      duration_seconds: optional(seconds()),
+      mime: optional(mime()),
+    })
+  },
+
+  get ItemsResp() {
+    return struct({
+      items: array(this.JsonItem),
+      total: nat(),
     })
   },
 } as const
 
 const optionalAuthHeaders: Headers<typeof schemas> = {
-  authorization: {
-    type: string({ minLength: 1 }),
-    optional: true,
-  },
+  authorization: optional(string({ minLength: 1 })),
 }
 
 const japi: Endpoints<typeof schemas> = {
@@ -72,7 +109,7 @@ const japi: Endpoints<typeof schemas> = {
       req: struct({
         email: email(),
         otp: string({ minLength: 1 }),
-        updates: { type: boolean(), optional: true },
+        updates: optional(boolean()),
       }),
       res: {
         201: struct({
@@ -114,6 +151,21 @@ const japi: Endpoints<typeof schemas> = {
       },
     },
   },
+
+  "/show/:show_id/items": {
+    GET: {
+      name: "getItems",
+      params: { show_id: "ShowID" },
+      query: {
+        before: optional(dateTime()),
+        limit: optional(nat({ minimum: 1 })),
+      },
+      res: {
+        200: "ItemsResp",
+        404: unknown(),
+      },
+    },
+  },
 }
 
 export default service("listenbox", schemas, {
@@ -128,8 +180,8 @@ export default service("listenbox", schemas, {
         400: struct({
           name: string(),
           value: string(),
-          message: { type: string(), optional: true },
-          type: external(),
+          message: optional(string()),
+          type: "ValidationExceptionErrorType",
         }),
       },
     },
