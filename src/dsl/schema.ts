@@ -68,7 +68,7 @@ export const nat = <Schemas extends RefsRec>(
 ): Schema<Schemas, number> => newType(int32({ minimum: 0, ...opts }))
 
 export const utcMillis = <Schemas extends RefsRec>(): Schema<Schemas, number> =>
-  newType(int64({ minimum: 0 }))
+  newType(int64())
 
 export const seconds = <Schemas extends RefsRec>(): Schema<Schemas, number> =>
   newType(int64({ minimum: 0 }))

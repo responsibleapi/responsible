@@ -2,16 +2,22 @@ import { Optional, RefsRec, SchemaOrRef } from "./schema"
 
 type Primitive = string | number | boolean
 
-type PrimitiveSchema<Schemas extends RefsRec> = SchemaOrRef<Schemas, Primitive>
+type PrimitiveSchema<
+  Schemas extends RefsRec,
+  P extends Primitive = Primitive,
+> = SchemaOrRef<Schemas, P>
 
-type PrimitiveOptionality<Refs extends RefsRec> = Optional<Refs, Primitive>
+type PrimitiveOptionality<
+  Refs extends RefsRec,
+  P extends Primitive = Primitive,
+> = Optional<Refs, P>
 
 type Codes<Schemas extends RefsRec> = Record<
   number,
   SchemaOrRef<Schemas, unknown>
 >
 
-export interface Bodyless<Schemas extends RefsRec> {
+export interface Bodiless<Schemas extends RefsRec> {
   name?: string
   reqHeaders?: Headers<Schemas>
   params?: Record<string, PrimitiveSchema<Schemas>>
@@ -22,7 +28,7 @@ export interface Bodyless<Schemas extends RefsRec> {
   res: Codes<Schemas>
 }
 
-export interface Bodied<Schemas extends RefsRec> extends Bodyless<Schemas> {
+export interface Bodied<Schemas extends RefsRec> extends Bodiless<Schemas> {
   req:
     | SchemaOrRef<Schemas, unknown>
     | {
@@ -56,9 +62,9 @@ export interface Scope<Schemas extends RefsRec> {
 export type Endpoints<Schemas extends RefsRec> = Record<
   `/${string}`,
   | {
-      GET?: Bodyless<Schemas>
-      HEAD?: Bodyless<Schemas>
-      DELETE?: Bodyless<Schemas>
+      GET?: Bodiless<Schemas>
+      HEAD?: Bodiless<Schemas>
+      DELETE?: Bodiless<Schemas>
 
       POST?: Bodied<Schemas>
       PUT?: Bodied<Schemas>
