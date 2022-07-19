@@ -1,15 +1,18 @@
 import {
-  constant,
   external,
   httpURL,
   int32,
   string,
   struct,
+  unknown,
 } from "../dsl/schema"
 import { service } from "../dsl/endpoint"
 
 export default service(
-  "yanic",
+  {
+    title: "yanic",
+    version: "1.0.0",
+  },
   {
     YtDlInfo: external(),
     YtDlOpts: external(),
@@ -34,7 +37,7 @@ export default service(
           opts: "YtDlOpts",
         }),
         res: {
-          200: constant("ok"),
+          200: unknown(),
           400: string({ minLength: 1 }),
         },
       },

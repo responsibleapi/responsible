@@ -1,85 +1,31 @@
-export type RefsRec = Record<string, Schema<any, unknown>>
-
-export interface Range {
-  start: number
-  end: number
-  step: number
-}
-
-type StringFormat =
-  | "email"
-  | "date"
-  | "date-time"
-  | "password"
-  | "uri"
-  | "hostname"
-  | "uuid"
-  | "ipv4"
-  | "ipv6"
-  | "byte"
-  | "binary"
-
-type Schema<Refs extends RefsRec, T> =
-  | {
-      type: "string"
-      format?: StringFormat
-      minLength?: number
-      maxLength?: number
-      pattern?: RegExp
-      enum?: ReadonlyArray<string>
-
-      /**
-       * TODO how do we verify
-       */
-      template?: string
-    }
-  | {
-      type: "number"
-      format?: "int32" | "int64" | "float" | "double"
-      minimum?: number
-      maximum?: number
-      range?: Range
-      enum?: ReadonlyArray<number>
-    }
-  | { type: "boolean" }
-  | { type: "unknown" }
-  | { type: "array"; items: SchemaOrRef<Refs, unknown> }
-  | {
-      type: "object"
-      fields: Record<
-        string,
-        SchemaOrRef<Refs, unknown> | Optional<Refs, unknown>
-      >
-    }
-  | { type: "union"; oneOf: Schema<Refs, unknown>[] }
-  | { type: "newtype"; underlying: Schema<Refs, T> }
-  | { type: "external" }
-  | {
-      type: "dict"
-      k: SchemaOrRef<Refs, unknown>
-      v: SchemaOrRef<Refs, unknown>
-    }
-
-export interface Optional<Schemas extends RefsRec, T> {
-  schema: SchemaOrRef<Schemas, T>
-}
+import {
+  Optional,
+  Range,
+  RefsRec,
+  RSchema,
+  RString,
+  SchemaOrRef,
+  StringFormat,
+} from "../core/service"
 
 export const optional = <Schemas extends RefsRec, T>(
   schema: SchemaOrRef<Schemas, T>,
-): Optional<Schemas, T> => ({ schema })
+): Optional<Schemas, T> => ({ schema, kind: "optional" })
 
 export const nat32 = <Schemas extends RefsRec>(
   opts?: NumberOpts,
-): Schema<Schemas, number> => newType(int32({ minimum: 0, ...opts }))
+): RSchema<Schemas, number> => newType(int32({ minimum: 0, ...opts }))
 
 export const nat64 = <Schemas extends RefsRec>(
   opts?: NumberOpts,
-): Schema<Schemas, number> => newType(int64({ minimum: 0, ...opts }))
+): RSchema<Schemas, number> => newType(int64({ minimum: 0, ...opts }))
 
-export const utcMillis = <Schemas extends RefsRec>(): Schema<Schemas, number> =>
-  newType(int64())
+export const utcMillis = <Schemas extends RefsRec>(): RSchema<
+  Schemas,
+  number
+> => newType(int64())
 
-export const seconds = <Schemas extends RefsRec>(): Schema<Schemas, number> =>
+export const seconds = <Schemas extends RefsRec>(): RSchema<Schemas, number> =>
   newType(int64({ minimum: 0 }))
 
 interface StringOpts {
@@ -92,34 +38,35 @@ interface StringOpts {
 
 export const string = <Schemas extends RefsRec>(
   opts?: StringOpts,
-): Schema<Schemas, string> => ({ type: "string", ...opts })
+): RString<Schemas> => ({ type: "string", ...opts })
 
-const uuid = <Schemas extends RefsRec>(): Schema<Schemas, string> => ({
+const uuid = <Schemas extends RefsRec>(): RSchema<Schemas, string> => ({
   type: "string",
   format: "uuid",
 })
 
 export const newType = <Schemas extends RefsRec, T>(
-  underlying: Schema<Schemas, T>,
-): Schema<Schemas, T> => ({
+  underlying: RSchema<Schemas, T>,
+): RSchema<Schemas, T> => ({
   type: "newtype",
   underlying,
 })
 
-export const external = <Schemas extends RefsRec, T>(): Schema<Schemas, T> => ({
+export const external = <Schemas extends RefsRec, T>(): RSchema<
+  Schemas,
+  T
+> => ({
   type: "external",
 })
 
-export const boolean = <Schemas extends RefsRec>(): Schema<
+export const boolean = <Schemas extends RefsRec>(): RSchema<
   Schemas,
   boolean
 > => ({
   type: "boolean",
 })
 
-export type SchemaOrRef<Refs extends RefsRec, T> = Schema<Refs, T> | keyof Refs
-
-export const unknown = <Schemas extends RefsRec>(): Schema<
+export const unknown = <Schemas extends RefsRec>(): RSchema<
   Schemas,
   unknown
 > => ({
@@ -129,7 +76,7 @@ export const unknown = <Schemas extends RefsRec>(): Schema<
 export const dict = <Schemas extends RefsRec>(
   k: SchemaOrRef<Schemas, unknown>,
   v: SchemaOrRef<Schemas, unknown>,
-): Schema<Schemas, unknown> => ({
+): RSchema<Schemas, unknown> => ({
   type: "dict",
   k,
   v,
@@ -140,9 +87,7 @@ export const struct = <Schemas extends RefsRec>(
     string,
     SchemaOrRef<Schemas, unknown> | Optional<Schemas, unknown>
   >,
-): Schema<Schemas, object> => {
-  throw new Error("TODO")
-}
+): RSchema<Schemas, object> => ({ type: "object", fields })
 
 interface NumberOpts {
   minimum?: number
@@ -153,7 +98,7 @@ interface NumberOpts {
 
 export const int32 = <Schemas extends RefsRec>(
   opts?: NumberOpts,
-): Schema<Schemas, number> => ({
+): RSchema<Schemas, number> => ({
   type: "number",
   format: "int32",
   ...opts,
@@ -161,12 +106,12 @@ export const int32 = <Schemas extends RefsRec>(
 
 export const array = <Schemas extends RefsRec, X>(
   items: SchemaOrRef<Schemas, X>,
-): Schema<Schemas, ReadonlyArray<X>> => ({
+): RSchema<Schemas, ReadonlyArray<X>> => ({
   type: "array",
   items,
 })
 
-export const dateTime = <Schemas extends RefsRec>(): Schema<
+export const dateTime = <Schemas extends RefsRec>(): RSchema<
   Schemas,
   string
 > => ({
@@ -176,28 +121,34 @@ export const dateTime = <Schemas extends RefsRec>(): Schema<
 
 export const int64 = <Schemas extends RefsRec>(
   opts?: NumberOpts,
-): Schema<Schemas, number> => ({
+): RSchema<Schemas, number> => ({
   type: "number",
   format: "int64",
   ...opts,
 })
 
+const stringOpts = <T extends RefsRec>(
+  schema: RString<T>,
+  opts: StringOpts,
+): RString<T> => ({ ...schema, ...opts })
+
 export const template = <Schemas extends RefsRec>(
   strings: TemplateStringsArray,
-  ...expr: Schema<Schemas, unknown>[]
-): Schema<Schemas, string> => {
-  throw new Error("TODO")
-}
+  ...expr: RSchema<Schemas, unknown>[]
+): RString<Schemas> => ({
+  type: "string",
+  template: { strings, expr },
+})
 
 export const union = <Schemas extends RefsRec>(
-  ss: ReadonlyArray<Schema<Schemas, unknown>>,
-): Schema<Schemas, unknown> => {
+  ss: ReadonlyArray<RSchema<Schemas, unknown>>,
+): RSchema<Schemas, unknown> => {
   throw new Error("TODO")
 }
 
 export const stringEnum = <Schemas extends RefsRec>(
   ...variants: ReadonlyArray<string>
-): Schema<Schemas, string> => ({
+): RSchema<Schemas, string> => ({
   type: "string",
   enum: variants,
 })
@@ -207,23 +158,21 @@ export const stringEnum = <Schemas extends RefsRec>(
  */
 export const constant = <Schemas extends RefsRec>(
   s: string,
-): Schema<Schemas, string> => ({
+): RSchema<Schemas, string> => ({
   type: "string",
   enum: [s],
 })
 
-export const email = <Schemas extends RefsRec>(): Schema<Schemas, string> => {
-  throw new Error("TODO pass format: email")
-}
-
-export const hostname = <Schemas extends RefsRec>(): Schema<Schemas, string> =>
+export const hostname = <T extends RefsRec>(): RSchema<T, string> =>
   string({ minLength: 1, format: "hostname" })
 
-export const mime = <Schemas extends RefsRec>(): Schema<Schemas, string> => {
-  throw new Error("TODO template")
-}
+export const mime = <T extends RefsRec>(): RSchema<T, string> =>
+  template`${string()}/${string()}`
 
-export function httpURL<Refs extends RefsRec>(): Schema<Refs, string> {
-  throw new Error("TODO pass format: uri")
-  // return template`http${stringEnum("s", "")}://${string()}`
-}
+export const httpURL = <T extends RefsRec>(): RString<T> =>
+  stringOpts(template`http${stringEnum("s", "")}://${string()}`, {
+    format: "uri",
+  })
+
+export const email = <T extends RefsRec>(): RSchema<T, string> =>
+  stringOpts(template`${string()}@${string()}.${string()}`, { format: "email" })

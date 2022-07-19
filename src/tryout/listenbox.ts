@@ -20,12 +20,21 @@ import {
   unknown,
   utcMillis,
 } from "../dsl/schema"
-import { Endpoints, Headers, scope, service } from "../dsl/endpoint"
+import { Endpoints, Headers } from "../core/service"
+import { scope, service } from "../dsl/endpoint"
 
 const schemas = {
-  SubmitReq: struct({ url: httpURL() }),
+  FeedID: newType(string({ length: 11 })),
+
+  ShowID: newType(string({ minLength: 11, maxLength: 12 })),
+
+  ItemID: newType(string({ length: 11 })),
 
   StripeCheckoutID: newType(string({ minLength: 1 })),
+
+  SubmitReq: struct({
+    url: httpURL(),
+  }),
 
   Plan: stringEnum("free", "basic", "creator"),
 
@@ -53,12 +62,6 @@ const schemas = {
   }),
 
   ValidationExceptionErrorType: external(),
-
-  FeedID: newType(string({ length: 11 })),
-
-  ShowID: newType(string({ minLength: 11, maxLength: 12 })),
-
-  ItemID: newType(string({ length: 11 })),
 
   ITunesCategory: struct({
     category: string({ minLength: 1 }),
@@ -398,22 +401,29 @@ const japi: Endpoints<typeof schemas> = {
   ),
 }
 
-export default service("listenbox", schemas, {
-  "/japi": scope(japi, {
-    req: { body: "application/json" },
-    res: {
-      body: "application/json",
-      headers: {
-        "content-length": int32({ minimum: 1 }),
+export default service(
+  {
+    title: "listenbox",
+    version: "1.0.0",
+  },
+  schemas,
+  {
+    "/japi": scope(japi, {
+      req: { body: "application/json" },
+      res: {
+        body: "application/json",
+        headers: {
+          "content-length": int32({ minimum: 1 }),
+        },
+        codes: {
+          400: struct({
+            name: string(),
+            value: string(),
+            message: optional(string()),
+            type: "ValidationExceptionErrorType",
+          }),
+        },
       },
-      codes: {
-        400: struct({
-          name: string(),
-          value: string(),
-          message: optional(string()),
-          type: "ValidationExceptionErrorType",
-        }),
-      },
-    },
-  }),
-})
+    }),
+  },
+)

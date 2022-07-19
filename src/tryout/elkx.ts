@@ -2,7 +2,10 @@ import { external, int32, struct, unknown } from "../dsl/schema"
 import { service } from "../dsl/endpoint"
 
 export default service(
-  "elkx",
+  {
+    title: "elkx",
+    version: "0.1.0",
+  },
   {
     ElkNode: external(),
     LayoutOpts: external(),
