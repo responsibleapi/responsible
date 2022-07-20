@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 
-import { httpURL, string, template } from "../schema"
+import { httpURL, string } from "../schema"
 
 describe.concurrent("schema", () => {
   test("http URL", () => {

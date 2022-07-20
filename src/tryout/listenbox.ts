@@ -20,7 +20,7 @@ import {
   unknown,
   utcMillis,
 } from "../dsl/schema"
-import { Endpoints, Headers } from "../core/service"
+import { Endpoints, PrimitiveBag } from "../core/endpoint"
 import { scope, service } from "../dsl/endpoint"
 
 const schemas = {
@@ -155,7 +155,7 @@ const schemas = {
   }),
 } as const
 
-const optionalAuthHeaders: Headers<typeof schemas> = {
+const optionalAuthHeaders: PrimitiveBag<typeof schemas> = {
   authorization: optional(string({ minLength: 1 })),
 }
 

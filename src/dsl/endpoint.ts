@@ -1,4 +1,4 @@
-import { Endpoints, RefsRec, Scope, ScopeOpts } from "../core/service"
+import { Endpoints, RefsRec, Scope, ScopeOpts } from "../core/endpoint"
 
 export const scope = <Refs extends RefsRec>(
   endpoints: Endpoints<Refs>,

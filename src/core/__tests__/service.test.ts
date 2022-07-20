@@ -1,6 +1,7 @@
-import { optional, string } from "../../dsl/schema"
 import { describe, expect, test } from "vitest"
-import { isOptional } from "../service"
+
+import { optional, string } from "../../dsl/schema"
+import { isOptional } from "../endpoint"
 
 describe.concurrent("service", () => {
   test("is optional", () => {

@@ -1,62 +1,68 @@
-import {
-  constant,
-  external,
-  httpURL,
-  int32,
-  string,
-  struct,
-} from "../../dsl/schema"
-import { service } from "../../dsl/endpoint"
-import { describe, test } from "vitest"
-import { toOpenAPI } from "../openapi"
+import { describe, expect, test } from "vitest"
+import { OpenAPIV3_1 } from "openapi-types"
+
+import { toOpenAPI, toPaths, traverse } from "../openapi"
+import { scope } from "../../dsl/endpoint"
+import yanic from "../../tryout/yanic"
+import elkx from "../../tryout/elkx"
 
 describe.concurrent("openapi generator", () => {
   test("yanic", () => {
-    const s = service(
-      {
-        title: "yanic",
-        version: "1.0.0",
-      },
-      {
-        YtDlInfo: external(),
-        YtDlOpts: external(),
-      },
-      {
-        "/info": {
-          POST: {
-            req: struct({
-              url: httpURL(),
-              opts: "YtDlOpts",
+    console.log(JSON.stringify(toOpenAPI(yanic), null, 2))
+  })
+
+  test("elkx", () => {
+    console.log(JSON.stringify(toOpenAPI(elkx), null, 2))
+  })
+
+  test("traverse", () => {
+    expect(
+      traverse({
+        endpoints: {
+          "/foo": {},
+          "/bar": {},
+          "/baz": scope({
+            "/qux": {},
+          }),
+        },
+      }),
+    ).toEqual([
+      [{}, "/foo", {}],
+      [{}, "/bar", {}],
+      [
+        {
+          req: { body: undefined, headers: {} },
+          res: { body: undefined, codes: {}, headers: {} },
+        },
+        "/baz/qux",
+        {},
+      ],
+    ])
+  })
+
+  test("to paths", () => {
+    const getPath = ([s]: [string, OpenAPIV3_1.PathItemObject]) => s
+    expect(toPaths({}, { endpoints: {}, opts: {} }).map(getPath)).toEqual([])
+
+    expect(
+      toPaths({}, { endpoints: { "/foo": {}, "/bar": {} }, opts: {} }).map(
+        getPath,
+      ),
+    ).toEqual(["/foo", "/bar"])
+
+    expect(
+      toPaths(
+        {},
+        {
+          endpoints: {
+            "/foo": {},
+            "/bar": {},
+            "/baz": scope({
+              "/qux": {},
             }),
-            res: {
-              200: "YtDlInfo",
-              400: string({ minLength: 1 }),
-            },
           },
         },
-        "/download": {
-          POST: {
-            req: struct({
-              info: "YtDlInfo",
-              opts: "YtDlOpts",
-            }),
-            res: {
-              200: constant("ok"),
-              400: string({ minLength: 1 }),
-            },
-          },
-        },
-      },
-      {
-        req: { body: "application/json" },
-        res: {
-          body: "application/json",
-          headers: {
-            "content-length": int32({ minimum: 1 }),
-          },
-        },
-      },
-    )
-    console.log(JSON.stringify(toOpenAPI(s), null, 2))
+      ).map(getPath),
+    ).toEqual(["/foo", "/bar", "/baz/qux"])
   })
 })

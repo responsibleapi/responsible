@@ -6,7 +6,7 @@ import {
   RString,
   SchemaOrRef,
   StringFormat,
-} from "../core/service"
+} from "../core/endpoint"
 
 export const optional = <Schemas extends RefsRec, T>(
   schema: SchemaOrRef<Schemas, T>,
