@@ -1,25 +1,6 @@
+import { ScopeOpts } from "../dsl/endpoint"
+
 export type RefsRec = Record<string, RSchema<any, unknown>>
-
-type Codes<Refs extends RefsRec> = Record<number, SchemaOrRef<Refs, unknown>>
-
-interface BaseReq<Refs extends RefsRec> {
-  name?: string
-  query?: PrimitiveBag<Refs>
-  res: Codes<Refs>
-}
-
-export interface Bodiless<Schemas extends RefsRec> extends BaseReq<Schemas> {
-  reqHeaders?: PrimitiveBag<Schemas>
-}
-
-export interface Bodied<Schemas extends RefsRec> extends BaseReq<Schemas> {
-  req:
-    | SchemaOrRef<Schemas, unknown>
-    | {
-        headers?: PrimitiveBag<Schemas>
-        body: SchemaOrRef<Schemas, unknown>
-      }
-}
 
 type Primitive = string | number | boolean
 
@@ -38,40 +19,12 @@ export type PrimitiveBag<Refs extends RefsRec> = Record<
   PrimitiveSchema<Refs> | PrimitiveOptionality<Refs>
 >
 
-export interface PathWithMethods<Refs extends RefsRec> {
-  params?: Record<string, PrimitiveSchema<Refs>>
-
-  GET?: Bodiless<Refs>
-  HEAD?: Bodiless<Refs>
-  DELETE?: Bodiless<Refs>
-
-  POST?: Bodied<Refs>
-  PUT?: Bodied<Refs>
-  PATCH?: Bodied<Refs>
-}
-
-export type Endpoints<Refs extends RefsRec> = Record<
-  `/${string}`,
-  PathWithMethods<Refs> | Scope<Refs>
+export type RequiredPrimitiveBag<Refs extends RefsRec> = Record<
+  string,
+  PrimitiveSchema<Refs>
 >
 
-export const isScope = <Refs extends RefsRec>(
-  x: PathWithMethods<Refs> | Scope<Refs>,
-): x is Scope<Refs> => "endpoints" in x && typeof x.endpoints === "object"
-
-type Mime = `${string}/${string}`
-
-export interface ScopeOpts<Schemas extends RefsRec> {
-  req?: {
-    body?: Mime
-    headers?: PrimitiveBag<Schemas>
-  }
-  res?: {
-    body?: Mime
-    headers?: PrimitiveBag<Schemas>
-    codes?: Codes<Schemas>
-  }
-}
+export type Mime = `${string}/${string}`
 
 export const mergeOpts = <Refs extends RefsRec>(
   ...arr: ReadonlyArray<ScopeOpts<Refs> | undefined>
@@ -101,11 +54,6 @@ export const mergeOpts = <Refs extends RefsRec>(
   }
 
   return ret
-}
-
-export interface Scope<Schemas extends RefsRec> {
-  endpoints: Endpoints<Schemas>
-  opts?: ScopeOpts<Schemas>
 }
 
 export interface Range {

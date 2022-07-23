@@ -1,7 +1,14 @@
-import { Bodied, Bodiless, PrimitiveBag, RefsRec, SchemaOrRef } from "./endpoint"
+import {
+  Bodied,
+  Bodiless,
+  PrimitiveBag,
+  RefsRec,
+  SchemaOrRef,
+} from "./endpoint"
+import { RRequest } from "../dsl/endpoint"
 
 export const requestBody = <Refs extends RefsRec>(
-  b: Bodied<Refs> | Bodiless<Refs>,
+  b: RRequest<Refs>,
 ): SchemaOrRef<Refs, unknown> | undefined => {
   if ("req" in b) {
     return typeof b.req === "object" && "body" in b.req ? b.req.body : b.req
@@ -9,7 +16,7 @@ export const requestBody = <Refs extends RefsRec>(
 }
 
 export const requestHeaders = <Refs extends RefsRec>(
-  b: Bodied<Refs> | Bodiless<Refs>,
+  b: RRequest<Refs>,
 ): PrimitiveBag<Refs> | undefined => {
   if ("reqHeaders" in b) {
     return b.reqHeaders

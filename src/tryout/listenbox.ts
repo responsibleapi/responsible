@@ -20,8 +20,8 @@ import {
   unknown,
   utcMillis,
 } from "../dsl/schema"
-import { Endpoints, PrimitiveBag } from "../core/endpoint"
-import { scope, service } from "../dsl/endpoint"
+import { PrimitiveBag } from "../core/endpoint"
+import { Endpoints, scope, service } from "../dsl/endpoint"
 
 const schemas = {
   FeedID: newType(string({ length: 11 })),

@@ -1,23 +1,23 @@
 import { describe, expect, test } from "vitest"
 import { OpenAPIV3_1 } from "openapi-types"
 
-import { toOpenAPI, toPaths, traverse } from "../openapi"
-import { scope } from "../../dsl/endpoint"
+import { scope, flattenScopes } from "../../dsl/endpoint"
+import { toOpenApi, toPaths } from "../to-open-api"
 import yanic from "../../tryout/yanic"
 import elkx from "../../tryout/elkx"
 
 describe.concurrent("openapi generator", () => {
   test("yanic", () => {
-    console.log(JSON.stringify(toOpenAPI(yanic), null, 2))
+    console.log(JSON.stringify(toOpenApi(yanic), null, 2))
   })
 
   test("elkx", () => {
-    console.log(JSON.stringify(toOpenAPI(elkx), null, 2))
+    console.log(JSON.stringify(toOpenApi(elkx), null, 2))
   })
 
   test("traverse", () => {
     expect(
-      traverse({
+      flattenScopes({
         endpoints: {
           "/foo": {},
           "/bar": {},
