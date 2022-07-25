@@ -14,8 +14,23 @@ export interface ServiceInfo {
 
 export type CoreMethod = "GET" | "HEAD" | "DELETE" | "POST" | "PUT" | "PATCH"
 
+export interface CoreRes<Refs extends RefsRec> {
+  headers?: PrimitiveBag<Refs>
+  type: Mime
+  body: SchemaOrRef<Refs, unknown>
+}
+
+export type CoreResponses<Refs extends RefsRec> = Record<
+  number,
+  {
+    headers?: PrimitiveBag<Refs>
+    type: Mime
+    body: SchemaOrRef<Refs, unknown>
+  }
+>
+
 export interface CoreOp<Refs extends RefsRec> {
-  name: string
+  name?: string
 
   req: {
     headers: PrimitiveBag<Refs>
@@ -27,17 +42,7 @@ export interface CoreOp<Refs extends RefsRec> {
     }
   }
 
-  res: {
-    headers?: PrimitiveBag<Refs>
-    type: Mime
-    codes: Record<
-      number,
-      {
-        headers?: PrimitiveBag<Refs>
-        body: SchemaOrRef<Refs, unknown>
-      }
-    >
-  }
+  res: CoreResponses<Refs>
 }
 
 export type CorePaths<Refs extends RefsRec> = Record<

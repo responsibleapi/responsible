@@ -98,8 +98,8 @@ export const isRef = <Refs extends RefsRec>(
 ): x is keyof Refs => typeof x === "string" && x in refs
 
 interface Template<Schemas extends RefsRec> {
-  strings: TemplateStringsArray
-  expr: RSchema<Schemas, unknown>[]
+  strings: ReadonlyArray<string>
+  expr: SchemaOrRef<Schemas, unknown>[]
 }
 
 export interface RString<Refs extends RefsRec> {
@@ -108,7 +108,7 @@ export interface RString<Refs extends RefsRec> {
   minLength?: number
   maxLength?: number
   pattern?: RegExp
-  enum?: ReadonlyArray<string>
+  enum?: Array<string>
   template?: Template<Refs>
 }
 
@@ -117,16 +117,25 @@ export interface RObject<Refs extends RefsRec> {
   fields: Record<string, SchemaOrRef<Refs, unknown> | Optional<Refs, unknown>>
 }
 
+export type NumFormat = "int32" | "int64" | "float" | "double"
+
+export interface RNum {
+  type: "number"
+  format?: NumFormat
+  minimum?: number
+  maximum?: number
+  range?: Range
+  enum?: Array<number>
+}
+
+export interface RArr<Refs extends RefsRec> {
+  type: "array"
+  items: SchemaOrRef<Refs, unknown>
+}
+
 export type RSchema<Refs extends RefsRec, T> =
   | RString<Refs>
-  | {
-      type: "number"
-      format?: "int32" | "int64" | "float" | "double"
-      minimum?: number
-      maximum?: number
-      range?: Range
-      enum?: ReadonlyArray<number>
-    }
+  | RNum
   | { type: "boolean" }
   | { type: "unknown" }
   | { type: "array"; items: SchemaOrRef<Refs, unknown> }

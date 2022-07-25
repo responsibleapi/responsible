@@ -5,10 +5,10 @@ import {
   RefsRec,
   SchemaOrRef,
 } from "./endpoint"
-import { RRequest } from "../dsl/endpoint"
+import { ROp } from "../dsl/endpoint"
 
 export const requestBody = <Refs extends RefsRec>(
-  b: RRequest<Refs>,
+  b: ROp<Refs>,
 ): SchemaOrRef<Refs, unknown> | undefined => {
   if ("req" in b) {
     return typeof b.req === "object" && "body" in b.req ? b.req.body : b.req
@@ -16,7 +16,7 @@ export const requestBody = <Refs extends RefsRec>(
 }
 
 export const requestHeaders = <Refs extends RefsRec>(
-  b: RRequest<Refs>,
+  b: ROp<Refs>,
 ): PrimitiveBag<Refs> | undefined => {
   if ("reqHeaders" in b) {
     return b.reqHeaders

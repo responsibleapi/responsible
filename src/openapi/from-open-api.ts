@@ -1,8 +1,12 @@
 import { OpenAPIV3_1 } from "openapi-types"
 
+import { CoreService, ServiceInfo } from "../core/core"
 import { RefsRec } from "../core/endpoint"
-import { CorePaths } from "../core/core"
 
 export const fromOpenApi = <Refs extends RefsRec>(
   d: OpenAPIV3_1.Document,
-): CorePaths<Refs> => {}
+): CoreService<Refs> => {
+  return {
+    info: d.info as ServiceInfo,
+  }
+}

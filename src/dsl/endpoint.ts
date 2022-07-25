@@ -32,7 +32,7 @@ interface Bodied<Schemas extends RefsRec> extends BaseReq<Schemas> {
       }
 }
 
-export type RRequest<Refs extends RefsRec> = Bodied<Refs> | Bodiless<Refs>
+export type ROp<Refs extends RefsRec> = Bodied<Refs> | Bodiless<Refs>
 
 export interface PathWithMethods<Refs extends RefsRec> {
   params?: RequiredPrimitiveBag<Refs>
