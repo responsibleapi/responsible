@@ -16,14 +16,21 @@ export default service(
   {
     YtDlInfo: external(),
     YtDlOpts: external(),
+
+    InfoReq: struct({
+      url: httpURL(),
+      opts: "YtDlOpts",
+    }),
+
+    DownloadReq: struct({
+      info: "YtDlInfo",
+      opts: "YtDlOpts",
+    }),
   },
   {
     "/info": {
       POST: {
-        req: struct({
-          url: httpURL(),
-          opts: "YtDlOpts",
-        }),
+        req: "InfoReq",
         res: {
           200: "YtDlInfo",
           400: string({ minLength: 1 }),
@@ -32,10 +39,7 @@ export default service(
     },
     "/download": {
       POST: {
-        req: struct({
-          info: "YtDlInfo",
-          opts: "YtDlOpts",
-        }),
+        req: "DownloadReq",
         res: {
           200: unknown(),
           400: string({ minLength: 1 }),

@@ -3,14 +3,13 @@ import fc from "fast-check"
 import {
   NumFormat,
   RArr,
-  RefsRec,
   RNum,
   RSchema,
   RString,
   SchemaOrRef,
   StringFormat,
 } from "../endpoint"
-import { CoreMethod, CoreOp, CorePaths, CoreService } from "../core"
+import { CoreMethod, CoreOp, CorePaths, CoreService, RefsRec } from "../core"
 
 const fromArr = <T>(...a: ReadonlyArray<T>): fc.Arbitrary<T> =>
   fc.oneof(...a.map(fc.constant))
@@ -34,7 +33,7 @@ const optional = <T>(a: fc.Arbitrary<T>): fc.Arbitrary<T | undefined> =>
   fc.option(a, { nil: undefined })
 
 const arbRString = <Refs extends RefsRec>(
-  itemsForTemplate: fc.Arbitrary<SchemaOrRef<Refs, unknown>>,
+  itemsForTemplate: fc.Arbitrary<SchemaOrRef<Refs>>,
 ): fc.Arbitrary<RString<Refs>> =>
   fc.record({
     type: fc.constant("string"),
@@ -54,7 +53,7 @@ const arbNumFormat = (): fc.Arbitrary<NumFormat> =>
   fromArr("int32", "int64", "float", "double")
 
 const arbArr = <Refs extends RefsRec>(
-  items: fc.Arbitrary<SchemaOrRef<Refs, unknown>>,
+  items: fc.Arbitrary<SchemaOrRef<Refs>>,
 ): fc.Arbitrary<RArr<Refs>> =>
   fc.record({
     type: fc.constant("array"),
@@ -76,10 +75,8 @@ const arbRNum = (): fc.Arbitrary<RNum> =>
     ),
   })
 
-const arbSchema = <Refs extends RefsRec>(): fc.Arbitrary<
-  RSchema<Refs, unknown>
-> =>
-  fc.letrec<{ schema: RSchema<Refs, unknown> }>(tie => ({
+const arbSchema = <Refs extends RefsRec>(): fc.Arbitrary<RSchema<Refs>> =>
+  fc.letrec<{ schema: RSchema<Refs> }>(tie => ({
     schema: fc.oneof(
       arbRString(tie("schema")),
       arbRNum(),
@@ -89,7 +86,7 @@ const arbSchema = <Refs extends RefsRec>(): fc.Arbitrary<
 
 const arbSchemaOrRef = <Refs extends RefsRec>(
   refs: Refs,
-): fc.Arbitrary<SchemaOrRef<Refs, unknown>> =>
+): fc.Arbitrary<SchemaOrRef<Refs>> =>
   fc.oneof(arbSchema(), fromArr(...Object.keys(refs)))
 
 const arbPath = () =>

@@ -1,28 +1,5 @@
 import { ScopeOpts } from "../dsl/endpoint"
-
-export type RefsRec = Record<string, RSchema<any, unknown>>
-
-type Primitive = string | number | boolean
-
-type PrimitiveSchema<
-  Refs extends RefsRec,
-  P extends Primitive = Primitive,
-> = SchemaOrRef<Refs, P>
-
-type PrimitiveOptionality<
-  Refs extends RefsRec,
-  P extends Primitive = Primitive,
-> = Optional<Refs, P>
-
-export type PrimitiveBag<Refs extends RefsRec> = Record<
-  string,
-  PrimitiveSchema<Refs> | PrimitiveOptionality<Refs>
->
-
-export type RequiredPrimitiveBag<Refs extends RefsRec> = Record<
-  string,
-  PrimitiveSchema<Refs>
->
+import { RefsRec } from "./core"
 
 export type Mime = `${string}/${string}`
 
@@ -75,22 +52,22 @@ export type StringFormat =
   | "byte"
   | "binary"
 
-export interface Optional<Refs extends RefsRec, JSType> {
+export interface Optional<Refs extends RefsRec> {
   kind: "optional"
-  schema: SchemaOrRef<Refs, JSType>
+  schema: SchemaOrRef<Refs>
 }
 
-export const isOptional = <Refs extends RefsRec, JSType>(
-  x: Optional<Refs, JSType> | SchemaOrRef<Refs, JSType>,
-): x is Optional<Refs, JSType> =>
+export const isOptional = <Refs extends RefsRec>(
+  x: Optional<Refs> | SchemaOrRef<Refs>,
+): x is Optional<Refs> =>
   // @ts-ignore doesn't typecheck, so we test it instead
   Boolean(x) && typeof x === "object" && "kind" in x && x["kind"] === "optional"
 
-export const optionalGet = <Refs extends RefsRec, JSType>(
-  o: Optional<Refs, JSType> | SchemaOrRef<Refs, JSType>,
-): SchemaOrRef<Refs, JSType> => (isOptional(o) ? o.schema : o)
+export const optionalGet = <Refs extends RefsRec>(
+  o: Optional<Refs> | SchemaOrRef<Refs>,
+): SchemaOrRef<Refs> => (isOptional(o) ? o.schema : o)
 
-export type SchemaOrRef<Refs extends RefsRec, T> = RSchema<Refs, T> | keyof Refs
+export type SchemaOrRef<Refs extends RefsRec> = RSchema<Refs> | keyof Refs
 
 export const isRef = <Refs extends RefsRec>(
   refs: Refs,
@@ -99,7 +76,7 @@ export const isRef = <Refs extends RefsRec>(
 
 interface Template<Schemas extends RefsRec> {
   strings: ReadonlyArray<string>
-  expr: SchemaOrRef<Schemas, unknown>[]
+  expr: SchemaOrRef<Schemas>[]
 }
 
 export interface RString<Refs extends RefsRec> {
@@ -108,13 +85,23 @@ export interface RString<Refs extends RefsRec> {
   minLength?: number
   maxLength?: number
   pattern?: RegExp
-  enum?: Array<string>
+  enum?: ReadonlyArray<string>
   template?: Template<Refs>
 }
 
+export type OptionalBag<Refs extends RefsRec> = Record<
+  string,
+  SchemaOrRef<Refs> | Optional<Refs>
+>
+
+export type RequiredBag<Refs extends RefsRec> = Record<
+  string,
+  SchemaOrRef<Refs>
+>
+
 export interface RObject<Refs extends RefsRec> {
   type: "object"
-  fields: Record<string, SchemaOrRef<Refs, unknown> | Optional<Refs, unknown>>
+  fields: OptionalBag<Refs>
 }
 
 export type NumFormat = "int32" | "int64" | "float" | "double"
@@ -130,21 +117,21 @@ export interface RNum {
 
 export interface RArr<Refs extends RefsRec> {
   type: "array"
-  items: SchemaOrRef<Refs, unknown>
+  items: SchemaOrRef<Refs>
 }
 
-export type RSchema<Refs extends RefsRec, T> =
+export type RSchema<Refs extends RefsRec> =
   | RString<Refs>
   | RNum
   | { type: "boolean" }
   | { type: "unknown" }
-  | { type: "array"; items: SchemaOrRef<Refs, unknown> }
+  | { type: "array"; items: SchemaOrRef<Refs> }
   | RObject<Refs>
-  | { type: "union"; oneOf: RSchema<Refs, unknown>[] }
-  | { type: "newtype"; underlying: RSchema<Refs, T> }
+  | { type: "union"; oneOf: RSchema<Refs>[] }
+  | { type: "newtype"; underlying: RSchema<Refs> }
   | { type: "external" }
   | {
       type: "dict"
-      k: SchemaOrRef<Refs, unknown>
-      v: SchemaOrRef<Refs, unknown>
+      k: SchemaOrRef<Refs>
+      v: SchemaOrRef<Refs>
     }

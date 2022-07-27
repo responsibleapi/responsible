@@ -2,10 +2,10 @@ import {
   Bodied,
   Bodiless,
   PrimitiveBag,
-  RefsRec,
   SchemaOrRef,
 } from "./endpoint"
 import { ROp } from "../dsl/endpoint"
+import { RefsRec } from "./core"
 
 export const requestBody = <Refs extends RefsRec>(
   b: ROp<Refs>,

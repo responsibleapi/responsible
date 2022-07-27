@@ -1,41 +1,37 @@
 import {
   mergeOpts,
   Mime,
-  PrimitiveBag,
-  RefsRec,
-  RequiredPrimitiveBag,
+  OptionalBag,
+  RequiredBag,
   SchemaOrRef,
 } from "../core/endpoint"
-import { ServiceInfo } from "../core/core"
+import { RefsRec, ServiceInfo } from "../core/core"
 
-export type Codes<Refs extends RefsRec> = Record<
-  number,
-  SchemaOrRef<Refs, unknown>
->
+export type Codes<Refs extends RefsRec> = Record<number, SchemaOrRef<Refs>>
 
 interface BaseReq<Refs extends RefsRec> {
   name?: string
-  query?: PrimitiveBag<Refs>
+  query?: OptionalBag<Refs>
   res: Codes<Refs>
 }
 
 interface Bodiless<Schemas extends RefsRec> extends BaseReq<Schemas> {
-  reqHeaders?: PrimitiveBag<Schemas>
+  reqHeaders?: OptionalBag<Schemas>
 }
 
 interface Bodied<Schemas extends RefsRec> extends BaseReq<Schemas> {
   req:
-    | SchemaOrRef<Schemas, unknown>
+    | SchemaOrRef<Schemas>
     | {
-        headers?: PrimitiveBag<Schemas>
-        body: SchemaOrRef<Schemas, unknown>
+        headers?: OptionalBag<Schemas>
+        body: SchemaOrRef<Schemas>
       }
 }
 
 export type ROp<Refs extends RefsRec> = Bodied<Refs> | Bodiless<Refs>
 
 export interface PathWithMethods<Refs extends RefsRec> {
-  params?: RequiredPrimitiveBag<Refs>
+  params?: RequiredBag<Refs>
 
   GET?: Bodiless<Refs>
   HEAD?: Bodiless<Refs>
@@ -58,12 +54,12 @@ export const isScope = <Refs extends RefsRec>(
 export interface ScopeOpts<Schemas extends RefsRec> {
   req?: {
     body?: Mime
-    headers?: PrimitiveBag<Schemas>
+    headers?: OptionalBag<Schemas>
   }
 
   res?: {
     body?: Mime
-    headers?: PrimitiveBag<Schemas>
+    headers?: OptionalBag<Schemas>
     codes?: Codes<Schemas>
   }
 }
@@ -81,7 +77,7 @@ export const scope = <Refs extends RefsRec>(
   opts,
 })
 
-export interface Service<Refs extends RefsRec> {
+export interface DslService<Refs extends RefsRec> {
   info: ServiceInfo
   refs: Refs
   scope: Scope<Refs>
@@ -92,7 +88,7 @@ export const service = <Refs extends RefsRec>(
   refs: Refs,
   endpoints: Endpoints<Refs>,
   opts?: ScopeOpts<Refs>,
-): Service<Refs> => ({ info, refs, scope: scope(endpoints, opts) })
+): DslService<Refs> => ({ info, refs, scope: scope(endpoints, opts) })
 
 type TraversedPath<Refs extends RefsRec> = readonly [
   opts: ScopeOpts<Refs>,

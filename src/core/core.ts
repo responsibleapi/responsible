@@ -1,8 +1,7 @@
 import {
   Mime,
-  PrimitiveBag,
-  RefsRec,
-  RequiredPrimitiveBag,
+  OptionalBag,
+  RequiredBag,
   RSchema,
   SchemaOrRef,
 } from "./endpoint"
@@ -14,32 +13,33 @@ export interface ServiceInfo {
 
 export type CoreMethod = "GET" | "HEAD" | "DELETE" | "POST" | "PUT" | "PATCH"
 
+export type RefsRec = Record<string, RSchema<any>>
+
+export type Body<Refs extends RefsRec> = Record<Mime, SchemaOrRef<Refs>>
+
 export interface CoreRes<Refs extends RefsRec> {
-  headers?: PrimitiveBag<Refs>
-  type: Mime
-  body: SchemaOrRef<Refs, unknown>
+  headers?: OptionalBag<Refs>
+  body: Body<Refs>
 }
 
+type StatusCode1 = "1" | "2" | "3" | "4" | "5"
+type DigitStr = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+export type StatusCodeStr = `${StatusCode1}${DigitStr}${DigitStr}`
+
 export type CoreResponses<Refs extends RefsRec> = Record<
-  number,
-  {
-    headers?: PrimitiveBag<Refs>
-    type: Mime
-    body: SchemaOrRef<Refs, unknown>
-  }
+  StatusCodeStr,
+  CoreRes<Refs>
 >
 
 export interface CoreOp<Refs extends RefsRec> {
   name?: string
 
   req: {
-    headers: PrimitiveBag<Refs>
-    query: PrimitiveBag<Refs>
-    params: RequiredPrimitiveBag<Refs>
-    body?: {
-      type: Mime
-      schema: RSchema<Refs, unknown>
-    }
+    headers: OptionalBag<Refs>
+    query: OptionalBag<Refs>
+    params: RequiredBag<Refs>
+    cookies: OptionalBag<Refs>
+    body?: Body<Refs>
   }
 
   res: CoreResponses<Refs>

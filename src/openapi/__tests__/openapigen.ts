@@ -1,4 +1,5 @@
 import { OpenAPIV3, OpenAPIV3_1 } from "openapi-types"
+import { compareParams } from "../to-open-api"
 import fc from "fast-check"
 
 const oneOf = <T>(arr: ReadonlyArray<T>): fc.Arbitrary<T> =>
@@ -27,7 +28,7 @@ const arbStr = (): fc.Arbitrary<OpenAPIV3_1.NonArraySchemaObject> =>
     ),
     minLength: optional(fc.nat()),
     maxLength: optional(fc.nat()),
-    enum: optional(fc.array(fc.string())),
+    enum: optional(distinctArray(fc.string())),
   })
 
 const arbNum = (): fc.Arbitrary<OpenAPIV3_1.NonArraySchemaObject> =>
@@ -62,25 +63,36 @@ const schemaOrRef = (
   // @ts-ignore foo bar baz
   Object.keys(schemas).length ? fc.oneof(items, arbRef(schemas)) : items
 
+const distinctArray = <T>(arb: fc.Arbitrary<T>): fc.Arbitrary<Array<T>> =>
+  fc.array(arb).map(arr => {
+    const arr2 = [...new Set(arr)]
+    arr2.sort()
+    return arr2
+  })
+
 const arbStruct = (
   items: fc.Arbitrary<OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject>,
 ): fc.Arbitrary<OpenAPIV3_1.SchemaObject> =>
-  fc.dictionary(nonEmptyStr(), items).chain(props => {
+  fc.dictionary(nonEmptyStr(), items, { minKeys: 1 }).chain(props => {
     const propsKs = Object.keys(props)
     return fc.record({
       type: fc.constant("object"),
       properties: fc.constant(props),
       required: propsKs.length
-        ? optional(fc.array(oneOf(propsKs)))
-        : fc.constant(undefined),
+        ? distinctArray(oneOf(propsKs))
+        : fc.constant([]),
     })
   })
+
+const arbUnknown = (): fc.Arbitrary<OpenAPIV3.NonArraySchemaObject> =>
+  fc.constant({ nullable: true })
 
 const arbSchema = (
   schemas: Record<string, OpenAPIV3_1.SchemaObject>,
 ): fc.Arbitrary<OpenAPIV3_1.SchemaObject> =>
   fc.letrec<{ schema: OpenAPIV3_1.SchemaObject }>(tie => ({
     schema: fc.oneof(
+      arbUnknown(),
       arbStr(),
       arbNum(),
       arbArr(schemaOrRef(schemas, tie("schema"))),
@@ -94,13 +106,23 @@ const arbPath = () =>
 const arbMethod = (): fc.Arbitrary<OpenAPIV3_1.HttpMethods> =>
   oneOf(Object.values(OpenAPIV3.HttpMethods))
 
-const arbParam = (
+const arbOptParam = (
   schemas: Record<string, OpenAPIV3_1.SchemaObject>,
 ): fc.Arbitrary<OpenAPIV3_1.ParameterObject> =>
   fc.record({
     name: nonEmptyStr(),
-    in: oneOf(["header", "query", "path", "cookie"]),
-    required: optional(fc.boolean()),
+    in: oneOf(["header", "query", "cookie"]),
+    required: oneOf([true, undefined]),
+    schema: schemaOrRef(schemas, arbSchema(schemas)),
+  })
+
+const arbPathParam = (
+  schemas: Record<string, OpenAPIV3_1.SchemaObject>,
+): fc.Arbitrary<OpenAPIV3_1.ParameterObject> =>
+  fc.record({
+    name: nonEmptyStr(),
+    in: fc.constant("path"),
+    required: fc.constant(true),
     schema: schemaOrRef(schemas, arbSchema(schemas)),
   })
 
@@ -108,18 +130,19 @@ const arbHeader = (
   schemas: Record<string, OpenAPIV3_1.SchemaObject>,
 ): fc.Arbitrary<OpenAPIV3_1.HeaderObject> =>
   fc.record({
-    required: optional(fc.boolean()),
+    required: oneOf([true, undefined]),
     schema: schemaOrRef(schemas, arbSchema(schemas)),
   })
 
 const nonEmptyStr = (): fc.Arbitrary<string> => fc.string({ minLength: 1 })
 
 const arbResponse = (
+  status: number,
   schemas: Record<string, OpenAPIV3_1.SchemaObject>,
 ): fc.Arbitrary<OpenAPIV3_1.ResponseObject> =>
   fc.record({
-    description: fc.string(),
-    headers: optional(fc.dictionary(nonEmptyStr(), arbHeader(schemas))),
+    description: fc.constant(String(status)),
+    headers: fc.dictionary(nonEmptyStr(), arbHeader(schemas)),
     content: fc.dictionary(
       nonEmptyStr(),
       fc.record({ schema: arbSchema(schemas) }),
@@ -131,11 +154,23 @@ const arbOp = (
 ): fc.Arbitrary<OpenAPIV3_1.OperationObject> =>
   fc.record({
     operationId: optional(nonEmptyStr()),
-    parameters: optional(fc.array(arbParam(schemas))),
-    responses: fc.dictionary(
-      fc.integer({ min: 100, max: 599 }).map(String),
-      arbResponse(schemas),
-    ),
+    parameters: fc
+      .array(fc.oneof(arbOptParam(schemas), arbPathParam(schemas)))
+      .map(arr => {
+        const ret = Object.values(
+          Object.fromEntries(arr.map(x => [`${x.in}-${x.name}`, x])),
+        )
+        ret.sort(compareParams)
+        return ret
+      }),
+    responses: fc
+      .integer({ min: 100, max: 599 })
+      .chain(status =>
+        fc.dictionary(
+          fc.constant(String(status)),
+          arbResponse(status, schemas),
+        ),
+      ),
   })
 
 export const arbOpenApiDoc = (): fc.Arbitrary<OpenAPIV3_1.Document> =>
