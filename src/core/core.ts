@@ -35,10 +35,10 @@ export interface CoreOp<Refs extends RefsRec> {
   name?: string
 
   req: {
-    headers: OptionalBag<Refs>
-    query: OptionalBag<Refs>
-    params: RequiredBag<Refs>
-    cookies: OptionalBag<Refs>
+    headers?: OptionalBag<Refs>
+    query?: OptionalBag<Refs>
+    params?: RequiredBag<Refs>
+    cookies?: OptionalBag<Refs>
     body?: Body<Refs>
   }
 

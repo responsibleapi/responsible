@@ -31,19 +31,13 @@ export default service(
     "/info": {
       POST: {
         req: "InfoReq",
-        res: {
-          200: "YtDlInfo",
-          400: string({ minLength: 1 }),
-        },
+        res: { 200: "YtDlInfo" },
       },
     },
     "/download": {
       POST: {
         req: "DownloadReq",
-        res: {
-          200: unknown(),
-          400: string({ minLength: 1 }),
-        },
+        res: { 200: unknown() },
       },
     },
   },
@@ -51,8 +45,9 @@ export default service(
     req: { body: "application/json" },
     res: {
       body: "application/json",
-      headers: {
-        "content-length": int32({ minimum: 1 }),
+      headers: { "content-length": int32({ minimum: 1 }) },
+      codes: {
+        400: struct({ err: string({ minLength: 1 }) }),
       },
     },
   },

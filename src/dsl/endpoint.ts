@@ -11,24 +11,19 @@ export type Codes<Refs extends RefsRec> = Record<number, SchemaOrRef<Refs>>
 
 interface BaseReq<Refs extends RefsRec> {
   name?: string
+  headers?: OptionalBag<Refs>
   query?: OptionalBag<Refs>
+  cookies?: OptionalBag<Refs>
   res: Codes<Refs>
 }
 
-interface Bodiless<Schemas extends RefsRec> extends BaseReq<Schemas> {
-  reqHeaders?: OptionalBag<Schemas>
+interface Bodiless<Refs extends RefsRec> extends BaseReq<Refs> {}
+
+interface Bodied<Refs extends RefsRec> extends BaseReq<Refs> {
+  req: SchemaOrRef<Refs>
 }
 
-interface Bodied<Schemas extends RefsRec> extends BaseReq<Schemas> {
-  req:
-    | SchemaOrRef<Schemas>
-    | {
-        headers?: OptionalBag<Schemas>
-        body: SchemaOrRef<Schemas>
-      }
-}
-
-export type ROp<Refs extends RefsRec> = Bodied<Refs> | Bodiless<Refs>
+export type DslOp<Refs extends RefsRec> = Bodied<Refs> | Bodiless<Refs>
 
 export interface PathWithMethods<Refs extends RefsRec> {
   params?: RequiredBag<Refs>
@@ -51,22 +46,23 @@ export const isScope = <Refs extends RefsRec>(
   x: PathWithMethods<Refs> | Scope<Refs>,
 ): x is Scope<Refs> => "endpoints" in x && typeof x.endpoints === "object"
 
-export interface ScopeOpts<Schemas extends RefsRec> {
+export interface ScopeOpts<Refs extends RefsRec> {
   req?: {
     body?: Mime
-    headers?: OptionalBag<Schemas>
+    headers?: OptionalBag<Refs>
+    cookies?: OptionalBag<Refs>
   }
 
   res?: {
     body?: Mime
-    headers?: OptionalBag<Schemas>
-    codes?: Codes<Schemas>
+    headers?: OptionalBag<Refs>
+    codes?: Codes<Refs>
   }
 }
 
-export interface Scope<Schemas extends RefsRec> {
-  endpoints: Endpoints<Schemas>
-  opts?: ScopeOpts<Schemas>
+export interface Scope<Refs extends RefsRec> {
+  endpoints: Endpoints<Refs>
+  opts?: ScopeOpts<Refs>
 }
 
 export const scope = <Refs extends RefsRec>(

@@ -152,17 +152,17 @@ export const compareParams = (
 const toOperation = <Refs extends RefsRec>(
   op: CoreOp<Refs>,
 ): OpenAPIV3.OperationObject => {
-  const parameters = toParams("header", op.req.headers)
-    .concat(toParams("query", op.req.query))
-    .concat(toParams("path", op.req.params))
-    .concat(toParams("cookie", op.req.cookies))
+  const parameters = toParams("header", op.req?.headers)
+    .concat(toParams("query", op.req?.query))
+    .concat(toParams("path", op.req?.params))
+    .concat(toParams("cookie", op.req?.cookies))
 
   parameters.sort(compareParams)
 
   return {
     operationId: op.name,
     parameters,
-    requestBody: op.req.body
+    requestBody: op.req?.body
       ? {
           content: toContent(op.req.body),
         }

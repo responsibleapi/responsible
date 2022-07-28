@@ -20,7 +20,6 @@ import {
   unknown,
   utcMillis,
 } from "../dsl/schema"
-import { PrimitiveBag } from "../core/endpoint"
 import { Endpoints, scope, service } from "../dsl/endpoint"
 
 const schemas = {
@@ -155,9 +154,9 @@ const schemas = {
   }),
 } as const
 
-const optionalAuthHeaders: PrimitiveBag<typeof schemas> = {
+const optionalAuthHeaders = {
   authorization: optional(string({ minLength: 1 })),
-}
+} as const
 
 const japi: Endpoints<typeof schemas> = {
   "/login": {
@@ -195,10 +194,8 @@ const japi: Endpoints<typeof schemas> = {
   "/submit": {
     POST: {
       name: "submitUrl",
-      req: {
-        headers: optionalAuthHeaders,
-        body: "SubmitReq",
-      },
+      headers: optionalAuthHeaders,
+      req: "SubmitReq",
       res: {
         200: struct({
           showID: "ShowID",
@@ -216,7 +213,7 @@ const japi: Endpoints<typeof schemas> = {
 
     GET: {
       name: "getShow",
-      reqHeaders: optionalAuthHeaders,
+      headers: optionalAuthHeaders,
       res: {
         200: "Show",
         403: unknown(),

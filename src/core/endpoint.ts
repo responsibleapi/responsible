@@ -9,7 +9,7 @@ export const mergeOpts = <Refs extends RefsRec>(
   const noMime = undefined as Mime | undefined
 
   const ret = {
-    req: { headers: {}, body: noMime },
+    req: { headers: {}, body: noMime, cookies: {} },
     res: { headers: {}, body: noMime, codes: {} },
   }
 
@@ -21,6 +21,7 @@ export const mergeOpts = <Refs extends RefsRec>(
     }
     ret.req.body = opts.req?.body ?? ret.req.body
     Object.assign(ret.req.headers, opts.req?.headers)
+    Object.assign(ret.req.cookies, opts.req?.cookies)
 
     if (opts.res?.body && ret.res.body) {
       throw new Error("trying to register multiple response bodies")
@@ -70,9 +71,12 @@ export const optionalGet = <Refs extends RefsRec>(
 export type SchemaOrRef<Refs extends RefsRec> = RSchema<Refs> | keyof Refs
 
 export const isRef = <Refs extends RefsRec>(
-  refs: Refs,
-  x: unknown,
-): x is keyof Refs => typeof x === "string" && x in refs
+  x: SchemaOrRef<Refs> | Optional<Refs>,
+): x is keyof Refs => typeof x === "string"
+
+export const isSchema = <Refs extends RefsRec>(
+  x: SchemaOrRef<Refs> | Optional<Refs>,
+): x is RSchema<Refs> => typeof x === "object" && "type" in x
 
 interface Template<Schemas extends RefsRec> {
   strings: ReadonlyArray<string>

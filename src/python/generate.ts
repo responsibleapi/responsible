@@ -1,27 +1,125 @@
-import { RObject } from "../core/endpoint"
+import {
+  isOptional,
+  isRef,
+  isSchema,
+  Optional,
+  RObject,
+  SchemaOrRef,
+} from "../core/endpoint"
 import { RefsRec } from "../core/core"
 
-/**
- * generates python dataclass from fields
- */
+const DATACLASS = "dataclasses.dataclass"
+const TYPING_OPTIONAL = "typing.Optional"
+const TYPING_ANY = "typing.Any"
+const TYPING_TYPEVAR = "typing.TypeVar"
+const TYPING_GENERIC = "typing.Generic"
 
-const toDataclass = <Refs extends RefsRec>(
-  refs: Refs,
-  name: keyof Refs,
-): string => {
-  const o = refs[name] as RObject<Refs>
-  const fields = Object.entries(o.fields)
-    .map(([name, schema]) => {
-      const type = toPythonType(refs, name)
-      return `${name}: ${type}`
-    })
-    .join(",\n")
-  return `class ${String(name)}:\n${fields}`
+type Indentation = Array<"\t">
+
+const indented = <T>(i: Indentation, f: (indent: string) => T): T => {
+  i.push("\t")
+  const ret = f(i.join(""))
+  i.pop()
+  return ret
 }
 
-const toPythonType = <Refs extends RefsRec>(
+type Import = `${string}.${string}`
+
+const imported = (imports: Set<Import>, i: Import): string => {
+  imports.add(i)
+  return i
+}
+
+const importsStr = (is: Set<Import>): string =>
+  [
+    ...new Set(
+      [...is].map(i => `import ${i.substring(0, i.lastIndexOf("."))}`),
+    ),
+  ].join("\n")
+
+const typeName = <Refs extends RefsRec>(
+  x: SchemaOrRef<Refs> | Optional<Refs>,
+  imports: Set<Import>,
+): string => {
+  if (isSchema(x)) {
+    switch (x.type) {
+      case "unknown":
+        return imported(imports, TYPING_ANY)
+
+      case "string":
+        return "str"
+
+      case "object":
+        throw new Error(JSON.stringify(x))
+
+      default:
+        throw new Error(x.type)
+    }
+  }
+
+  if (isOptional(x)) {
+    const opt = imported(imports, TYPING_OPTIONAL)
+    return `${opt}[${typeName(x.schema, imports)}]`
+  }
+
+  return String(x)
+}
+
+const declareDataclass = <Refs extends RefsRec>(
+  refs: Refs,
+  refName: keyof Refs,
+  imports: Set<Import>,
+): string => {
+  const o = refs[refName] as RObject<Refs>
+
+  const genericNames = Object.values(o.fields).flatMap(field =>
+    isRef(field) && refs[field].type === "external" ? [field] : [],
+  )
+
+  const gen = imported(imports, TYPING_GENERIC)
+  const generics = genericNames.length
+    ? (`${gen}[${genericNames.join(", ")}]` as const)
+    : ""
+
+  const fields = indented([], indent =>
+    Object.entries(o.fields)
+      .map(
+        ([fieldName, schema]) =>
+          `${indent}${fieldName}: ${typeName(schema, imports)}` as const,
+      )
+      .join("\n"),
+  )
+
+  const cName = String(refName)
+  const dataclass = imported(imports, DATACLASS)
+  return `@${dataclass}\nclass ${cName}(${generics}):\n${fields}\n`
+}
+
+const declareType = <Refs extends RefsRec>(
   refs: Refs,
   name: keyof Refs,
-): string => {}
+  imports: Set<Import>,
+): string => {
+  switch (refs[name].type) {
+    case "external": {
+      const T = String(name)
+      return `${T} = ${imported(imports, TYPING_TYPEVAR)}('${T}')\n`
+    }
 
-export const pythonTypes = <Refs extends RefsRec>(refs: Refs): string => {}
+    case "object":
+      return declareDataclass(refs, name, imports)
+
+    default:
+      throw new Error("")
+  }
+}
+
+export const genPythonTypes = <Refs extends RefsRec>(refs: Refs): string => {
+  const imports = new Set<Import>()
+
+  const declarations = Object.keys(refs)
+    .map(k => declareType(refs, k, imports))
+    .join("\n")
+
+  return `${importsStr(imports)}\n\n${declarations}` as const
+}
