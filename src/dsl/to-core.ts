@@ -1,4 +1,5 @@
 import {
+  Body,
   CoreMethod,
   CoreOp,
   CoreRes,
@@ -6,20 +7,38 @@ import {
   CoreService,
   RefsRec,
 } from "../core/core"
+import {
+  isMime,
+  isSchemaOrRef,
+  RequiredBag,
+  SchemaOrRef,
+} from "../core/endpoint"
 import { DslOp, DslService, flattenScopes, ScopeOpts } from "./endpoint"
-import { RequiredBag, SchemaOrRef } from "../core/endpoint"
+
+export const isBody = <Refs extends RefsRec>(x: unknown): x is Body<Refs> =>
+  typeof x === "object" && !!x && Object.keys(x).every(isMime)
 
 const toRes = <Refs extends RefsRec>(
   opts: ScopeOpts<Refs>,
-  schema: SchemaOrRef<Refs>,
+  what: SchemaOrRef<Refs> | Body<Refs>,
 ): CoreRes<Refs> => {
   const mime = opts.res?.body
   if (!mime) throw new Error(JSON.stringify(opts))
 
-  return {
-    headers: opts.res?.headers,
-    body: { [mime]: schema },
+  if (isSchemaOrRef(what)) {
+    return {
+      headers: opts.res?.headers,
+      body: { [mime]: what },
+    }
   }
+  if (isBody(what)) {
+    return {
+      headers: opts.res?.headers,
+      body: what,
+    }
+  }
+
+  throw new Error(JSON.stringify(what))
 }
 
 const requestBody = <Refs extends RefsRec>(

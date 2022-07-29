@@ -7,7 +7,10 @@ import {
 } from "../core/endpoint"
 import { RefsRec, ServiceInfo } from "../core/core"
 
-export type Codes<Refs extends RefsRec> = Record<number, SchemaOrRef<Refs>>
+export type Codes<Refs extends RefsRec> = Record<
+  number,
+  SchemaOrRef<Refs> | Record<Mime, SchemaOrRef<Refs>>
+>
 
 interface BaseReq<Refs extends RefsRec> {
   name?: string

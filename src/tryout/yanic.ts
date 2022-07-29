@@ -47,7 +47,8 @@ export default service(
       body: "application/json",
       headers: { "content-length": int32({ minimum: 1 }) },
       codes: {
-        400: struct({ err: string({ minLength: 1 }) }),
+        400: { "text/plain": string({ minLength: 1 }) },
+        422: { "text/plain": string({ minLength: 1 }) },
       },
     },
   },

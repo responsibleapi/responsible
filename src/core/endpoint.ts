@@ -1,7 +1,10 @@
 import { ScopeOpts } from "../dsl/endpoint"
 import { RefsRec } from "./core"
 
-export type Mime = `${string}/${string}`
+export type Mime = `${string}/${string}${`; charset=${string}` | ""}`
+
+export const isMime = (x: unknown): x is Mime =>
+  typeof x === "string" && x.length > 2 && x.includes("/")
 
 export const mergeOpts = <Refs extends RefsRec>(
   ...arr: ReadonlyArray<ScopeOpts<Refs> | undefined>
@@ -70,13 +73,20 @@ export const optionalGet = <Refs extends RefsRec>(
 
 export type SchemaOrRef<Refs extends RefsRec> = RSchema<Refs> | keyof Refs
 
-export const isRef = <Refs extends RefsRec>(
-  x: SchemaOrRef<Refs> | Optional<Refs>,
-): x is keyof Refs => typeof x === "string"
-
 export const isSchema = <Refs extends RefsRec>(
-  x: SchemaOrRef<Refs> | Optional<Refs>,
-): x is RSchema<Refs> => typeof x === "object" && "type" in x
+  x: unknown,
+): x is RSchema<Refs> =>
+  typeof x === "object" &&
+  !!x &&
+  "type" in x &&
+  typeof (x as RSchema<Refs>)["type"] === "string"
+
+export const isRef = <Refs extends RefsRec>(x: unknown): x is keyof Refs =>
+  typeof x === "string"
+
+export const isSchemaOrRef = <Refs extends RefsRec>(
+  x: unknown,
+): x is SchemaOrRef<Refs> => isRef(x) || isSchema(x)
 
 interface Template<Schemas extends RefsRec> {
   strings: ReadonlyArray<string>
