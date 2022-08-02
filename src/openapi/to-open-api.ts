@@ -35,14 +35,14 @@ const toObj = <Refs extends RefsRec>(
     properties: Object.fromEntries(
       Object.entries(schema.fields).map(([name, s]) => [
         name,
-        toSchema(optionalGet(s)),
+        toSchemaOrRef(optionalGet(s)),
       ]),
     ),
     required,
   }
 }
 
-export const toSchema = <Refs extends RefsRec>(
+export const toSchemaOrRef = <Refs extends RefsRec>(
   schema: SchemaOrRef<Refs>,
 ): OpenAPIV3_1.ReferenceObject | OpenAPIV3.SchemaObject => {
   if (typeof schema === "object" && "type" in schema) {
@@ -70,7 +70,7 @@ export const toSchema = <Refs extends RefsRec>(
       case "array":
         return {
           type: "array",
-          items: toSchema(schema.items),
+          items: toSchemaOrRef(schema.items),
         }
 
       default:
@@ -87,7 +87,7 @@ const refsToOpenAPI = <Refs extends RefsRec>(
   Object.fromEntries(
     Object.keys(refs).map(k => [
       k as keyof Refs,
-      toSchema(refs[k] as RSchema<Refs>),
+      toSchemaOrRef(refs[k] as RSchema<Refs>),
     ]),
   ) as Record<keyof Refs, OpenAPIV3.SchemaObject>
 
@@ -101,7 +101,7 @@ export const toParam = <Refs extends RefsRec>(
   in: where,
   name,
   required: isOptional(v) ? undefined : true,
-  schema: toSchema(optionalGet(v)),
+  schema: toSchemaOrRef(optionalGet(v)),
 })
 
 const toParams = <Refs extends RefsRec>(
@@ -114,7 +114,7 @@ const toContent = <Refs extends RefsRec>(
   b: Body<Refs>,
 ): Record<string, OpenAPIV3.MediaTypeObject> =>
   Object.fromEntries(
-    Object.entries(b).map(([type, s]) => [type, { schema: toSchema(s) }]),
+    Object.entries(b).map(([type, s]) => [type, { schema: toSchemaOrRef(s) }]),
   )
 
 const toResponse = <Refs extends RefsRec>(
@@ -127,7 +127,7 @@ const toResponse = <Refs extends RefsRec>(
       hk,
       {
         required: isOptional(hv) ? undefined : true,
-        schema: toSchema(optionalGet(hv)),
+        schema: toSchemaOrRef(optionalGet(hv)),
       },
     ]),
   ),
