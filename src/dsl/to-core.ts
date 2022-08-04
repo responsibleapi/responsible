@@ -14,6 +14,7 @@ import {
   SchemaOrRef,
 } from "../core/endpoint"
 import { DslOp, DslService, flattenScopes, ScopeOpts } from "./endpoint"
+import { constant } from "./schema"
 
 export const isBody = <Refs extends RefsRec>(x: unknown): x is Body<Refs> =>
   typeof x === "object" && !!x && Object.keys(x).every(isMime)
@@ -25,17 +26,14 @@ const toRes = <Refs extends RefsRec>(
   const mime = opts.res?.body
   if (!mime) throw new Error(JSON.stringify(opts))
 
+  const headers = opts.res?.headers
+
   if (isSchemaOrRef(what)) {
-    return {
-      headers: opts.res?.headers,
-      body: { [mime]: what },
-    }
+    return { headers, body: { [mime]: what } }
   }
+
   if (isBody(what)) {
-    return {
-      headers: opts.res?.headers,
-      body: what,
-    }
+    return { headers, body: what }
   }
 
   throw new Error(JSON.stringify(what))
@@ -63,7 +61,15 @@ const toOp = <Refs extends RefsRec>(
     name: op.name,
     req: {
       params,
-      headers: { ...opts.req?.headers, ...op.headers },
+      headers: {
+        ...opts.req?.headers,
+        ...op.headers,
+
+        /**
+         * TODO think about it
+         */
+        "content-type": constant(reqMime),
+      },
       cookies: { ...opts.req?.cookies, ...op.cookies },
       query: op.query,
       body: { [reqMime]: requestBody(op) },
