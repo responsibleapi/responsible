@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest"
 
-import { isBody, toCore } from "../to-core"
+import { isMimes, toCore } from "../to-core"
 import yanic from "../../tryout/yanic"
 
 describe.concurrent("openapi", () => {
@@ -12,7 +12,7 @@ describe.concurrent("openapi", () => {
   })
 
   test("is body", () => {
-    expect(isBody({ body: {} })).toBeFalsy()
-    expect(isBody({ "application/json": "InfoReq" })).toBeTruthy()
+    expect(isMimes({ body: {} })).toBeFalsy()
+    expect(isMimes({ "application/json": "InfoReq" })).toBeTruthy()
   })
 })

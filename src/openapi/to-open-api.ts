@@ -1,7 +1,7 @@
 import { OpenAPIV3, OpenAPIV3_1 } from "openapi-types"
 
 import {
-  Body,
+  Mimes,
   CoreMethod,
   CoreOp,
   CorePaths,
@@ -111,7 +111,7 @@ const toParams = <Refs extends RefsRec>(
   Object.entries(what ?? {}).map(([k, v]) => toParam(k, v, where))
 
 const toContent = <Refs extends RefsRec>(
-  b: Body<Refs>,
+  b: Mimes<Refs>,
 ): Record<string, OpenAPIV3.MediaTypeObject> =>
   Object.fromEntries(
     Object.entries(b).map(([type, s]) => [type, { schema: toSchemaOrRef(s) }]),

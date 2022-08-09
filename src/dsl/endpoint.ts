@@ -5,11 +5,11 @@ import {
   RequiredBag,
   SchemaOrRef,
 } from "../core/endpoint"
-import { RefsRec, ServiceInfo } from "../core/core"
+import { Mimes, RefsRec, ServiceInfo } from "../core/core"
 
 export type Codes<Refs extends RefsRec> = Record<
   number,
-  SchemaOrRef<Refs> | Record<Mime, SchemaOrRef<Refs>>
+  SchemaOrRef<Refs> | Mimes<Refs>
 >
 
 interface BaseReq<Refs extends RefsRec> {

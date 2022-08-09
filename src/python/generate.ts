@@ -4,6 +4,7 @@ import {
   isSchema,
   Optional,
   RObject,
+  RSchema,
   SchemaOrRef,
 } from "../core/endpoint"
 import { RefsRec } from "../core/core"
@@ -37,24 +38,31 @@ const importsStr = (is: Set<Import>): string =>
     ),
   ].join("\n")
 
+const schemaTypeName = <Refs extends RefsRec>(
+  imports: Set<Import>,
+  x: RSchema<Refs>,
+): string => {
+  switch (x.type) {
+    case "string":
+      return "str"
+
+    case "object":
+      throw new Error(JSON.stringify(x))
+
+    case "unknown":
+      return imported(imports, TYPING_ANY)
+
+    default:
+      throw new Error(x.type)
+  }
+}
+
 const typeName = <Refs extends RefsRec>(
   x: SchemaOrRef<Refs> | Optional<Refs>,
   imports: Set<Import>,
 ): string => {
   if (isSchema(x)) {
-    switch (x.type) {
-      case "unknown":
-        return imported(imports, TYPING_ANY)
-
-      case "string":
-        return "str"
-
-      case "object":
-        throw new Error(JSON.stringify(x))
-
-      default:
-        throw new Error(x.type)
-    }
+    return schemaTypeName(imports, x)
   }
 
   if (isOptional(x)) {

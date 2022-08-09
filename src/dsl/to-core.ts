@@ -1,5 +1,5 @@
 import {
-  Body,
+  Mimes,
   CoreMethod,
   CoreOp,
   CoreRes,
@@ -14,14 +14,13 @@ import {
   SchemaOrRef,
 } from "../core/endpoint"
 import { DslOp, DslService, flattenScopes, ScopeOpts } from "./endpoint"
-import { constant } from "./schema"
 
-export const isBody = <Refs extends RefsRec>(x: unknown): x is Body<Refs> =>
+export const isMimes = <Refs extends RefsRec>(x: unknown): x is Mimes<Refs> =>
   typeof x === "object" && !!x && Object.keys(x).every(isMime)
 
 const toRes = <Refs extends RefsRec>(
   opts: ScopeOpts<Refs>,
-  what: SchemaOrRef<Refs> | Body<Refs>,
+  what: SchemaOrRef<Refs> | Mimes<Refs>,
 ): CoreRes<Refs> => {
   const mime = opts.res?.body
   if (!mime) throw new Error(JSON.stringify(opts))
@@ -32,7 +31,7 @@ const toRes = <Refs extends RefsRec>(
     return { headers, body: { [mime]: what } }
   }
 
-  if (isBody(what)) {
+  if (isMimes(what)) {
     return { headers, body: what }
   }
 
@@ -61,15 +60,7 @@ const toOp = <Refs extends RefsRec>(
     name: op.name,
     req: {
       params,
-      headers: {
-        ...opts.req?.headers,
-        ...op.headers,
-
-        /**
-         * TODO think about it
-         */
-        "content-type": constant(reqMime),
-      },
+      headers: { ...opts.req?.headers, ...op.headers },
       cookies: { ...opts.req?.cookies, ...op.cookies },
       query: op.query,
       body: { [reqMime]: requestBody(op) },
@@ -83,6 +74,9 @@ const toOp = <Refs extends RefsRec>(
   }
 }
 
+/**
+ * TODO extract components/responses
+ */
 export const toCore = <Refs extends RefsRec>(
   s: DslService<Refs>,
 ): CoreService<Refs> => ({

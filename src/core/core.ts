@@ -15,11 +15,11 @@ export type CoreMethod = "GET" | "HEAD" | "DELETE" | "POST" | "PUT" | "PATCH"
 
 export type RefsRec = Record<string, RSchema<any>>
 
-export type Body<Refs extends RefsRec> = Record<Mime, SchemaOrRef<Refs>>
+export type Mimes<Refs extends RefsRec> = Record<Mime, SchemaOrRef<Refs>>
 
 export interface CoreRes<Refs extends RefsRec> {
   headers?: OptionalBag<Refs>
-  body: Body<Refs>
+  body: Mimes<Refs>
 }
 
 type StatusCode1 = "1" | "2" | "3" | "4" | "5"
@@ -31,17 +31,17 @@ export type CoreResponses<Refs extends RefsRec> = Record<
   CoreRes<Refs>
 >
 
+export interface CoreReq<Refs extends RefsRec> {
+  headers?: OptionalBag<Refs>
+  query?: OptionalBag<Refs>
+  params?: RequiredBag<Refs>
+  cookies?: OptionalBag<Refs>
+  body?: Mimes<Refs>
+}
+
 export interface CoreOp<Refs extends RefsRec> {
   name?: string
-
-  req: {
-    headers?: OptionalBag<Refs>
-    query?: OptionalBag<Refs>
-    params?: RequiredBag<Refs>
-    cookies?: OptionalBag<Refs>
-    body?: Body<Refs>
-  }
-
+  req: CoreReq<Refs>
   res: CoreResponses<Refs>
 }
 

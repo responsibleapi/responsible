@@ -46,6 +46,10 @@ export default service(
     res: {
       body: "application/json",
       headers: { "content-length": int32({ minimum: 1 }) },
+
+      /**
+       * TODO the responses can be components
+       */
       codes: {
         400: { "text/plain": string({ minLength: 1 }) },
         422: { "text/plain": string({ minLength: 1 }) },
