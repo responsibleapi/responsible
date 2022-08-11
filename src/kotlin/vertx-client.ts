@@ -65,8 +65,18 @@ const successReturn = <Refs extends RefsRec>(
   }
 }
 
-const extractBodyExpr = (mime: Mime, tn: KotlinType) => {
-  return tn === "Any?" ? "Unit" : `res.bodyAsJson(${tn}::class.java)`
+const extractBodyExpr = <Refs extends RefsRec>(
+  mime: Mime,
+  sor: SchemaOrRef<Refs>,
+) => {
+  const tn = typeNameKotlin(sor)
+  if (mime.includes("application/json")) {
+    return tn === "Any?" ? "Unit" : `res.bodyAsJson(${tn}::class.java)`
+  } else if (mime.includes("text/plain")) {
+    return "res.bodyAsString()"
+  }
+
+  throw new Error(`unsupported mime ${mime}`)
 }
 
 const methodBody = <Refs extends RefsRec>(
@@ -95,14 +105,20 @@ suspend fun ${mName}(${toMethodParams(op.req, { body })}): ${returnType} {
     ${body ? ".sendJson(body)" : ""}
     .await()
     
-  if (res.statusCode() == ${success.code}) {
+  val status = res.statusCode()
+  if (status == ${success.code}) {
     return ${returnExpr}
   } else {
-   val body =  when (res.statusCode()) {
+   val body =  when (status) {
       ${Object.entries(op.res)
-        .map(([code, resp]) => `${code} -> ${extractBodyExpr(resp.body)}`)
+        .filter(([code, _]) => Number(code) !== success.code)
+        .map(([code, resp]) => {
+          const tup = Object.entries(resp.body)[0] as [Mime, SchemaOrRef<Refs>]
+          return `${code} -> ${extractBodyExpr(...tup)}`
+        })
         .join("\n")}
     }
+    throw HttpException(status, body)
   }
 }
 `
@@ -166,13 +182,18 @@ const classGenerics = <Refs extends RefsRec>(
   return externals.length ? `<${externals.map(([k]) => k).join(", ")}>` : ""
 }
 
+type Import = `${string}.${string}` | string
+
 export const genVertxKotlinClient = <Refs extends RefsRec>(
-  x: CoreService<Refs>,
+  s: CoreService<Refs>,
+  packageName: Import,
 ): string => {
-  const cName = capitalize(x.info.title)
-  const generics = classGenerics(x.refs)
+  const cName = capitalize(s.info.title)
+  const generics = classGenerics(s.refs)
 
   return `
+package ${packageName}
+  
 import io.vertx.kotlin.coroutines.await
 
 class HttpException<T>(val statusCode: Int, val body: T) : Exception()
@@ -181,7 +202,7 @@ class ${cName}Client${generics}(vertx: ${VERTX_T}, opts: ${WEBCLIENT_OPTIONS_T})
   
   val client = ${WEBCLIENT_T}.create(vertx, opts)
   
-  ${toMethods(x.paths)}
+  ${toMethods(s.paths)}
   
   override fun close(): Unit = client.close()
 }
