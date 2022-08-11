@@ -39,32 +39,52 @@ const toMethodParams = <Refs extends RefsRec>(
     )
     .join(", ")
 
-const successReturnType = <Refs extends RefsRec>(
+const successReturn = <Refs extends RefsRec>(
   responses: CoreResponses<Refs>,
-): KotlinType => {
+): {
+  code: number
+  mime: Mime
+  typeName: KotlinType
+} => {
   const sorted = Object.keys(responses).map(Number).sort()
-  if (sorted[0] >= 400) throw new Error(JSON.stringify(sorted))
+  const code = sorted[0]
+  if (code >= 400) throw new Error(JSON.stringify(sorted))
 
-  const what = responses[String(sorted[0]) as StatusCodeStr]
-  const sors = Object.values(what.body)
-  if (sors.length === 1) {
-    return typeNameKotlin(sors[0])
+  const codeStr = String(code) as StatusCodeStr
+  const what = responses[codeStr]
+  const schemas = Object.entries(what.body)
+  if (schemas.length === 1) {
+    const [mime, sor] = schemas[0]
+    return {
+      code,
+      typeName: typeNameKotlin(sor),
+      mime: mime as Mime,
+    }
   } else {
     throw new Error(JSON.stringify(what.body))
   }
 }
 
+const extractBodyExpr = (mime: Mime, tn: KotlinType) => {
+  return tn === "Any?" ? "Unit" : `res.bodyAsJson(${tn}::class.java)`
+}
+
 const methodBody = <Refs extends RefsRec>(
-  path: `/${string}`,
+  path: Path,
   method: CoreMethod,
   op: CoreOp<Refs>,
   mName: string,
   body?: SchemaOrRef<Refs>,
 ): string => {
-  const retType = successReturnType(op.res)
+  const success = successReturn(op.res)
+
+  const tn = success.typeName
+  const returnType = tn === "Any?" ? "Unit" : tn
+
+  const returnExpr = extractBodyExpr(success.mime, tn)
 
   return `
-suspend fun ${mName}(${toMethodParams(op.req, { body })}): ${retType} {
+suspend fun ${mName}(${toMethodParams(op.req, { body })}): ${returnType} {
   val res = client.${method.toLowerCase()}("${path}")
     ${Object.keys(op.req.query ?? {})
       .map(k => `.addQueryParam("${k}", ${k})`)
@@ -74,7 +94,16 @@ suspend fun ${mName}(${toMethodParams(op.req, { body })}): ${retType} {
       .join("\n")}
     ${body ? ".sendJson(body)" : ""}
     .await()
-  return res
+    
+  if (res.statusCode() == ${success.code}) {
+    return ${returnExpr}
+  } else {
+   val body =  when (res.statusCode()) {
+      ${Object.entries(op.res)
+        .map(([code, resp]) => `${code} -> ${extractBodyExpr(resp.body)}`)
+        .join("\n")}
+    }
+  }
 }
 `
 }
@@ -128,15 +157,27 @@ const toMethods = <Refs extends RefsRec>(paths: CorePaths<Refs>): string =>
     )
     .join("\n")
 
+const classGenerics = <Refs extends RefsRec>(
+  refs: Refs,
+): "" | `<${string}>` => {
+  const externals = Object.entries(refs).filter(
+    ([, v]) => v.type === "external",
+  )
+  return externals.length ? `<${externals.map(([k]) => k).join(", ")}>` : ""
+}
+
 export const genVertxKotlinClient = <Refs extends RefsRec>(
   x: CoreService<Refs>,
 ): string => {
   const cName = capitalize(x.info.title)
+  const generics = classGenerics(x.refs)
 
   return `
 import io.vertx.kotlin.coroutines.await
 
-class ${cName}Client(vertx: ${VERTX_T}, opts: ${WEBCLIENT_OPTIONS_T}) : ${CLOSEABLE_T} {
+class HttpException<T>(val statusCode: Int, val body: T) : Exception()
+
+class ${cName}Client${generics}(vertx: ${VERTX_T}, opts: ${WEBCLIENT_OPTIONS_T}) : ${CLOSEABLE_T} {
   
   val client = ${WEBCLIENT_T}.create(vertx, opts)
   
