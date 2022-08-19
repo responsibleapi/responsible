@@ -8,13 +8,16 @@ import {
   RefsRec,
   StatusCodeStr,
 } from "../core/core"
-import { isOptional, Mime, SchemaOrRef } from "../core/endpoint"
-import { KotlinType, typeNameKotlin } from "./types"
+import { genKotlinTypes, kotlinClassName, kotlinTypeName } from "./types"
+import { isKey, isOptional, Mime, SchemaOrRef } from "../core/endpoint"
 
 const VERTX_T = "io.vertx.core.Vertx"
 const CLOSEABLE_T = "java.io.Closeable"
 const WEBCLIENT_T = "io.vertx.ext.web.client.WebClient"
 const WEBCLIENT_OPTIONS_T = "io.vertx.ext.web.client.WebClientOptions"
+
+const HTTP_EXCEPTION_T = "HttpException"
+const UNEXPECTED_STATUS_T = "UnexpectedStatusException"
 
 const capitalize = <T extends string>(s: T): Capitalize<T> =>
   (s ? `${s.charAt(0).toUpperCase()}${s.slice(1)}` : s) as Capitalize<T>
@@ -24,6 +27,7 @@ type Path = `/${string}`
 const toCamelCase = (p: string): string => p.split("/").map(capitalize).join("")
 
 const toMethodParams = <Refs extends RefsRec>(
+  refs: Refs,
   req: CoreReq<Refs>,
   body: { body?: SchemaOrRef<Refs> },
 ): string =>
@@ -35,7 +39,8 @@ const toMethodParams = <Refs extends RefsRec>(
     ...body,
   })
     .map(
-      ([k, v]) => `${k}: ${typeNameKotlin(v)}${isOptional(v) ? " = null" : ""}`,
+      ([k, v]) =>
+        `${k}: ${kotlinTypeName(refs, v)}${isOptional(v) ? " = null" : ""}`,
     )
     .join(", ")
 
@@ -44,7 +49,7 @@ const successReturn = <Refs extends RefsRec>(
 ): {
   code: number
   mime: Mime
-  typeName: KotlinType
+  sor: SchemaOrRef<Refs>
 } => {
   const sorted = Object.keys(responses).map(Number).sort()
   const code = sorted[0]
@@ -55,23 +60,29 @@ const successReturn = <Refs extends RefsRec>(
   const schemas = Object.entries(what.body)
   if (schemas.length === 1) {
     const [mime, sor] = schemas[0]
-    return {
-      code,
-      typeName: typeNameKotlin(sor),
-      mime: mime as Mime,
-    }
+    return { code, sor, mime: mime as Mime }
   } else {
     throw new Error(JSON.stringify(what.body))
   }
 }
 
+const isExternal = <Refs extends RefsRec>(
+  refs: Refs,
+  sor: SchemaOrRef<Refs>,
+): sor is keyof Refs => isKey(refs, sor) && refs[sor].type === "external"
+
 const extractBodyExpr = <Refs extends RefsRec>(
+  refs: Refs,
   mime: Mime,
   sor: SchemaOrRef<Refs>,
 ) => {
-  const tn = typeNameKotlin(sor)
   if (mime.includes("application/json")) {
-    return tn === "Any?" ? "Unit" : `res.bodyAsJson(${tn}::class.java)`
+    if (isExternal(refs, sor)) {
+      return `res.bodyAsJson(${externalClassField(sor)})`
+    } else {
+      const cn = kotlinClassName(sor)
+      return cn === "Any" ? "Unit" : `res.bodyAsJson(${cn}::class.java)`
+    }
   } else if (mime.includes("text/plain")) {
     return "res.bodyAsString()"
   }
@@ -80,6 +91,7 @@ const extractBodyExpr = <Refs extends RefsRec>(
 }
 
 const methodBody = <Refs extends RefsRec>(
+  refs: Refs,
   path: Path,
   method: CoreMethod,
   op: CoreOp<Refs>,
@@ -88,43 +100,48 @@ const methodBody = <Refs extends RefsRec>(
 ): string => {
   const success = successReturn(op.res)
 
-  const tn = success.typeName
+  const tn = kotlinTypeName(refs, success.sor)
   const returnType = tn === "Any?" ? "Unit" : tn
 
-  const returnExpr = extractBodyExpr(success.mime, tn)
+  const returnExpr = extractBodyExpr(refs, success.mime, success.sor)
 
   return `
-suspend fun ${mName}(${toMethodParams(op.req, { body })}): ${returnType} {
-  val res = client.${method.toLowerCase()}("${path}")
-    ${Object.keys(op.req.query ?? {})
+suspend fun ${mName}(${toMethodParams(refs, op.req, { body })}): ${returnType} {
+  val res = resilient {
+    client.${method.toLowerCase()}("${path}")
+      .expect(io.vertx.ext.web.client.predicate.ResponsePredicate.status(100, 500))
+      ${Object.keys(op.req.query ?? {})
       .map(k => `.addQueryParam("${k}", ${k})`)
       .join("\n")}
-    ${Object.keys(op.req.headers ?? {})
+      ${Object.keys(op.req.headers ?? {})
       .map(k => `.addHeader("${k}", ${k})`)
       .join("\n")}
-    ${body ? ".sendJson(body)" : ""}
-    .await()
+      ${body ? ".sendJson(body)" : ""}
+      .await()
+  }
     
   val status = res.statusCode()
   if (status == ${success.code}) {
     return ${returnExpr}
   } else {
-   val body =  when (status) {
+   val resBody =  when (status) {
       ${Object.entries(op.res)
         .filter(([code, _]) => Number(code) !== success.code)
         .map(([code, resp]) => {
-          const tup = Object.entries(resp.body)[0] as [Mime, SchemaOrRef<Refs>]
-          return `${code} -> ${extractBodyExpr(...tup)}`
+          const [mime, sor] = Object.entries(resp.body)[0]
+          return `${code} -> ${extractBodyExpr(refs, mime as Mime, sor)}`
         })
         .join("\n")}
+      else -> throw ${UNEXPECTED_STATUS_T}(status)
     }
-    throw HttpException(status, body)
+    throw ${HTTP_EXCEPTION_T}(status, resBody)
   }
 }
 `
 }
 
 const genReqBodyOp = <Refs extends RefsRec>(
+  refs: Refs,
   path: Path,
   method: CoreMethod,
   op: CoreOp<Refs>,
@@ -145,10 +162,11 @@ const genReqBodyOp = <Refs extends RefsRec>(
     throw new Error(`unsupported mime ${mime}`)
   }
 
-  return methodBody(path, method, op, mName, sor)
+  return methodBody(refs, path, method, op, mName, sor)
 }
 
 const genOp = <Refs extends RefsRec>(
+  refs: Refs,
   path: Path,
   method: CoreMethod,
   op: CoreOp<Refs>,
@@ -156,53 +174,83 @@ const genOp = <Refs extends RefsRec>(
   const bodyMimes = Object.entries(op.req.body ?? {})
   if (bodyMimes.length) {
     return bodyMimes
-      .map(([mime, sor]) => genReqBodyOp(path, method, op, mime as Mime, sor))
+      .map(([mime, sor]) =>
+        genReqBodyOp(refs, path, method, op, mime as Mime, sor),
+      )
       .join("\n")
   } else {
     const mName = op.name || `${method.toLowerCase()}${toCamelCase(path)}`
-    return methodBody(path, method, op, mName)
+    return methodBody(refs, path, method, op, mName)
   }
 }
 
-const toMethods = <Refs extends RefsRec>(paths: CorePaths<Refs>): string =>
+const toMethods = <Refs extends RefsRec>(
+  refs: Refs,
+  paths: CorePaths<Refs>,
+): string =>
   Object.entries(paths)
     .map(([path, methods]) =>
       Object.entries(methods)
-        .map(([method, op]) => genOp(path as Path, method as CoreMethod, op))
+        .map(([method, op]) =>
+          genOp(refs, path as Path, method as CoreMethod, op),
+        )
         .join("\n"),
     )
     .join("\n")
 
-const classGenerics = <Refs extends RefsRec>(
+const externalRefNames = <Refs extends RefsRec>(
   refs: Refs,
-): "" | `<${string}>` => {
-  const externals = Object.entries(refs).filter(
-    ([, v]) => v.type === "external",
-  )
-  return externals.length ? `<${externals.map(([k]) => k).join(", ")}>` : ""
-}
+): ReadonlyArray<keyof Refs> =>
+  Object.entries(refs).flatMap(([k, v]) => (v.type === "external" ? [k] : []))
 
-type Import = `${string}.${string}` | string
+const classGenerics = <Refs extends RefsRec>(
+  es: ReadonlyArray<keyof Refs>,
+): "" | `<${string}>` => (es.length ? `<${es.join(", ")}>` : "")
+
+const externalClassField = <Refs extends RefsRec>(
+  k: keyof Refs,
+): `${string}Class` => `${String(k)}Class`
 
 export const genVertxKotlinClient = <Refs extends RefsRec>(
-  s: CoreService<Refs>,
-  packageName: Import,
+  { info, paths, refs }: CoreService<Refs>,
+  packageName: string,
 ): string => {
-  const cName = capitalize(s.info.title)
-  const generics = classGenerics(s.refs)
+  const cName = capitalize(info.title)
+  const externals = externalRefNames(refs)
 
-  return `
+  return `  
 package ${packageName}
   
 import io.vertx.kotlin.coroutines.await
 
-class HttpException<T>(val statusCode: Int, val body: T) : Exception()
+${genKotlinTypes(refs)}
 
-class ${cName}Client${generics}(vertx: ${VERTX_T}, opts: ${WEBCLIENT_OPTIONS_T}) : ${CLOSEABLE_T} {
+class ${HTTP_EXCEPTION_T}(val statusCode: Int, val body: Any?) : Exception()
+
+class ${UNEXPECTED_STATUS_T}(val statusCode: Int): Exception()
+
+private suspend fun resilient(
+    attempt: Int = 1,
+    f: suspend () -> io.vertx.ext.web.client.HttpResponse<io.vertx.core.buffer.Buffer>
+): io.vertx.ext.web.client.HttpResponse<io.vertx.core.buffer.Buffer> =
+    try {
+        f()
+    } catch (e: Exception) {
+        if (attempt < 20) resilient(attempt = attempt + 1, f = f)
+        else throw e
+    }
+
+class ${cName}Client${classGenerics(externals)}(
+  vertx: ${VERTX_T},
+  opts: ${WEBCLIENT_OPTIONS_T},
+  ${externals
+    .map(k => `private val ${externalClassField(k)}: Class<${String(k)}>`)
+    .join(",\n")}
+) : ${CLOSEABLE_T} {
   
-  val client = ${WEBCLIENT_T}.create(vertx, opts)
+  private val client = ${WEBCLIENT_T}.create(vertx, opts)
   
-  ${toMethods(s.paths)}
+  ${toMethods(refs, paths)}
   
   override fun close(): Unit = client.close()
 }

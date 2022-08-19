@@ -1,6 +1,6 @@
 import {
   isOptional,
-  isRef,
+  isKey,
   isSchema,
   Optional,
   RObject,
@@ -57,6 +57,9 @@ const schemaTypeName = <Refs extends RefsRec>(
   }
 }
 
+/**
+ * TODO consider generics
+ */
 const typeName = <Refs extends RefsRec>(
   x: SchemaOrRef<Refs> | Optional<Refs>,
   imports: Set<Import>,
@@ -81,7 +84,7 @@ const declareDataclass = <Refs extends RefsRec>(
   const o = refs[refName] as RObject<Refs>
 
   const genericNames = Object.values(o.fields).flatMap(field =>
-    isRef(field) && refs[field].type === "external" ? [field] : [],
+    isKey(field) && refs[field].type === "external" ? [field] : [],
   )
 
   const gen = imported(imports, TYPING_GENERIC)

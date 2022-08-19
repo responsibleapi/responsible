@@ -64,8 +64,7 @@ export interface Optional<Refs extends RefsRec> {
 export const isOptional = <Refs extends RefsRec>(
   x: Optional<Refs> | SchemaOrRef<Refs>,
 ): x is Optional<Refs> =>
-  // @ts-ignore doesn't typecheck, so we test it instead
-  Boolean(x) && typeof x === "object" && "kind" in x && x["kind"] === "optional"
+  typeof x === "object" && "kind" in x && x["kind"] === "optional"
 
 export const optionalGet = <Refs extends RefsRec>(
   o: Optional<Refs> | SchemaOrRef<Refs>,
@@ -81,12 +80,13 @@ export const isSchema = <Refs extends RefsRec>(
   "type" in x &&
   typeof (x as RSchema<Refs>)["type"] === "string"
 
-export const isRef = <Refs extends RefsRec>(x: unknown): x is keyof Refs =>
-  typeof x === "string"
+export const isKey = <Obj>(o: Obj, k: unknown): k is keyof Obj =>
+  typeof k === "string" && k in o
 
 export const isSchemaOrRef = <Refs extends RefsRec>(
+  refs: Refs,
   x: unknown,
-): x is SchemaOrRef<Refs> => isRef(x) || isSchema(x)
+): x is SchemaOrRef<Refs> => isKey(refs, x) || isSchema(x)
 
 interface Template<Schemas extends RefsRec> {
   strings: ReadonlyArray<string>

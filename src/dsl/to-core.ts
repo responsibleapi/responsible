@@ -19,6 +19,7 @@ export const isMimes = <Refs extends RefsRec>(x: unknown): x is Mimes<Refs> =>
   typeof x === "object" && !!x && Object.keys(x).every(isMime)
 
 const toRes = <Refs extends RefsRec>(
+  refs: Refs,
   opts: ScopeOpts<Refs>,
   what: SchemaOrRef<Refs> | Mimes<Refs>,
 ): CoreRes<Refs> => {
@@ -27,7 +28,7 @@ const toRes = <Refs extends RefsRec>(
 
   const headers = opts.res?.headers
 
-  if (isSchemaOrRef(what)) {
+  if (isSchemaOrRef(refs, what)) {
     return { headers, body: { [mime]: what } }
   }
 
@@ -49,6 +50,7 @@ const requestBody = <Refs extends RefsRec>(
 }
 
 const toOp = <Refs extends RefsRec>(
+  refs: Refs,
   op: DslOp<Refs>,
   opts: ScopeOpts<Refs>,
   params?: RequiredBag<Refs>,
@@ -68,7 +70,7 @@ const toOp = <Refs extends RefsRec>(
     res: Object.fromEntries(
       Object.entries({ ...opts.res?.codes, ...op.res }).map(([k, v]) => [
         k,
-        toRes(opts, v),
+        toRes(refs, opts, v),
       ]),
     ) as CoreResponses<Refs>,
   }
@@ -87,7 +89,7 @@ export const toCore = <Refs extends RefsRec>(
       path,
       Object.fromEntries(
         Object.entries(methods as Record<CoreMethod, DslOp<Refs>>).map(
-          ([k, v]) => [k, toOp(v, opts, params)],
+          ([k, v]) => [k, toOp(s.refs, v, opts, params)],
         ),
       ) as Record<CoreMethod, CoreOp<Refs>>,
     ]),

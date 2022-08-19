@@ -11,6 +11,6 @@ describe.concurrent("generate kotlin", () => {
   })
 
   test("client", () => {
-    console.log(genVertxKotlinClient(toCore(yanic), "foo"))
+    console.log(genVertxKotlinClient(toCore(yanic), "yanic"))
   })
 })
