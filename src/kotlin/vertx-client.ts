@@ -17,7 +17,7 @@ const WEBCLIENT_T = "io.vertx.ext.web.client.WebClient"
 const WEBCLIENT_OPTIONS_T = "io.vertx.ext.web.client.WebClientOptions"
 
 const HTTP_EXCEPTION_T = "HttpException"
-const UNEXPECTED_STATUS_T = "UnexpectedStatusException"
+const UNEXPECTED_STATUS_T = "UndeclaredStatusException"
 
 const capitalize = <T extends string>(s: T): Capitalize<T> =>
   (s ? `${s.charAt(0).toUpperCase()}${s.slice(1)}` : s) as Capitalize<T>
@@ -111,11 +111,11 @@ suspend fun ${mName}(${toMethodParams(refs, op.req, { body })}): ${returnType} {
     client.${method.toLowerCase()}("${path}")
       .expect(io.vertx.ext.web.client.predicate.ResponsePredicate.status(100, 500))
       ${Object.keys(op.req.query ?? {})
-      .map(k => `.addQueryParam("${k}", ${k})`)
-      .join("\n")}
+        .map(k => `.addQueryParam("${k}", ${k})`)
+        .join("\n")}
       ${Object.keys(op.req.headers ?? {})
-      .map(k => `.addHeader("${k}", ${k})`)
-      .join("\n")}
+        .map(k => `.addHeader("${k}", ${k})`)
+        .join("\n")}
       ${body ? ".sendJson(body)" : ""}
       .await()
   }
@@ -229,15 +229,17 @@ class ${HTTP_EXCEPTION_T}(val statusCode: Int, val body: Any?) : Exception()
 
 class ${UNEXPECTED_STATUS_T}(val statusCode: Int): Exception()
 
-private suspend fun resilient(
+private suspend fun <T> resilient(
     attempt: Int = 1,
-    f: suspend () -> io.vertx.ext.web.client.HttpResponse<io.vertx.core.buffer.Buffer>
-): io.vertx.ext.web.client.HttpResponse<io.vertx.core.buffer.Buffer> =
+    f: suspend () -> io.vertx.ext.web.client.HttpResponse<T>,
+): io.vertx.ext.web.client.HttpResponse<T> =
     try {
         f()
     } catch (e: Exception) {
-        if (attempt < 20) resilient(attempt = attempt + 1, f = f)
-        else throw e
+        if (attempt < 20) {
+            kotlinx.coroutines.delay(timeMillis = 1000)
+            resilient(attempt = attempt + 1, f = f)
+        } else throw e
     }
 
 class ${cName}Client${classGenerics(externals)}(
