@@ -39,7 +39,7 @@ export const string = <Schemas extends RefsRec>(
   opts?: StringOpts,
 ): RString<Schemas> => ({ type: "string", ...opts })
 
-const uuid = <Schemas extends RefsRec>(): RSchema<Schemas> => ({
+export const uuid = <Schemas extends RefsRec>(): RSchema<Schemas> => ({
   type: "string",
   format: "uuid",
 })
