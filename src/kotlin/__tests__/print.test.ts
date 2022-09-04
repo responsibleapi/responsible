@@ -11,6 +11,10 @@ describe.concurrent("generate kotlin", () => {
   })
 
   test("client", () => {
-    console.log(genVertxKotlinClient(toCore(yanic), "yanic"))
+    console.log(
+      genVertxKotlinClient(toCore(yanic), {
+        packageName: "listenbox.yanic",
+      }),
+    )
   })
 })

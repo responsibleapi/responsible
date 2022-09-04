@@ -48,7 +48,7 @@ export default service(
       headers: { "content-length": int32({ minimum: 1 }) },
 
       /**
-       * TODO the responses can be components
+       * TODO responses can be components
        */
       codes: {
         400: { "text/plain": string({ minLength: 1 }) },

@@ -84,7 +84,7 @@ const declareDataclass = <Refs extends RefsRec>(
   const o = refs[refName] as RObject<Refs>
 
   const genericNames = Object.values(o.fields).flatMap(field =>
-    isKey(field) && refs[field].type === "external" ? [field] : [],
+    isKey(refs, field) && refs[field].type === "external" ? [field] : [],
   )
 
   const gen = imported(imports, TYPING_GENERIC)

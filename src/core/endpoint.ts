@@ -80,7 +80,7 @@ export const isSchema = <Refs extends RefsRec>(
   "type" in x &&
   typeof (x as RSchema<Refs>)["type"] === "string"
 
-export const isKey = <Obj>(o: Obj, k: unknown): k is keyof Obj =>
+export const isKey = <T>(o: T, k: unknown): k is keyof T =>
   typeof k === "string" && k in o
 
 export const isSchemaOrRef = <Refs extends RefsRec>(

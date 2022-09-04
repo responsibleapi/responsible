@@ -16,8 +16,30 @@ const CLOSEABLE_T = "java.io.Closeable"
 const WEBCLIENT_T = "io.vertx.ext.web.client.WebClient"
 const WEBCLIENT_OPTIONS_T = "io.vertx.ext.web.client.WebClientOptions"
 
+/**
+ * TODO pass the path
+ */
 const HTTP_EXCEPTION_T = "HttpException"
+
+/**
+ * TODO pass the path
+ */
 const UNEXPECTED_STATUS_T = "UndeclaredStatusException"
+
+const DECLARE_RESILIENT = `
+private suspend fun <T> resilient(
+    attempt: Int = 1,
+    f: suspend () -> io.vertx.ext.web.client.HttpResponse<T>,
+): io.vertx.ext.web.client.HttpResponse<T> =
+    try {
+        f()
+    } catch (e: Exception) {
+        if (attempt < 20) {
+            kotlinx.coroutines.delay(timeMillis = 1000)
+            resilient(attempt = attempt + 1, f = f)
+        } else throw e
+    }
+`
 
 const capitalize = <T extends string>(s: T): Capitalize<T> =>
   (s ? `${s.charAt(0).toUpperCase()}${s.slice(1)}` : s) as Capitalize<T>
@@ -90,6 +112,9 @@ const extractBodyExpr = <Refs extends RefsRec>(
   throw new Error(`unsupported mime ${mime}`)
 }
 
+/**
+ * TODO method generics + inline + reified
+ */
 const methodBody = <Refs extends RefsRec>(
   refs: Refs,
   path: Path,
@@ -203,6 +228,9 @@ const externalRefNames = <Refs extends RefsRec>(
 ): ReadonlyArray<keyof Refs> =>
   Object.entries(refs).flatMap(([k, v]) => (v.type === "external" ? [k] : []))
 
+/**
+ * TODO move to method generics
+ */
 const classGenerics = <Refs extends RefsRec>(
   es: ReadonlyArray<keyof Refs>,
 ): "" | `<${string}>` => (es.length ? `<${es.join(", ")}>` : "")
@@ -213,7 +241,7 @@ const externalClassField = <Refs extends RefsRec>(
 
 export const genVertxKotlinClient = <Refs extends RefsRec>(
   { info, paths, refs }: CoreService<Refs>,
-  packageName: string,
+  { packageName }: { packageName: string },
 ): string => {
   const cName = capitalize(info.title)
   const externals = externalRefNames(refs)
@@ -229,18 +257,7 @@ class ${HTTP_EXCEPTION_T}(val statusCode: Int, val body: Any?) : Exception()
 
 class ${UNEXPECTED_STATUS_T}(val statusCode: Int): Exception()
 
-private suspend fun <T> resilient(
-    attempt: Int = 1,
-    f: suspend () -> io.vertx.ext.web.client.HttpResponse<T>,
-): io.vertx.ext.web.client.HttpResponse<T> =
-    try {
-        f()
-    } catch (e: Exception) {
-        if (attempt < 20) {
-            kotlinx.coroutines.delay(timeMillis = 1000)
-            resilient(attempt = attempt + 1, f = f)
-        } else throw e
-    }
+${DECLARE_RESILIENT}
 
 class ${cName}Client${classGenerics(externals)}(
   vertx: ${VERTX_T},

@@ -18,7 +18,7 @@ describe.concurrent("dsl", () => {
       [{}, "/bar", {}],
       [
         {
-          req: { body: undefined, headers: {} },
+          req: { body: undefined, headers: {}, cookies: {} },
           res: { body: undefined, codes: {}, headers: {} },
         },
         "/baz/qux",
