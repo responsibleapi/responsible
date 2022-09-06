@@ -132,8 +132,9 @@ const methodBody = <Refs extends RefsRec>(
 
   return `
 suspend fun ${mName}(${toMethodParams(refs, op.req, { body })}): ${returnType} {
+  val path = "${path}"
   val res = resilient {
-    client.${method.toLowerCase()}("${path}")
+    client.${method.toLowerCase()}(path)
       .expect(io.vertx.ext.web.client.predicate.ResponsePredicate.status(100, 500))
       ${Object.keys(op.req.query ?? {})
         .map(k => `.addQueryParam("${k}", ${k})`)
@@ -157,9 +158,9 @@ suspend fun ${mName}(${toMethodParams(refs, op.req, { body })}): ${returnType} {
           return `${code} -> ${extractBodyExpr(refs, mime as Mime, sor)}`
         })
         .join("\n")}
-      else -> throw ${UNEXPECTED_STATUS_T}(status)
+      else -> throw ${UNEXPECTED_STATUS_T}(path, status)
     }
-    throw ${HTTP_EXCEPTION_T}(status, resBody)
+    throw ${HTTP_EXCEPTION_T}(path, status, resBody)
   }
 }
 `
@@ -253,9 +254,9 @@ import io.vertx.kotlin.coroutines.await
 
 ${genKotlinTypes(refs)}
 
-class ${HTTP_EXCEPTION_T}(val statusCode: Int, val body: Any?) : Exception()
+class ${HTTP_EXCEPTION_T}(val path: String, val statusCode: Int, val body: Any?) : Exception()
 
-class ${UNEXPECTED_STATUS_T}(val statusCode: Int): Exception()
+class ${UNEXPECTED_STATUS_T}(val path: String, val statusCode: Int): Exception()
 
 ${DECLARE_RESILIENT}
 
