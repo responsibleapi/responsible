@@ -115,7 +115,7 @@ const extractBodyExpr = <Refs extends RefsRec>(
 /**
  * TODO method generics + inline + reified
  */
-const methodBody = <Refs extends RefsRec>(
+const genMethod = <Refs extends RefsRec>(
   refs: Refs,
   path: Path,
   method: CoreMethod,
@@ -188,7 +188,7 @@ const genReqBodyOp = <Refs extends RefsRec>(
     throw new Error(`unsupported mime ${mime}`)
   }
 
-  return methodBody(refs, path, method, op, mName, sor)
+  return genMethod(refs, path, method, op, mName, sor)
 }
 
 const genOp = <Refs extends RefsRec>(
@@ -206,7 +206,7 @@ const genOp = <Refs extends RefsRec>(
       .join("\n")
   } else {
     const mName = op.name || `${method.toLowerCase()}${toCamelCase(path)}`
-    return methodBody(refs, path, method, op, mName)
+    return genMethod(refs, path, method, op, mName)
   }
 }
 
