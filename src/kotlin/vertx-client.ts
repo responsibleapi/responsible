@@ -16,14 +16,7 @@ const CLOSEABLE_T = "java.io.Closeable"
 const WEBCLIENT_T = "io.vertx.ext.web.client.WebClient"
 const WEBCLIENT_OPTIONS_T = "io.vertx.ext.web.client.WebClientOptions"
 
-/**
- * TODO pass the path
- */
 const HTTP_EXCEPTION_T = "HttpException"
-
-/**
- * TODO pass the path
- */
 const UNEXPECTED_STATUS_T = "UndeclaredStatusException"
 
 const DECLARE_RESILIENT = `
@@ -97,7 +90,7 @@ const extractBodyExpr = <Refs extends RefsRec>(
   refs: Refs,
   mime: Mime,
   sor: SchemaOrRef<Refs>,
-) => {
+): "Unit" | `res.body${string}` => {
   if (mime.includes("application/json")) {
     if (isExternal(refs, sor)) {
       return `res.bodyAsJson(${externalClassField(sor)})`
@@ -112,10 +105,12 @@ const extractBodyExpr = <Refs extends RefsRec>(
   throw new Error(`unsupported mime ${mime}`)
 }
 
+const methodGenerics = (): Generics => ""
+
 /**
  * TODO method generics + inline + reified
  */
-const genMethod = <Refs extends RefsRec>(
+const declareMethod = <Refs extends RefsRec>(
   refs: Refs,
   path: Path,
   method: CoreMethod,
@@ -130,8 +125,10 @@ const genMethod = <Refs extends RefsRec>(
 
   const returnExpr = extractBodyExpr(refs, success.mime, success.sor)
 
+  const methodParams = toMethodParams(refs, op.req, { body })
+
   return `
-suspend fun ${mName}(${toMethodParams(refs, op.req, { body })}): ${returnType} {
+suspend fun ${methodGenerics()} ${mName}(${methodParams}): ${returnType} {
   val path = "${path}"
   val res = resilient {
     client.${method.toLowerCase()}(path)
@@ -188,7 +185,7 @@ const genReqBodyOp = <Refs extends RefsRec>(
     throw new Error(`unsupported mime ${mime}`)
   }
 
-  return genMethod(refs, path, method, op, mName, sor)
+  return declareMethod(refs, path, method, op, mName, sor)
 }
 
 const genOp = <Refs extends RefsRec>(
@@ -206,7 +203,7 @@ const genOp = <Refs extends RefsRec>(
       .join("\n")
   } else {
     const mName = op.name || `${method.toLowerCase()}${toCamelCase(path)}`
-    return genMethod(refs, path, method, op, mName)
+    return declareMethod(refs, path, method, op, mName)
   }
 }
 
@@ -229,12 +226,14 @@ const externalRefNames = <Refs extends RefsRec>(
 ): ReadonlyArray<keyof Refs> =>
   Object.entries(refs).flatMap(([k, v]) => (v.type === "external" ? [k] : []))
 
+type Generics = "" | `<${string}>`
+
 /**
  * TODO move to method generics
  */
 const classGenerics = <Refs extends RefsRec>(
   es: ReadonlyArray<keyof Refs>,
-): "" | `<${string}>` => (es.length ? `<${es.join(", ")}>` : "")
+): Generics => (es.length ? `<${es.join(", ")}>` : "")
 
 const externalClassField = <Refs extends RefsRec>(
   k: keyof Refs,
@@ -260,12 +259,9 @@ class ${UNEXPECTED_STATUS_T}(val path: String, val statusCode: Int): Exception()
 
 ${DECLARE_RESILIENT}
 
-class ${cName}Client${classGenerics(externals)}(
+class ${cName}Client(
   vertx: ${VERTX_T},
   opts: ${WEBCLIENT_OPTIONS_T},
-  ${externals
-    .map(k => `private val ${externalClassField(k)}: Class<${String(k)}>`)
-    .join(",\n")}
 ) : ${CLOSEABLE_T} {
   
   private val client = ${WEBCLIENT_T}.create(vertx, opts)
