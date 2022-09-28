@@ -7,9 +7,15 @@ import {
 } from "../core/endpoint"
 import { Mimes, RefsRec, ServiceInfo } from "../core/core"
 
+export interface FullRes<Refs extends RefsRec> {
+  schema?: SchemaOrRef<Refs>
+  headers?: OptionalBag<Refs>
+  cookies?: OptionalBag<Refs>
+}
+
 export type Codes<Refs extends RefsRec> = Record<
   number,
-  SchemaOrRef<Refs> | Mimes<Refs>
+  SchemaOrRef<Refs> | Mimes<Refs> | FullRes<Refs>
 >
 
 interface BaseReq<Refs extends RefsRec> {
@@ -17,7 +23,7 @@ interface BaseReq<Refs extends RefsRec> {
   headers?: OptionalBag<Refs>
   query?: OptionalBag<Refs>
   cookies?: OptionalBag<Refs>
-  res: Codes<Refs>
+  res?: Codes<Refs>
 }
 
 interface Bodiless<Refs extends RefsRec> extends BaseReq<Refs> {}
@@ -50,6 +56,8 @@ export const isScope = <Refs extends RefsRec>(
 ): x is Scope<Refs> => "endpoints" in x && typeof x.endpoints === "object"
 
 export interface ScopeOpts<Refs extends RefsRec> {
+  mirrorGETsAsHEADs?: boolean
+
   req?: {
     body?: Mime
     headers?: OptionalBag<Refs>

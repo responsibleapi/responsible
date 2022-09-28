@@ -59,28 +59,6 @@ const toMethodParams = <Refs extends RefsRec>(
     )
     .join(", ")
 
-const successReturn = <Refs extends RefsRec>(
-  responses: CoreResponses<Refs>,
-): {
-  code: number
-  mime: Mime
-  sor: SchemaOrRef<Refs>
-} => {
-  const sorted = Object.keys(responses).map(Number).sort()
-  const code = sorted[0]
-  if (code >= 400) throw new Error(JSON.stringify(sorted))
-
-  const codeStr = String(code) as StatusCodeStr
-  const what = responses[codeStr]
-  const schemas = Object.entries(what.body)
-  if (schemas.length === 1) {
-    const [mime, sor] = schemas[0]
-    return { code, sor, mime: mime as Mime }
-  } else {
-    throw new Error(JSON.stringify(what.body))
-  }
-}
-
 const isExternal = <Refs extends RefsRec>(
   refs: Refs,
   sor: SchemaOrRef<Refs>,
@@ -118,6 +96,20 @@ const declareMethod = <Refs extends RefsRec>(
   mName: string,
   body?: SchemaOrRef<Refs>,
 ): string => {
+  const sorted = Object.keys(op.res).map(Number).sort()
+  const code = sorted[0]
+  if (code >= 400) throw new Error(JSON.stringify(sorted))
+
+  const codeStr = String(code) as StatusCodeStr
+  const what = op.res[codeStr]
+  const schemas = Object.entries(what.body)
+  if (schemas.length === 1) {
+    const [mime, sor] = schemas[0]
+    return { code, sor, mime: mime as Mime }
+  } else {
+    throw new Error(JSON.stringify(what.body))
+  }
+
   const success = successReturn(op.res)
 
   const tn = kotlinTypeName(refs, success.sor)
@@ -151,8 +143,12 @@ suspend fun ${methodGenerics()} ${mName}(${methodParams}): ${returnType} {
       ${Object.entries(op.res)
         .filter(([code, _]) => Number(code) !== success.code)
         .map(([code, resp]) => {
-          const [mime, sor] = Object.entries(resp.body)[0]
-          return `${code} -> ${extractBodyExpr(refs, mime as Mime, sor)}`
+          if (resp.body) {
+            const [mime, sor] = Object.entries(resp.body)[0]
+            return `${code} -> ${extractBodyExpr(refs, mime as Mime, sor)}`
+          } else {
+            return `${code} -> null`
+          }
         })
         .join("\n")}
       else -> throw ${UNEXPECTED_STATUS_T}(path, status)
@@ -228,13 +224,6 @@ const externalRefNames = <Refs extends RefsRec>(
 
 type Generics = "" | `<${string}>`
 
-/**
- * TODO move to method generics
- */
-const classGenerics = <Refs extends RefsRec>(
-  es: ReadonlyArray<keyof Refs>,
-): Generics => (es.length ? `<${es.join(", ")}>` : "")
-
 const externalClassField = <Refs extends RefsRec>(
   k: keyof Refs,
 ): `${string}Class` => `${String(k)}Class`
@@ -244,7 +233,6 @@ export const genVertxKotlinClient = <Refs extends RefsRec>(
   { packageName }: { packageName: string },
 ): string => {
   const cName = capitalize(info.title)
-  const externals = externalRefNames(refs)
 
   return `  
 package ${packageName}

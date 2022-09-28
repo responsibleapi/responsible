@@ -19,7 +19,7 @@ export type Mimes<Refs extends RefsRec> = Record<Mime, SchemaOrRef<Refs>>
 
 export interface CoreRes<Refs extends RefsRec> {
   headers?: OptionalBag<Refs>
-  body: Mimes<Refs>
+  body?: Mimes<Refs>
 }
 
 type StatusCode1 = "1" | "2" | "3" | "4" | "5"

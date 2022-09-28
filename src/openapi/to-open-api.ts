@@ -49,7 +49,10 @@ export const toSchemaOrRef = <Refs extends RefsRec>(
     switch (schema.type) {
       case "string": {
         const { ...copy } = schema
+
+        // TODO WTF
         delete copy.template
+
         return {
           ...copy,
           pattern: schema.pattern?.toString(),
@@ -131,7 +134,7 @@ const toResponse = <Refs extends RefsRec>(
       },
     ]),
   ),
-  content: toContent(r.body),
+  content: r.body ? toContent(r.body) : undefined,
 })
 
 const codesToResponses = <Refs extends RefsRec>(
@@ -164,6 +167,7 @@ const toOperation = <Refs extends RefsRec>(
     parameters,
     requestBody: op.req?.body
       ? {
+          required: true,
           content: toContent(op.req.body),
         }
       : undefined,

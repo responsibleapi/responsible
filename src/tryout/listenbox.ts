@@ -422,5 +422,44 @@ export default service(
         },
       },
     }),
+    "/oauth/google": scope(
+      {
+        "/": {
+          GET: {},
+        },
+        "/callback": {
+          GET: {
+            query: {
+              code: string({ minLength: 1 }),
+            },
+            res: {
+              302: {
+                cookies: {
+                  token: string({ minLength: 1 }),
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        res: {
+          codes: {
+            302: {
+              headers: {
+                location: httpURL(),
+              },
+            },
+          },
+        },
+      },
+    ),
+  },
+  {
+    res: {
+      codes: {
+        400: unknown(),
+      },
+    },
   },
 )
