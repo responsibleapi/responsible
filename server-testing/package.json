@@ -1,0 +1,16 @@
+{
+  "name": "@responsible/server-testing",
+  "version": "0.0.1",
+  "module": "dist/index.esm.js",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "dependencies": {
+    "fast-check": "^3.1.0"
+  },
+  "scripts": {
+    "watch-test": "vitest",
+    "test": "vitest run",
+    "lint": "eslint src/",
+    "build": "node ../build.js"
+  }
+}

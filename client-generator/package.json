@@ -1,0 +1,16 @@
+{
+  "name": "@responsible/client-gen",
+  "version": "0.0.1",
+  "license": "MIT",
+  "module": "dist/index.esm.js",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "watch-test": "vitest",
+    "test": "vitest run",
+    "lint": "eslint src/",
+    "build": "node ../build.js"
+  }
+}
