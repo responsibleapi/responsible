@@ -1,6 +1,6 @@
 import {
-  isOptional,
   isKey,
+  isOptional,
   isSchema,
   Optional,
   RObject,
@@ -50,27 +50,39 @@ const isAlreadyOptional = (s: string): s is `${string}?` => s.endsWith("?")
 export type KotlinType = string | `${string}?`
 type KotlinClassName = string
 
-const refTypeNameWithGenerics = <Refs extends RefsRec>(
+export const typeGenerics = <Refs extends RefsRec>(
   refs: Refs,
   refName: keyof Refs,
-) => {
+): Set<keyof Refs> => {
   const schema = refs[refName]
-  const theName = String(refName)
+  switch (schema.type) {
+    case "object": {
+      return new Set(
+        Object.values(schema.fields).flatMap(field =>
+          isKey(refs, field) && refs[field].type === "external" ? [field] : [],
+        ),
+      )
+    }
 
-  if (schema.type === "object") {
-    const genericNames = Object.values(schema.fields).flatMap(field =>
-      isKey(refs, field) && refs[field].type === "external" ? [field] : [],
-    )
-
-    const generics = genericNames.length
-      ? (`<${genericNames.join(", ")}>` as const)
-      : ""
-
-    return `${theName}${generics}`
-  } else {
-    return theName
+    default:
+      return new Set()
   }
 }
+
+type RenderedGenerics = "" | `<${string}>`
+
+const renderGenerics = <Refs extends RefsRec>(
+  refs: Refs,
+  ref: keyof Refs,
+): RenderedGenerics => {
+  const generics = typeGenerics(refs, ref)
+  return generics.size ? `<${[...generics].join(", ")}>` : ""
+}
+
+const refTypeNameWithGenerics = <Refs extends RefsRec>(
+  refs: Refs,
+  ref: keyof Refs,
+) => `${String(ref)}${renderGenerics(refs, ref)}` as const
 
 /**
  * TODO should show generics

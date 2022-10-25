@@ -2,6 +2,7 @@ import fc from "fast-check"
 
 import {
   NumFormat,
+  OptionalBag,
   RArr,
   RNum,
   RSchema,
@@ -9,7 +10,16 @@ import {
   SchemaOrRef,
   StringFormat,
 } from "../endpoint"
-import { CoreMethod, CoreOp, CorePaths, CoreService, RefsRec } from "../core"
+import {
+  CoreMethod,
+  CoreOp,
+  CorePaths,
+  CoreRes,
+  CoreResponses,
+  CoreService,
+  Mimes,
+  RefsRec,
+} from "../core"
 
 const fromArr = <T>(...a: ReadonlyArray<T>): fc.Arbitrary<T> =>
   fc.oneof(...a.map(fc.constant))
@@ -95,16 +105,33 @@ const arbPath = () =>
 const arbMethod = (): fc.Arbitrary<CoreMethod> =>
   fromArr("GET", "HEAD", "DELETE", "POST", "PUT", "PATCH")
 
+const arbBag = <Refs extends RefsRec>(): fc.Arbitrary<OptionalBag<Refs>> => {
+  throw new Error("not implemented")
+}
+
+const arbMimes = <Refs extends RefsRec>(): fc.Arbitrary<Mimes<Refs>> => {
+  throw new Error("not implemented")
+}
+
+const arbRes = <Refs extends RefsRec>(): fc.Arbitrary<CoreRes<Refs>> =>
+  fc.record({
+    headers: optional(arbBag()),
+    body: optional(arbMimes()),
+  })
+
 const arbOp = <Refs extends RefsRec>(): fc.Arbitrary<CoreOp<Refs>> =>
   fc.record({
     name: optional(fc.string()),
     req: fc.record({}),
-    res: fc.record({}),
+    res: fc
+      .dictionary(
+        fc.integer({ min: 100, max: 599 }).map(x => x.toString()),
+        arbRes(),
+      )
+      .map(x => x as unknown as CoreResponses<Refs>),
   })
 
-const arbPaths = <Refs extends RefsRec>(
-  refs: Refs,
-): fc.Arbitrary<CorePaths<Refs>> =>
+const arbPaths = <Refs extends RefsRec>(): fc.Arbitrary<CorePaths<Refs>> =>
   fc.dictionary(arbPath(), fc.dictionary(arbMethod(), arbOp()))
 
 const arbRefs = <Refs extends RefsRec>(): fc.Arbitrary<Refs> =>
@@ -122,6 +149,6 @@ export const arbCoreSvc = <Refs extends RefsRec>(): fc.Arbitrary<
           .map(([major, minor]) => `${major}.${minor}` as const),
       }),
       refs: fc.constant(refs),
-      paths: arbPaths(refs),
+      paths: arbPaths(),
     }),
   )

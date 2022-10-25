@@ -1,8 +1,8 @@
 import { describe, test } from "vitest"
 
-import { genPythonTypes } from "../generate"
-import { toCore } from "../../dsl/to-core"
-import yanic from "../../tryout/yanic"
+import yanic from "../../../tryout/src/yanic"
+import { genPythonTypes } from "./generate"
+import { toCore } from "../dsl/to-core"
 
 describe.concurrent("generate python", () => {
   test("yanic", () => {

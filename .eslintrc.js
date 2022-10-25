@@ -3,14 +3,14 @@ module.exports = {
   env: { node: true },
   plugins: ["@typescript-eslint"],
   parser: "@typescript-eslint/parser",
-  parserOptions: { project: "../tsconfig.base.json" },
+  parserOptions: { project: "./tsconfig.base.json" },
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
   ],
-  ignorePatterns: ["**/*.test.ts", "**/build.js"],
+  ignorePatterns: ["**/*.test.ts", "**/build.js", "**/dist/*"],
   rules: {
     eqeqeq: "error",
     "no-throw-literal": "error",

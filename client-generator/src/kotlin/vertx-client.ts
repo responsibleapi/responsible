@@ -3,7 +3,6 @@ import {
   CoreOp,
   CorePaths,
   CoreReq,
-  CoreResponses,
   CoreService,
   RefsRec,
   StatusCodeStr,
@@ -83,7 +82,17 @@ const extractBodyExpr = <Refs extends RefsRec>(
   throw new Error(`unsupported mime ${mime}`)
 }
 
-const methodGenerics = (): Generics => ""
+const classGenerics = <Refs extends RefsRec>(
+  refs: Refs,
+): ReadonlyArray<keyof Refs> =>
+  Object.entries(refs).flatMap(([k, v]) => (v.type === "external" ? [k] : []))
+
+const methodGenerics = <Refs extends RefsRec>(
+  refs: Refs,
+  op: CoreOp<Refs>,
+): Generics => {
+  throw new Error("not implemented")
+}
 
 /**
  * TODO method generics + inline + reified
@@ -102,25 +111,22 @@ const declareMethod = <Refs extends RefsRec>(
 
   const codeStr = String(code) as StatusCodeStr
   const what = op.res[codeStr]
-  const schemas = Object.entries(what.body)
-  if (schemas.length === 1) {
-    const [mime, sor] = schemas[0]
-    return { code, sor, mime: mime as Mime }
-  } else {
+  const schemas = Object.entries(what.body ?? {})
+  if (schemas.length !== 1) {
     throw new Error(JSON.stringify(what.body))
   }
 
-  const success = successReturn(op.res)
+  const [mime, sor] = schemas[0]
 
-  const tn = kotlinTypeName(refs, success.sor)
+  const tn = kotlinTypeName(refs, sor)
   const returnType = tn === "Any?" ? "Unit" : tn
 
-  const returnExpr = extractBodyExpr(refs, success.mime, success.sor)
+  const returnExpr = extractBodyExpr(refs, mime as Mime, sor)
 
   const methodParams = toMethodParams(refs, op.req, { body })
 
   return `
-suspend fun ${methodGenerics()} ${mName}(${methodParams}): ${returnType} {
+suspend fun ${methodGenerics(refs)} ${mName}(${methodParams}): ${returnType} {
   val path = "${path}"
   val res = resilient {
     client.${method.toLowerCase()}(path)
@@ -136,18 +142,18 @@ suspend fun ${methodGenerics()} ${mName}(${methodParams}): ${returnType} {
   }
     
   val status = res.statusCode()
-  if (status == ${success.code}) {
+  if (status == ${code}) {
     return ${returnExpr}
   } else {
    val resBody =  when (status) {
       ${Object.entries(op.res)
-        .filter(([code, _]) => Number(code) !== success.code)
-        .map(([code, resp]) => {
+        .filter(([cde, _]) => Number(cde) !== code)
+        .map(([cde, resp]) => {
           if (resp.body) {
-            const [mime, sor] = Object.entries(resp.body)[0]
-            return `${code} -> ${extractBodyExpr(refs, mime as Mime, sor)}`
+            const [mme, sro] = Object.entries(resp.body)[0]
+            return `${cde} -> ${extractBodyExpr(refs, mme as Mime, sro)}`
           } else {
-            return `${code} -> null`
+            return `${cde} -> null`
           }
         })
         .join("\n")}
@@ -216,11 +222,6 @@ const toMethods = <Refs extends RefsRec>(
         .join("\n"),
     )
     .join("\n")
-
-const externalRefNames = <Refs extends RefsRec>(
-  refs: Refs,
-): ReadonlyArray<keyof Refs> =>
-  Object.entries(refs).flatMap(([k, v]) => (v.type === "external" ? [k] : []))
 
 type Generics = "" | `<${string}>`
 

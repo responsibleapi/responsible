@@ -1,5 +1,10 @@
-import { external, int32, struct, unknown } from "../dsl/schema"
-import { service } from "../dsl/endpoint"
+import {
+  external,
+  int32,
+  struct,
+  unknown,
+} from "@responsible/client-generator/src/dsl/schema"
+import { service } from "@responsible/client-generator"
 
 export default service(
   {
