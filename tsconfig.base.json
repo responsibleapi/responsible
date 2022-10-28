@@ -10,8 +10,7 @@
     "noImplicitAny": true,
     "noImplicitThis": true,
     "skipLibCheck": true,
-    "strict": true,
-    "declaration": true
+    "strict": true
   },
   "exclude": ["node_modules/", "**/__tests__/*", "**/*.test.*"]
 }

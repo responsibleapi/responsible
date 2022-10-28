@@ -1,0 +1,22 @@
+{
+  "name": "@responsible/generator",
+  "version": "0.0.1",
+  "license": "MIT",
+  "module": "dist/esm/index.js",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "dependencies": {
+    "arg": "^5.0.2"
+  },
+  "devDependencies": {
+    "pkg": "^5.8.0"
+  },
+  "scripts": {
+    "watch-test": "vitest",
+    "test": "vitest run",
+    "lint": "eslint src/",
+    "build:cjs": "tsc --declaration --module commonjs --outDir dist/",
+    "build:esm": "tsc --module es2015 --outDir dist/esm/",
+    "build": "yarn build:cjs && yarn build:esm"
+  }
+}

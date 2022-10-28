@@ -1,10 +1,4 @@
-import {
-  external,
-  int32,
-  struct,
-  unknown,
-} from "@responsible/client-generator/src/dsl/schema"
-import { service } from "@responsible/client-generator"
+import { service, r } from "@responsible/generator"
 
 export default service(
   {
@@ -12,19 +6,19 @@ export default service(
     version: "0.1.0",
   },
   {
-    ElkNode: external(),
-    LayoutOpts: external(),
+    ElkNode: r.external(),
+    LayoutOpts: r.external(),
   },
   {
     "/json": {
       POST: {
-        req: struct({
+        req: r.struct({
           root: "ElkNode",
           opts: "LayoutOpts",
         }),
         res: {
           200: "ElkNode",
-          500: unknown(),
+          500: r.unknown(),
         },
       },
     },
@@ -34,7 +28,7 @@ export default service(
     res: {
       body: "application/json",
       headers: {
-        "content-length": int32({ minimum: 1 }),
+        "content-length": r.int32({ minimum: 1 }),
       },
     },
   },

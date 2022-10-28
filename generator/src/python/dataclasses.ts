@@ -7,7 +7,7 @@ import {
   RSchema,
   SchemaOrRef,
 } from "../core/endpoint"
-import { RefsRec } from "../core/core"
+import { CoreService, RefsRec } from "../core/core"
 
 const DATACLASS = "dataclasses.dataclass"
 const TYPING_OPTIONAL = "typing.Optional"
@@ -125,7 +125,9 @@ const declareType = <Refs extends RefsRec>(
   }
 }
 
-export const genPythonTypes = <Refs extends RefsRec>(refs: Refs): string => {
+export const genPythonTypes = <Refs extends RefsRec>({
+  refs,
+}: CoreService<Refs>): string => {
   const imports = new Set<Import>()
 
   const declarations = Object.keys(refs)

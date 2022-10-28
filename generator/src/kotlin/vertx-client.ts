@@ -125,8 +125,10 @@ const declareMethod = <Refs extends RefsRec>(
 
   const methodParams = toMethodParams(refs, op.req, { body })
 
+  const methodGenerics1 = methodGenerics(refs, op)
+
   return `
-suspend fun ${methodGenerics(refs)} ${mName}(${methodParams}): ${returnType} {
+suspend fun ${methodGenerics1} ${mName}(${methodParams}): ${returnType} {
   val path = "${path}"
   val res = resilient {
     client.${method.toLowerCase()}(path)

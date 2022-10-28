@@ -5,8 +5,8 @@ import {
   string,
   struct,
   unknown,
-} from "@responsible/client-generator/src/dsl/schema"
-import { service } from "@responsible/client-generator/src/dsl/endpoint"
+} from "@responsible/generator/src/dsl/schema"
+import { service } from "@responsible/generator/src/dsl/endpoint"
 
 export default service(
   {

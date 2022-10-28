@@ -1,17 +1,16 @@
 {
-  "name": "@responsible/client-generator",
+  "name": "@responsible/testing",
   "version": "0.0.1",
-  "license": "MIT",
   "module": "dist/index.esm.js",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
-  "dependencies": {},
-  "devDependencies": {},
+  "dependencies": {
+    "fast-check": "^3.1.0"
+  },
   "scripts": {
     "watch-test": "vitest",
     "test": "vitest run",
     "lint": "eslint src/",
-    "build": "node ../build.js",
-    "tsc": "tsc"
+    "build": "node ../build.js"
   }
 }

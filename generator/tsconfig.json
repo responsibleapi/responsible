@@ -1,10 +1,10 @@
 {
   "compilerOptions": {
     "lib": ["ESNext"],
-    "target": "ES6",
-    "outDir": "dist/"
+    "target": "ESNext"
+    //    "outDir": "dist/"
   },
   "extends": "../tsconfig.base.json",
-  "include": ["src/"],
+  //  "include": ["src/"],
   "files": ["src/index.ts"]
 }

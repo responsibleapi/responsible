@@ -19,8 +19,8 @@ import {
   struct,
   unknown,
   utcMillis,
-} from "@responsible/client-generator/src/dsl/schema"
-import { Endpoints, scope, service } from "@responsible/client-generator/src/dsl/endpoint"
+} from "@responsible/generator/src/dsl/schema"
+import { Endpoints, scope, service } from "@responsible/generator/src/dsl/endpoint"
 
 const schemas = {
   FeedID: newType(string({ length: 11 })),

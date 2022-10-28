@@ -1,7 +1,8 @@
 import { describe, test } from "vitest"
 
-import { toOpenApi } from "@responsible/client-generator/src/openapi/to-open-api"
-import { toCore } from "@responsible/client-generator/src/dsl/to-core"
+import { toOpenApi } from "@responsible/generator/src/openapi/to-open-api"
+import { toCore } from "@responsible/generator/src/dsl/to-core"
+
 import listenbox from "../listenbox"
 import yanic from "../yanic"
 
