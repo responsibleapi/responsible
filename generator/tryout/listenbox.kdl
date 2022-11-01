@@ -1,0 +1,248 @@
+info {
+
+}
+
+newType "FeedID" "string" length=11
+
+newType "ItemID" "string" length=11
+
+newType "ShowID" "string" minLength=11 maxLength=12
+
+newType "StripeCheckoutID" "string" minLength=1
+
+struct "SubmitReq" {
+    url "httpURL"
+}
+
+enum "Plan" {
+    free
+    basic
+    premium
+}
+
+struct "RecentResp" {
+    list: "array" minItems=0 {
+        struct {
+            id: "ShowID"
+            feed_id: "FeedID"
+            title "string"
+            episodes "nat32"
+            image "httpURL" optional=true
+            refreshed_utc "utcMillis" optional=true
+            author "string" optional=true
+            owner "string" optional=true
+        }
+    }
+    plan: "Plan"
+}
+
+enum "ValidationExceptionErrorType" {
+    "NO_MATCH"
+    "NOT_FOUND"
+    "UNEXPECTED_ARRAY"
+    "UNEXPECTED_SINGLE_STRING"
+    "FILE_NOT_FOUND"
+    "WRONG_CONTENT_TYPE"
+    "EMPTY_VALUE"
+    "UNEXPECTED_ARRAY_SIZE"
+    "DESERIALIZATION_ERROR"
+    "OBJECT_FIELD_NOT_FOUND"
+    "JSON_NOT_PARSABLE"
+    "JSON_INVALID"
+    "XML_INVALID"
+}
+
+struct "ErrorStruct" {
+    type "ValidationExceptionErrorType"
+    name "string"
+    value "string"
+    message "string" optional=true
+}
+
+struct "ITunesCategory" {
+    category "string" minLength=1
+    subcategory "string" minLength=1 optional=true
+}
+
+enum "YouTubeFeedType" {
+    video
+    playlist
+    channel
+}
+
+struct "Show" {
+    id: "ShowID"
+    feed_id: "FeedID"
+    title "string"
+    image "httpURL" optional=true
+    description "string"
+    author "string" optional=true
+    copyright "string" optional=true
+    keywords "string" optional=true
+    website "httpURL" optional=true
+    language "string"
+    explicit "boolean" optional=true
+    owner "string" optional=true
+    ownerEmail "email" optional=true
+    primaryCategory "ITunesCategory" optional=true
+    secondaryCategory "ITunesCategory" optional=true
+    episodes "nat32"
+    audioFeedURL "httpURL"
+    videoFeedURL "httpURL"
+    refreshedUTC "utcMillis" optional=true
+    youtubeURL "httpURL"
+    analyticsPrefix "httpURL" optional=true
+    reverse "boolean" optional=true
+    type "YouTubeFeedType"
+}
+
+struct "EditShowReq" {
+    title "string" optional=true
+    image "httpURL" optional=true
+    description "string" optional=true
+    author "string" optional=true
+    copyright "string" optional=true
+    keywords "string" optional=true
+    website "httpURL" optional=true
+    language "string"
+    explicit "boolean"
+    owner "string"
+    ownerEmail "email"
+    category1 "string" optional=true
+    subcategory1 "string" optional=true
+    category2 "string" optional=true
+    subcategory2 "string" optional=true
+    analyticsPrefix "httpURL" optional=true
+}
+
+struct "JsonItem" {
+    id: "ItemID"
+    title: "string"
+    image: "httpURL" optional=true
+    webpage_url: "httpURL"
+    duration_seconds: "seconds" optional=true
+    mime: "mime" optional=true
+}
+
+struct "ItemsResp" {
+    items: "array" "JsonItem" minItems=0
+    total: "nat32"
+}
+
+struct "PreSignedUploadURL" {
+    fileUrl: "httpURL"
+    uploadUrl: "httpURL"
+    headers: "dict" "string" "string"
+}
+
+struct "DownloadsChart" {
+    list: "array" {
+        struct {
+            day: "utcMillis"
+            downloads: "nat32"
+        }
+    }
+    total: "nat64"
+}
+
+struct "ReverseReq" {
+    showID: "ShowID"
+    value: "boolean"
+}
+
+struct "ReverseResp" {
+    value: "boolean"
+}
+
+scope "/japi" {
+
+    POST "/login" {
+        name "requestOtp"
+        req: "struct" {
+            email "email"
+            host "hostname"
+        }
+        res {
+            200: "struct" {
+                login: "enum" {
+                    EXISTING
+                    NEW
+                }
+            }
+        }
+    }
+
+    POST "/otp" {
+        name "submitOtp"
+
+        req: "struct" {
+            email "email"
+            otp "string" minLength=1
+            updates "boolean" optional=true
+        }
+
+        res: {
+            201: "struct" {
+                jwt: "string" minLength=1
+            }
+
+            401: "unknown"
+        }
+    }
+
+    POST "/submit" {
+        name "submitUrl"
+
+        req: {
+            header "Authorization" "string" minLength=1 optional=true
+            body "SubmitReq"
+        }
+
+        res {
+            200: "struct" {
+                showID: "ShowID"
+                plan "Plan"
+            }
+
+            400: "unknown"
+            401: "unknown"
+            404: "unknown"
+        }
+    }
+
+    GET "/show/:show_id" {
+        name "getShow"
+
+        req: {
+            header "Authorization" "string" minLength=1 optional=true
+            param "show_id" "ShowID"
+        }
+
+        res {
+            200: "Show"
+            403: "unknown"
+            404: "unknown"
+        }
+    }
+
+    GET "/show/:show_id/items" {
+        name "getItems"
+
+        req: {
+            param "show_id" "ShowID"
+            query {
+                before "dateTime" optional=true
+                limit "int32" minimum=1 optional=true
+            }
+        }
+
+        res {
+            200: "ItemsResp"
+            404: "unknown"
+        }
+    }
+}
+
+scope "/oauth/google" {
+
+}

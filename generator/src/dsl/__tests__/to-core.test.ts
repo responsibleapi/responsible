@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
 
 import { isMimes, toCore } from "../to-core"
-import yanic from "../../../../tryout/src/yanic"
+import yanic from "../../../tryout/yanic"
 
 describe.concurrent("openapi", () => {
   test("yanic", () => {

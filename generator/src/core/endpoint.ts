@@ -57,7 +57,7 @@ export type StringFormat =
   | "binary"
 
 export interface Optional<Refs extends RefsRec> {
-  kind: "optional"
+  type: "optional"
   schema: SchemaOrRef<Refs>
 }
 

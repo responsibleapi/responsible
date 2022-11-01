@@ -11,7 +11,7 @@ import { RefsRec } from "../core/core"
 
 export const optional = <Schemas extends RefsRec>(
   schema: SchemaOrRef<Schemas>,
-): Optional<Schemas> => ({ schema, kind: "optional" })
+): Optional<Schemas> => ({ schema, type: "optional" })
 
 export const nat32 = <Schemas extends RefsRec>(
   opts?: NumberOpts,

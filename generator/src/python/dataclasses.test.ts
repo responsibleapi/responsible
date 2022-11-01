@@ -1,6 +1,6 @@
 import { describe, test } from "vitest"
 
-import yanic from "../../../tryout/src/yanic"
+import yanic from "../../tryout/yanic"
 import { genPythonTypes } from "./dataclasses"
 import { toCore } from "../dsl/to-core"
 

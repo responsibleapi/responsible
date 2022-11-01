@@ -1,0 +1,66 @@
+title: listenbox
+version: 1.0.0
+refs:
+  ShowID: !newString { minLength: 11, maxLength: 12 }
+  FeedID: !newString { length: 11 }
+  ItemID: !newString { length: 11 }
+
+  StripeCheckoutID: !newString { minLength: 1 }
+
+  SubmitReq: !struct { url: httpURL }
+
+  Plan: !enum [ "free","basic","creator" ]
+
+  RecentResp:
+    struct:
+      list:
+        array:
+          struct:
+            id: ShowID
+
+  UserResp:
+    struct:
+      plan: Plan
+      trialed: boolean
+      email: email
+      updates: boolean
+
+  ValidationExceptionErrorType: !external
+
+paths:
+  /japi: !scope
+    opts:
+      req:
+        body: "application/json"
+      res:
+        body: "application/json"
+        headers:
+          Content-Length: !int32 { minimum: 1 }
+        codes:
+          400: !struct:
+            name: string
+            value: string
+            message: !optional string
+            type: ValidationExceptionErrorType
+
+  /oauth/google: !scope
+    /:
+      GET: { }
+    /callback:
+      GET:
+        query:
+          code: !string { minLength: 1 }
+        res:
+          302:
+            cookies:
+              token: !string { minLength: 1 }
+    opts:
+      res:
+        codes:
+          302:
+            headers:
+              location: !httpURL
+  opts:
+    res:
+      codes:
+        400: !unknown

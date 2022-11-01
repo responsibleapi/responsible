@@ -1,0 +1,1705 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Listenbox",
+    "version": "0.1"
+  },
+  "components": {
+    "schemas": {
+      "LoginReq": {
+        "required": ["email", "host"],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "host": {
+            "type": "string"
+          }
+        }
+      },
+      "OtpReq": {
+        "required": ["email", "otp"],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "otp": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "updates": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SubmitReq": {
+        "required": ["url"],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "UnsubscribeReq": {
+        "required": ["email"],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          }
+        }
+      },
+      "UserReq": {
+        "required": ["updates"],
+        "type": "object",
+        "properties": {
+          "updates": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CheckoutReq": {
+        "required": ["cancel_url", "interval", "plan", "success_url"],
+        "type": "object",
+        "properties": {
+          "cancel_url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "interval": {
+            "type": "string",
+            "enum": ["month", "year"]
+          },
+          "plan": {
+            "type": "string",
+            "enum": ["free", "basic", "creator"]
+          },
+          "success_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "PortalReq": {
+        "required": ["return_url"],
+        "type": "object",
+        "properties": {
+          "return_url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "EditShowReq": {
+        "required": ["explicit", "language", "owner", "ownerEmail"],
+        "type": "object",
+        "properties": {
+          "analyticsPrefix": {
+            "type": "string",
+            "format": "uri"
+          },
+          "author": {
+            "type": "string"
+          },
+          "category1": {
+            "type": "string"
+          },
+          "category2": {
+            "type": "string"
+          },
+          "copyright": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "explicit": {
+            "type": "boolean"
+          },
+          "image": {
+            "type": "string",
+            "format": "uri"
+          },
+          "keywords": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "subcategory1": {
+            "type": "string"
+          },
+          "subcategory2": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "ReverseReq": {
+        "required": ["showID", "value"],
+        "type": "object",
+        "properties": {
+          "showID": {
+            "type": "string"
+          },
+          "value": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ErrorStruct": {
+        "required": ["name", "type", "value"],
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "NO_MATCH",
+              "NOT_FOUND",
+              "UNEXPECTED_ARRAY",
+              "UNEXPECTED_SINGLE_STRING",
+              "FILE_NOT_FOUND",
+              "WRONG_CONTENT_TYPE",
+              "EMPTY_VALUE",
+              "UNEXPECTED_ARRAY_SIZE",
+              "DESERIALIZATION_ERROR",
+              "OBJECT_FIELD_NOT_FOUND",
+              "JSON_NOT_PARSABLE",
+              "JSON_INVALID",
+              "XML_INVALID"
+            ]
+          },
+          "value": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginResp": {
+        "required": ["login"],
+        "type": "object",
+        "properties": {
+          "login": {
+            "type": "string",
+            "enum": ["EXISTING", "NEW"]
+          }
+        }
+      },
+      "OtpResp": {
+        "required": ["jwt"],
+        "type": "object",
+        "properties": {
+          "jwt": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      },
+      "Unit": {
+        "type": "object",
+        "additionalProperties": false
+      },
+      "SubmitResp": {
+        "required": ["showID"],
+        "type": "object",
+        "properties": {
+          "plan": {
+            "type": "string",
+            "enum": ["free", "basic", "creator", null]
+          },
+          "showID": {
+            "required": ["id"],
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "Show": {
+        "required": [
+          "audioFeedURL",
+          "episodes",
+          "feed_id",
+          "id",
+          "language",
+          "title",
+          "videoFeedURL",
+          "youtubeURL"
+        ],
+        "type": "object",
+        "properties": {
+          "analyticsPrefix": {
+            "type": "string",
+            "format": "uri"
+          },
+          "audioFeedURL": {
+            "type": "string",
+            "format": "uri"
+          },
+          "author": {
+            "type": "string"
+          },
+          "copyright": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "episodes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "explicit": {
+            "type": "boolean"
+          },
+          "feed_id": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string",
+            "format": "uri"
+          },
+          "keywords": {
+            "type": "string"
+          },
+          "language": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "primaryCategory": {
+            "required": ["category"],
+            "type": "object",
+            "properties": {
+              "category": {
+                "type": "string"
+              },
+              "subcategory": {
+                "type": "string"
+              }
+            }
+          },
+          "refreshedUTC": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reverse": {
+            "type": "boolean"
+          },
+          "secondaryCategory": {
+            "required": ["category"],
+            "type": "object",
+            "properties": {
+              "category": {
+                "type": "string"
+              },
+              "subcategory": {
+                "type": "string"
+              }
+            }
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["playlist", "channel", "rss", null]
+          },
+          "videoFeedURL": {
+            "type": "string",
+            "format": "uri"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri"
+          },
+          "youtubeURL": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "ItemsResp": {
+        "required": ["items", "total"],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "required": [
+                "audio_url",
+                "id",
+                "pub_date_utc",
+                "title",
+                "webpage_url"
+              ],
+              "type": "object",
+              "properties": {
+                "audio_url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "author": {
+                  "type": "string"
+                },
+                "duration_seconds": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "mime": {
+                  "type": "string"
+                },
+                "pub_date_utc": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "webpage_url": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "UserResp": {
+        "required": ["email", "plan", "trialed", "updates"],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "plan": {
+            "type": "string",
+            "enum": ["free", "basic", "creator"]
+          },
+          "trialed": {
+            "type": "boolean"
+          },
+          "updates": {
+            "type": "boolean"
+          }
+        }
+      },
+      "RecentResp": {
+        "required": ["list", "plan"],
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "required": ["episodes", "feed_id", "id", "title"],
+              "type": "object",
+              "properties": {
+                "author": {
+                  "type": "string"
+                },
+                "episodes": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "feed_id": {
+                  "type": "string"
+                },
+                "id": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "owner": {
+                  "type": "string"
+                },
+                "refreshed_utc": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "title": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "plan": {
+            "type": "string",
+            "enum": ["free", "basic", "creator"]
+          }
+        }
+      },
+      "CheckoutResp": {
+        "required": ["id"],
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          }
+        }
+      },
+      "PortalResp": {
+        "required": ["url"],
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      },
+      "PreSignedUploadURL": {
+        "required": ["fileUrl", "headers", "uploadUrl"],
+        "type": "object",
+        "properties": {
+          "fileUrl": {
+            "type": "string"
+          },
+          "headers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "uploadUrl": {
+            "type": "string"
+          }
+        }
+      },
+      "DownloadsChart": {
+        "required": ["list", "total"],
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "required": ["day", "downloads"],
+              "type": "object",
+              "properties": {
+                "day": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "downloads": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "ReverseResp": {
+        "required": ["value"],
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/japi/login": {
+      "post": {
+        "operationId": "requestOtp",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/otp": {
+      "post": {
+        "operationId": "submitOtp",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OtpReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "201",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OtpResp"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/submit": {
+      "post": {
+        "operationId": "submitUrl",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitResp"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/show/{show_id}": {
+      "get": {
+        "operationId": "getShow",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Show"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/show/{show_id}/items": {
+      "get": {
+        "operationId": "getItems",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemsResp"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/unsubscribe": {
+      "post": {
+        "operationId": "unsubscribe",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnsubscribeReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/auth/user": {
+      "get": {
+        "operationId": "getUser",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResp"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "patchUser",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResp"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteUser",
+        "parameters": [],
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/auth/recent": {
+      "get": {
+        "operationId": "recentFeeds",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecentResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/auth/checkout": {
+      "post": {
+        "operationId": "checkout",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CheckoutReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "201",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CheckoutResp"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "409",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/auth/portal": {
+      "post": {
+        "operationId": "customerPortal",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PortalReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "201",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PortalResp"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/auth/later": {
+      "get": {
+        "operationId": "getLater",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Show"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "submitLater",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemsResp"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "402",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/auth/later/{item_id}": {
+      "post": {
+        "operationId": "addLater",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "402",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "removeLater",
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/auth/feed/{show_id}": {
+      "delete": {
+        "operationId": "deleteFeed",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/auth/s3_presign_image": {
+      "get": {
+        "operationId": "preSignedImageUploadURL",
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "query",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreSignedUploadURL"
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "402",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/auth/show/{show_id}": {
+      "put": {
+        "operationId": "editShow",
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditShowReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Show"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/auth/show/{show_id}/downloads": {
+      "get": {
+        "operationId": "getDownloads",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "timezone",
+            "in": "query",
+            "required": false,
+            "allowEmptyValue": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadsChart"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/auth/reverse": {
+      "post": {
+        "operationId": "reversePlaylist",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReverseReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "400": {
+            "description": "400",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReverseResp"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Unit"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

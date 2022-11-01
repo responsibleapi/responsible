@@ -1,0 +1,29 @@
+external "ElkNode"
+external "LayoutOpts"
+
+global {
+    req {
+        body "application/json"
+    }
+
+    res {
+        body "application/json"
+        headers {
+            "Content-Length" "int32" minimum=1
+        }
+    }
+}
+
+POST "/json" {
+    req {
+        struct {
+            root "ElkNode"
+            opts "LayoutOpts"
+        }
+    }
+
+    res {
+        "200" "ElkNode"
+        "500" "unknown"
+    }
+}
