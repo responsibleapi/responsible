@@ -282,7 +282,7 @@ const japi: Endpoints<typeof schemas> = {
           }),
           res: {
             201: struct({
-              id: newType(string({ minLength: 1 })),
+              id: "StripeCheckoutID",
             }),
             409: unknown(),
           },
@@ -321,7 +321,10 @@ const japi: Endpoints<typeof schemas> = {
         POST: {
           req: unknown(),
           name: "addLater",
-          res: { 200: unknown(), 402: unknown() },
+          res: {
+            200: unknown(),
+            402: unknown(),
+          },
         },
         DELETE: {
           name: "removeLater",

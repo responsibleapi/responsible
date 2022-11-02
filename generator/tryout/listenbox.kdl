@@ -20,6 +20,13 @@ enum "Plan" {
     premium
 }
 
+struct "UserResp" {
+    email "email"
+    plan "Plan"
+    trialed "boolean"
+    updates "boolean"
+}
+
 struct "RecentResp" {
     list: "array" minItems=0 {
         struct {
@@ -158,11 +165,13 @@ scope "/japi" {
 
     POST "/login" {
         name "requestOtp"
+
         req: "struct" {
             email "email"
             host "hostname"
         }
-        res {
+
+        res: {
             200: "struct" {
                 login: "enum" {
                     EXISTING
@@ -214,8 +223,8 @@ scope "/japi" {
         name "getShow"
 
         req: {
+            pathParam "show_id" "ShowID"
             header "Authorization" "string" minLength=1 optional=true
-            param "show_id" "ShowID"
         }
 
         res {
@@ -229,7 +238,7 @@ scope "/japi" {
         name "getItems"
 
         req: {
-            param "show_id" "ShowID"
+            pathParam "show_id" "ShowID"
             query {
                 before "dateTime" optional=true
                 limit "int32" minimum=1 optional=true
@@ -239,6 +248,110 @@ scope "/japi" {
         res {
             200: "ItemsResp"
             404: "unknown"
+        }
+    }
+
+    POST "/unsubscribe" {
+        name "unsubscribe"
+        description "Unsubscribe the email from product updates"
+
+        req: "struct" {
+            email "email"
+        }
+
+        res {
+            200: "unknown"
+        }
+    }
+
+    scope "/auth" {
+        "/user" {
+            GET {
+                name "getUser"
+                res {
+                    200: "UserResp"
+                }
+            }
+
+            POST {
+                name "patchUser"
+                req: "struct" {
+                    updates "boolean"
+                }
+                res {
+                    200: "UserResp"
+                }
+            }
+
+            DELETE {
+                name "deleteUser"
+                res {
+                    200: "UserResp"
+                }
+            }
+        }
+
+        GET "/recent" {
+            name "recentFeeds"
+            res {
+                200: "RecentResp"
+            }
+        }
+
+        POST "/checkout" {
+            name "checkout"
+
+            req: "struct" {
+                plan "Plan"
+                interval "enum" {
+                    month
+                    year
+                }
+                success_url "httpURL"
+                cancel_url "httpURL"
+            }
+
+            res {
+                201: "struct" {
+                    id "StripeCheckoutID"
+                }
+                409: "unknown"
+            }
+        }
+
+        POST "/portal" {
+            name "customerPortal"
+            req: "struct" {
+                return_url "httpURL"
+            }
+            res {
+                201: "struct" {
+                    url "httpURL"
+                }
+            }
+        }
+
+        "/later" {
+            GET {
+                name "getLater"
+                res {
+                    200: "Show"
+                    404: "unknown"
+                }
+            }
+
+            POST {
+                name "submitLater"
+                req: "SubmitReq"
+                res {
+                    200: "ItemsResp"
+                    402: "unknown"
+                }
+            }
+        }
+
+        "/later/:item_id" {
+
         }
     }
 }

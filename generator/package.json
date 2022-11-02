@@ -6,7 +6,8 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "arg": "^5.0.2"
+    "arg": "^5.0.2",
+    "kdljs": "^0.1.5"
   },
   "devDependencies": {
     "pkg": "^5.8.0"
