@@ -1,15 +1,10 @@
-import { describe, test } from "vitest"
+import { describe, expect, test } from "vitest"
 import * as fs from "fs/promises"
-import * as yaml from "js-yaml"
+import { parse } from "kdljs"
 
 describe.concurrent("index", () => {
-  test("yaml parsing", async () => {
-    const loaded = await yaml.load(
-      await fs.readFile("tryout/listenbox.yml", "utf-8"),
-      {
-        schema: yaml.DEFAULT_SCHEMA.extend([]),
-      },
-    )
-    console.log(loaded)
+  test("KDL parsing", async () => {
+    const loaded = parse(await fs.readFile("tryout/listenbox.kdl", "utf-8"))
+    expect(loaded.errors, JSON.stringify(loaded.errors, null, 2)).empty
   })
 })

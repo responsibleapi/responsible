@@ -6,6 +6,7 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "dependencies": {
+    "@bgotink/kdl": "^0.1.5",
     "arg": "^5.0.2",
     "kdljs": "^0.1.5"
   },

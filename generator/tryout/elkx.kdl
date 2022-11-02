@@ -1,7 +1,7 @@
 external "ElkNode"
 external "LayoutOpts"
 
-global {
+forAll {
     req {
         body "application/json"
     }
@@ -15,11 +15,9 @@ global {
 }
 
 POST "/json" {
-    req {
-        struct {
-            root "ElkNode"
-            opts "LayoutOpts"
-        }
+    req: "struct" {
+        root "ElkNode"
+        opts "LayoutOpts"
     }
 
     res {

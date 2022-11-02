@@ -28,21 +28,21 @@ global {
         }
 
     //  TODO responses can be components
-        400: "text/plain" "string" minLength=1
-        422: "text/plain" "string" minLength=1
+        "400" "text/plain" "string" minLength=1
+        "422" "text/plain" "string" minLength=1
     }
 }
 
 POST "/info" {
     req "InfoReq"
     res {
-        200: "YtDlInfo"
+        "200" "YtDlInfo"
     }
 }
 
 POST "/download" {
     req "DownloadReq"
     res {
-        200: "unknown"
+        "200" "unknown"
     }
 }

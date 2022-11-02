@@ -1,5 +1,6 @@
 info {
-
+    title "Listenbox"
+    version "0.1"
 }
 
 newType "FeedID" "string" length=11
@@ -163,6 +164,21 @@ struct "ReverseResp" {
 
 scope "/japi" {
 
+    forAll {
+
+        req {
+            body "application/json"
+        }
+
+        res {
+            header "Content-Length" "int32" minimum=1
+
+            body "application/json"
+
+            "400" "ErrorStruct"
+        }
+    }
+
     POST "/login" {
         name "requestOtp"
 
@@ -172,7 +188,7 @@ scope "/japi" {
         }
 
         res: {
-            200: "struct" {
+            "200" "struct" {
                 login: "enum" {
                     EXISTING
                     NEW
@@ -191,11 +207,11 @@ scope "/japi" {
         }
 
         res: {
-            201: "struct" {
+            "201" "struct" {
                 jwt: "string" minLength=1
             }
 
-            401: "unknown"
+            "401" "unknown"
         }
     }
 
@@ -208,14 +224,14 @@ scope "/japi" {
         }
 
         res {
-            200: "struct" {
+            "200" "struct" {
                 showID: "ShowID"
                 plan "Plan"
             }
 
-            400: "unknown"
-            401: "unknown"
-            404: "unknown"
+            "400" "unknown"
+            "401" "unknown"
+            "404" "unknown"
         }
     }
 
@@ -228,9 +244,9 @@ scope "/japi" {
         }
 
         res {
-            200: "Show"
-            403: "unknown"
-            404: "unknown"
+            "200" "Show"
+            "403" "unknown"
+            "404" "unknown"
         }
     }
 
@@ -246,8 +262,8 @@ scope "/japi" {
         }
 
         res {
-            200: "ItemsResp"
-            404: "unknown"
+            "200" "ItemsResp"
+            "404" "unknown"
         }
     }
 
@@ -260,16 +276,25 @@ scope "/japi" {
         }
 
         res {
-            200: "unknown"
+            "200" "unknown"
         }
     }
 
     scope "/auth" {
+        forAll {
+            req {
+                header "Authorization" "string" minLength=1
+            }
+            res {
+                "401" "unknown"
+            }
+        }
+
         "/user" {
             GET {
                 name "getUser"
                 res {
-                    200: "UserResp"
+                    "200" "UserResp"
                 }
             }
 
@@ -279,14 +304,14 @@ scope "/japi" {
                     updates "boolean"
                 }
                 res {
-                    200: "UserResp"
+                    "200" "UserResp"
                 }
             }
 
             DELETE {
                 name "deleteUser"
                 res {
-                    200: "UserResp"
+                    "200" "UserResp"
                 }
             }
         }
@@ -294,7 +319,7 @@ scope "/japi" {
         GET "/recent" {
             name "recentFeeds"
             res {
-                200: "RecentResp"
+                "200" "RecentResp"
             }
         }
 
@@ -312,10 +337,10 @@ scope "/japi" {
             }
 
             res {
-                201: "struct" {
+                "201" "struct" {
                     id "StripeCheckoutID"
                 }
-                409: "unknown"
+                "409" "unknown"
             }
         }
 
@@ -325,7 +350,7 @@ scope "/japi" {
                 return_url "httpURL"
             }
             res {
-                201: "struct" {
+                "201" "struct" {
                     url "httpURL"
                 }
             }
@@ -335,27 +360,124 @@ scope "/japi" {
             GET {
                 name "getLater"
                 res {
-                    200: "Show"
-                    404: "unknown"
+                    "200" "Show"
+                    "404" "unknown"
                 }
             }
 
             POST {
                 name "submitLater"
-                req: "SubmitReq"
+                req "SubmitReq"
                 res {
-                    200: "ItemsResp"
-                    402: "unknown"
+                    "200" "ItemsResp"
+                    "402" "unknown"
                 }
             }
         }
 
         "/later/:item_id" {
+            pathParam "item_id" "ItemID"
 
+            POST {
+                name "addLater"
+                req: "unknown"
+                res {
+                    "200" "unknown"
+                    "402" "unknown"
+                }
+            }
+
+            DELETE {
+                name "removeLater"
+                res {
+                    "200" "unknown"
+                }
+            }
+        }
+
+        DELETE "/feed/:show_id" {
+            name "deleteFeed"
+            req: {
+                pathParam "show_id" "ShowID"
+            }
+            res {
+                "200" "unknown"
+            }
+        }
+
+        GET "/s3_presign_image" {
+            name "preSignedImageUploadURL"
+
+            req: {
+                query {
+                    filename "string" minLength=1
+                }
+            }
+
+            res {
+                "200" "PreSignedUploadURL"
+                "402" "unknown"
+            }
+        }
+
+        PUT "/show/:show_id" {
+            name "editShow"
+            req {
+                pathParam "show_id" "ShowID"
+                body: "EditShowReq"
+            }
+            res {
+                "200" "Show"
+                "403" "unknown"
+                "404" "unknown"
+            }
+        }
+
+        GET "/show/:show_id/downloads" {
+            name "getDownloads"
+            req {
+                pathParam "show_id" "ShowID"
+                query {
+                    timezone "string" minLength=1 optional=true
+                }
+            }
+            res {
+                "200" "DownloadsChart"
+                "403" "unknown"
+            }
+        }
+
+        POST "/reverse" {
+            name "reversePlaylist"
+            req: "ReverseReq"
+            res {
+                "200" "ReverseResp"
+                "403" "unknown"
+            }
         }
     }
 }
 
 scope "/oauth/google" {
 
+    forAll {
+        res {
+            "302" {
+                header "Location" "httpURL"
+            }
+        }
+    }
+
+    GET "/" {}
+
+    GET "/callback" {
+        req {
+            query "code" "string" minLength=1
+        }
+        res {
+            "302" {
+                cookie "token" "string" minLength=1
+            }
+        }
+    }
 }

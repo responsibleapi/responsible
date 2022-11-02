@@ -43,6 +43,11 @@
     "@babel/helper-validator-identifier" "^7.19.1"
     to-fast-properties "^2.0.0"
 
+"@bgotink/kdl@^0.1.5":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@bgotink/kdl/-/kdl-0.1.5.tgz#28bdc2e71dc77207226b710b0a5254afe0a38e7a"
+  integrity sha512-oKYdMwKtnZcsUvr/dNZiVmrJDXIKgUyc2eEeQ+VYzrtbYEprzODAPTo4SZNkH38dtIn3zxPELuFqv/VemA3Yyg==
+
 "@chevrotain/cst-dts-gen@10.4.0":
   version "10.4.0"
   resolved "https://registry.yarnpkg.com/@chevrotain/cst-dts-gen/-/cst-dts-gen-10.4.0.tgz#4e7f57e697b3a4204508ddff05367befae874b95"
