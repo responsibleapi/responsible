@@ -3,14 +3,12 @@ external "LayoutOpts"
 
 forAll {
     req {
-        body "application/json"
+        mime "application/json"
     }
 
     res {
-        body "application/json"
-        headers {
-            "Content-Length" "int32" minimum=1
-        }
+        mime "application/json"
+        header "Content-Length" "int32" minimum=1
     }
 }
 

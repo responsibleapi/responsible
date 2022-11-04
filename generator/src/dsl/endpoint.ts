@@ -7,108 +7,94 @@ import {
 } from "../core/endpoint"
 import { Mimes, RefsRec, ServiceInfo } from "../core/core"
 
-export interface FullRes<Refs extends RefsRec> {
-  schema?: SchemaOrRef<Refs>
-  headers?: OptionalBag<Refs>
-  cookies?: OptionalBag<Refs>
+export interface FullRes {
+  schema?: SchemaOrRef
+  headers?: OptionalBag
+  cookies?: OptionalBag
 }
 
-export type Codes<Refs extends RefsRec> = Record<
-  number,
-  SchemaOrRef<Refs> | Mimes<Refs> | FullRes<Refs>
->
+export type Codes = Record<number, SchemaOrRef | Mimes | FullRes>
 
-interface BaseReq<Refs extends RefsRec> {
+interface Bodiless {
   name?: string
-  headers?: OptionalBag<Refs>
-  query?: OptionalBag<Refs>
-  cookies?: OptionalBag<Refs>
-  res?: Codes<Refs>
+  headers?: OptionalBag
+  query?: OptionalBag
+  cookies?: OptionalBag
+  res?: Codes
 }
 
-interface Bodiless<Refs extends RefsRec> extends BaseReq<Refs> {}
-
-interface Bodied<Refs extends RefsRec> extends BaseReq<Refs> {
-  req: SchemaOrRef<Refs>
+interface Bodied extends Bodiless {
+  req: SchemaOrRef
 }
 
-export type DslOp<Refs extends RefsRec> = Bodied<Refs> | Bodiless<Refs>
+export type DslOp = Bodied | Bodiless
 
-export interface PathWithMethods<Refs extends RefsRec> {
-  params?: RequiredBag<Refs>
+export interface PathWithMethods {
+  params?: RequiredBag
 
-  GET?: Bodiless<Refs>
-  HEAD?: Bodiless<Refs>
-  DELETE?: Bodiless<Refs>
+  GET?: Bodiless
+  HEAD?: Bodiless
+  DELETE?: Bodiless
 
-  POST?: Bodied<Refs>
-  PUT?: Bodied<Refs>
-  PATCH?: Bodied<Refs>
+  POST?: Bodied
+  PUT?: Bodied
+  PATCH?: Bodied
 }
 
-export type Endpoints<Refs extends RefsRec> = Record<
-  `/${string}`,
-  PathWithMethods<Refs> | Scope<Refs>
->
+export type Endpoints = Record<`/${string}`, PathWithMethods | Scope>
 
-export const isScope = <Refs extends RefsRec>(
-  x: PathWithMethods<Refs> | Scope<Refs>,
-): x is Scope<Refs> => "endpoints" in x && typeof x.endpoints === "object"
+export const isScope = (x: PathWithMethods | Scope): x is Scope =>
+  "endpoints" in x && typeof x.endpoints === "object"
 
-export interface ScopeOpts<Refs extends RefsRec> {
+export interface ScopeOpts {
   mirrorGETsAsHEADs?: boolean
 
   req?: {
     body?: Mime
-    headers?: OptionalBag<Refs>
-    cookies?: OptionalBag<Refs>
+    headers?: OptionalBag
+    cookies?: OptionalBag
   }
 
   res?: {
     body?: Mime
-    headers?: OptionalBag<Refs>
-    codes?: Codes<Refs>
+    headers?: OptionalBag
+    codes?: Codes
   }
 }
 
-export interface Scope<Refs extends RefsRec> {
-  endpoints: Endpoints<Refs>
-  opts?: ScopeOpts<Refs>
+export interface Scope {
+  endpoints: Endpoints
+  opts?: ScopeOpts
 }
 
-export const scope = <Refs extends RefsRec>(
-  endpoints: Endpoints<Refs>,
-  opts?: ScopeOpts<Refs>,
-): Scope<Refs> => ({
+export const scope = (endpoints: Endpoints, opts?: ScopeOpts): Scope => ({
   endpoints,
   opts,
 })
 
-export interface DslService<Refs extends RefsRec> {
+export interface DslService {
   info: ServiceInfo
-  refs: Refs
-  scope: Scope<Refs>
+  refs: RefsRec
+  scope: Scope
 }
 
-export const service = <Refs extends RefsRec>(
+export const service = (
   info: ServiceInfo,
-  refs: Refs,
-  endpoints: Endpoints<Refs>,
-  opts?: ScopeOpts<Refs>,
-): DslService<Refs> => ({ info, refs, scope: scope(endpoints, opts) })
+  refs: RefsRec,
+  endpoints: Endpoints,
+  opts?: ScopeOpts,
+): DslService => ({ info, refs, scope: scope(endpoints, opts) })
 
-type TraversedPath<Refs extends RefsRec> = readonly [
-  opts: ScopeOpts<Refs>,
+type TraversedPath = readonly [
+  opts: ScopeOpts,
   path: `/${string}`,
-  e: PathWithMethods<Refs>,
+  e: PathWithMethods,
 ]
 
-export const flattenScopes = <Refs extends RefsRec>(
-  init: Scope<Refs>,
-): ReadonlyArray<TraversedPath<Refs>> => {
-  const ret = Array<TraversedPath<Refs>>()
+export const flattenScopes = (init: Scope): ReadonlyArray<TraversedPath> => {
+  const ret = Array<TraversedPath>()
 
-  const stack: Array<[`/${string}`, Scope<Refs>]> = [["" as `/${string}`, init]]
+  const stack: Array<[`/${string}`, Scope]> = [["" as `/${string}`, init]]
 
   while (stack.length) {
     const item = stack.pop()
@@ -118,7 +104,7 @@ export const flattenScopes = <Refs extends RefsRec>(
     for (const k in s.endpoints) {
       const mergedPath = `${path}${k}` as const
 
-      const e = s.endpoints[k as keyof Endpoints<Refs>]
+      const e = s.endpoints[k as keyof Endpoints]
       if (isScope(e)) {
         stack.push([
           mergedPath,

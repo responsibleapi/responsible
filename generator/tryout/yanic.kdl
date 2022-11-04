@@ -16,16 +16,14 @@ struct "DownloadReq" {
     opts "YtDlOpts"
 }
 
-global {
+forAll {
     req {
-        body: "application/json"
+        mime "application/json"
     }
 
     res {
-        body: "application/json"
-        headers {
-            "Content-Length" "int32" minimum=1
-        }
+        mime "application/json"
+        header "Content-Length" "int32" minimum=1
 
     //  TODO responses can be components
         "400" "text/plain" "string" minLength=1

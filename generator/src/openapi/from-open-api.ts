@@ -25,11 +25,11 @@ import { string } from "../dsl/schema"
 /**
  * TODO dict
  */
-const toObject = <Refs extends RefsRec>({
+const toObject = ({
   properties,
   required,
   additionalProperties,
-}: OpenAPIV3_1.NonArraySchemaObject): RSchema<Refs> => {
+}: OpenAPIV3_1.NonArraySchemaObject): RSchema => {
   const reqSet = new Set(required ?? [])
 
   if (typeof additionalProperties === "object") {
@@ -51,9 +51,7 @@ const toObject = <Refs extends RefsRec>({
   }
 }
 
-const toSchema = <Refs extends RefsRec>(
-  schema: OpenAPIV3_1.SchemaObject,
-): RSchema<Refs> => {
+const toSchema = (schema: OpenAPIV3_1.SchemaObject): RSchema => {
   switch (schema.type) {
     case undefined:
       return { type: "unknown" }
@@ -80,73 +78,61 @@ const toSchema = <Refs extends RefsRec>(
   }
 }
 
-const toRefs = <Refs extends RefsRec>(
-  schemas: Record<string, OpenAPIV3_1.SchemaObject>,
-): Refs =>
-  Object.fromEntries(
-    Object.entries(schemas).map(([k, v]) => [k, toSchema(v)]),
-  ) as Refs
+const toRefs = (schemas: Record<string, OpenAPIV3_1.SchemaObject>): RefsRec =>
+  Object.fromEntries(Object.entries(schemas).map(([k, v]) => [k, toSchema(v)]))
 
 type SchemaRef = `#/components/schemas/${string}`
 
 export const schemaName = (ref: SchemaRef): string =>
   ref.substring(ref.lastIndexOf("schemas/") + 8)
 
-const toProp = <Refs extends RefsRec>({
-  $ref,
-}: OpenAPIV3_1.ReferenceObject): keyof Refs =>
-  schemaName($ref as SchemaRef) as keyof Refs
+const toProp = ({ $ref }: OpenAPIV3_1.ReferenceObject): string =>
+  schemaName($ref as SchemaRef)
 
-const schemaOfRef = <Refs extends RefsRec>(
+const schemaOfRef = (
   schema?: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject,
-): SchemaOrRef<Refs> => {
+): SchemaOrRef => {
   if (!schema) throw new Error("schema")
 
   return "$ref" in schema ? toProp(schema) : toSchema(schema)
 }
 
-const optional = <Refs extends RefsRec>(
-  schema: SchemaOrRef<Refs>,
-): Optional<Refs> => ({
-  kind: "optional",
+const optional = (schema: SchemaOrRef): Optional => ({
+  type: "optional",
   schema,
 })
 
-const fromParam = <Refs extends RefsRec>({
+const fromParam = ({
   required,
   schema,
 }: OpenAPIV3.ParameterObject | OpenAPIV3.HeaderObject):
-  | SchemaOrRef<Refs>
-  | Optional<Refs> =>
-  required ? schemaOfRef(schema) : optional(schemaOfRef(schema))
+  | SchemaOrRef
+  | Optional => (required ? schemaOfRef(schema) : optional(schemaOfRef(schema)))
 
-const fromPathParam = <Refs extends RefsRec>({
-  schema,
-}: OpenAPIV3.ParameterObject): SchemaOrRef<Refs> => schemaOfRef(schema)
+const fromPathParam = ({ schema }: OpenAPIV3.ParameterObject): SchemaOrRef =>
+  schemaOfRef(schema)
 
-const toOptionalBag = <Refs extends RefsRec>(
+const toOptionalBag = (
   where: ParamWhere,
   op: OpenAPIV3_1.OperationObject,
-): OptionalBag<Refs> =>
+): OptionalBag =>
   Object.fromEntries(
     op.parameters?.flatMap(p =>
       "in" in p && p.in === where ? [[p.name, fromParam(p)]] : [],
     ) ?? [],
   )
 
-export const toRequiredBag = <Refs extends RefsRec>(
+export const toRequiredBag = (
   where: "path",
   op: OpenAPIV3_1.OperationObject,
-): RequiredBag<Refs> =>
+): RequiredBag =>
   Object.fromEntries(
     op.parameters?.flatMap(p =>
       "in" in p && p.in === where ? [[p.name, fromPathParam(p)]] : [],
     ) ?? [],
   )
 
-const toResp = <Refs extends RefsRec>(
-  r: OpenAPIV3.ResponseObject,
-): CoreRes<Refs> => ({
+const toResp = (r: OpenAPIV3.ResponseObject): CoreRes => ({
   headers: Object.fromEntries(
     Object.entries(r.headers ?? {}).map(([k, v]) =>
       "$ref" in v ? [k, schemaOfRef(v)] : [k, fromParam(v)],
@@ -157,9 +143,7 @@ const toResp = <Refs extends RefsRec>(
   ),
 })
 
-const toOp = <Refs extends RefsRec>(
-  op: OpenAPIV3_1.OperationObject,
-): CoreOp<Refs> => ({
+const toOp = (op: OpenAPIV3_1.OperationObject): CoreOp => ({
   name: op.operationId,
   req: {
     params: toRequiredBag("path", op),
@@ -171,7 +155,7 @@ const toOp = <Refs extends RefsRec>(
     Object.entries(op.responses ?? {}).flatMap(([k, v]) =>
       "$ref" in v ? [] : [[k, toResp(v)]],
     ),
-  ) as CoreResponses<Refs>,
+  ) as CoreResponses,
 })
 
 const METHODS = new Set<string>(Object.values(OpenAPIV3.HttpMethods))
@@ -182,20 +166,16 @@ const toMethod = (k: OpenAPIV3.HttpMethods): CoreMethod =>
 const isMethod = (k: unknown): k is OpenAPIV3.HttpMethods =>
   typeof k === "string" && METHODS.has(k)
 
-const toOps = <Refs extends RefsRec>(
-  item: OpenAPIV3_1.PathItemObject,
-): Record<CoreMethod, CoreOp<Refs>> =>
+const toOps = (item: OpenAPIV3_1.PathItemObject): Record<CoreMethod, CoreOp> =>
   Object.fromEntries(
     Object.entries(item).flatMap(([k, v]) =>
       isMethod(k)
         ? [[toMethod(k), toOp(v as OpenAPIV3_1.OperationObject)]]
         : [],
     ),
-  ) as Record<CoreMethod, CoreOp<Refs>>
+  ) as Record<CoreMethod, CoreOp>
 
-const toPaths = <Refs extends RefsRec>(
-  paths: OpenAPIV3_1.PathsObject,
-): CorePaths<Refs> =>
+const toPaths = (paths: OpenAPIV3_1.PathsObject): CorePaths =>
   Object.fromEntries(
     Object.entries(paths).map(([k, v]) => [
       k,
@@ -203,9 +183,7 @@ const toPaths = <Refs extends RefsRec>(
     ]),
   )
 
-export const fromOpenApi = <Refs extends RefsRec>(
-  d: OpenAPIV3_1.Document,
-): CoreService<Refs> => ({
+export const fromOpenApi = (d: OpenAPIV3_1.Document): CoreService => ({
   info: d.info as ServiceInfo,
   refs: toRefs(d.components?.schemas ?? {}),
   paths: toPaths(d.paths ?? {}),

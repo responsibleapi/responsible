@@ -35,10 +35,10 @@ struct "RecentResp" {
             feed_id: "FeedID"
             title "string"
             episodes "nat32"
-            image "httpURL" optional=true
-            refreshed_utc "utcMillis" optional=true
-            author "string" optional=true
-            owner "string" optional=true
+            (?)image "httpURL"
+            (?)refreshed_utc "utcMillis"
+            (?)author "string"
+            (?)owner "string"
         }
     }
     plan: "Plan"
@@ -64,12 +64,12 @@ struct "ErrorStruct" {
     type "ValidationExceptionErrorType"
     name "string"
     value "string"
-    message "string" optional=true
+    (?)message "string"
 }
 
 struct "ITunesCategory" {
     category "string" minLength=1
-    subcategory "string" minLength=1 optional=true
+    (?)subcategory "string" minLength=1
 }
 
 enum "YouTubeFeedType" {
@@ -81,55 +81,55 @@ enum "YouTubeFeedType" {
 struct "Show" {
     id: "ShowID"
     feed_id: "FeedID"
-    title "string"
-    image "httpURL" optional=true
-    description "string"
-    author "string" optional=true
-    copyright "string" optional=true
-    keywords "string" optional=true
-    website "httpURL" optional=true
-    language "string"
-    explicit "boolean" optional=true
-    owner "string" optional=true
-    ownerEmail "email" optional=true
-    primaryCategory "ITunesCategory" optional=true
-    secondaryCategory "ITunesCategory" optional=true
-    episodes "nat32"
     audioFeedURL "httpURL"
-    videoFeedURL "httpURL"
-    refreshedUTC "utcMillis" optional=true
-    youtubeURL "httpURL"
-    analyticsPrefix "httpURL" optional=true
-    reverse "boolean" optional=true
+    description "string"
+    episodes "nat32"
+    language "string"
+    title "string"
     type "YouTubeFeedType"
+    videoFeedURL "httpURL"
+    youtubeURL "httpURL"
+    (?)analyticsPrefix "httpURL"
+    (?)author "string"
+    (?)copyright "string"
+    (?)explicit "boolean"
+    (?)image "httpURL"
+    (?)keywords "string"
+    (?)owner "string"
+    (?)ownerEmail "email"
+    (?)primaryCategory "ITunesCategory"
+    (?)refreshedUTC "utcMillis"
+    (?)reverse "boolean"
+    (?)secondaryCategory "ITunesCategory"
+    (?)website "httpURL"
 }
 
 struct "EditShowReq" {
-    title "string" optional=true
-    image "httpURL" optional=true
-    description "string" optional=true
-    author "string" optional=true
-    copyright "string" optional=true
-    keywords "string" optional=true
-    website "httpURL" optional=true
-    language "string"
     explicit "boolean"
+    language "string"
     owner "string"
     ownerEmail "email"
-    category1 "string" optional=true
-    subcategory1 "string" optional=true
-    category2 "string" optional=true
-    subcategory2 "string" optional=true
-    analyticsPrefix "httpURL" optional=true
+    (?)analyticsPrefix "httpURL"
+    (?)author "string"
+    (?)category1 "string"
+    (?)category2 "string"
+    (?)copyright "string"
+    (?)description "string"
+    (?)image "httpURL"
+    (?)keywords "string"
+    (?)subcategory1 "string"
+    (?)subcategory2 "string"
+    (?)title "string"
+    (?)website "httpURL"
 }
 
 struct "JsonItem" {
     id: "ItemID"
     title: "string"
-    image: "httpURL" optional=true
     webpage_url: "httpURL"
-    duration_seconds: "seconds" optional=true
-    mime: "mime" optional=true
+    (?)duration_seconds: "seconds"
+    (?)image: "httpURL"
+    (?)mime: "mime"
 }
 
 struct "ItemsResp" {
@@ -144,6 +144,8 @@ struct "PreSignedUploadURL" {
 }
 
 struct "DownloadsChart" {
+
+//    TODO figure out minItems
     list: "array" {
         struct {
             day: "utcMillis"
@@ -162,18 +164,21 @@ struct "ReverseResp" {
     value: "boolean"
 }
 
+struct "LoginReq" {
+    email "email"
+    host "hostname"
+}
+
 scope "/japi" {
 
     forAll {
-
         req {
-            body "application/json"
+            mime "application/json"
         }
-
         res {
-            header "Content-Length" "int32" minimum=1
+            mime "application/json"
 
-            body "application/json"
+            header "Content-Length" "int32" minimum=1
 
             "400" "ErrorStruct"
         }
@@ -182,16 +187,13 @@ scope "/japi" {
     POST "/login" {
         name "requestOtp"
 
-        req: "struct" {
-            email "email"
-            host "hostname"
-        }
+        req "LoginReq"
 
-        res: {
+        res {
             "200" "struct" {
                 login: "enum" {
-                    EXISTING
                     NEW
+                    EXISTING
                 }
             }
         }
@@ -203,7 +205,7 @@ scope "/japi" {
         req: "struct" {
             email "email"
             otp "string" minLength=1
-            updates "boolean" optional=true
+            (?)updates "boolean"
         }
 
         res: {
@@ -219,7 +221,7 @@ scope "/japi" {
         name "submitUrl"
 
         req: {
-            header "Authorization" "string" minLength=1 optional=true
+            (?)header "Authorization" "string" minLength=1
             body "SubmitReq"
         }
 
@@ -240,7 +242,7 @@ scope "/japi" {
 
         req: {
             pathParam "show_id" "ShowID"
-            header "Authorization" "string" minLength=1 optional=true
+            (?)header "Authorization" "string" minLength=1
         }
 
         res {
@@ -256,8 +258,8 @@ scope "/japi" {
         req: {
             pathParam "show_id" "ShowID"
             query {
-                before "dateTime" optional=true
-                limit "int32" minimum=1 optional=true
+                (?)before "dateTime"
+                (?)limit "int32" minimum=1
             }
         }
 
@@ -438,7 +440,7 @@ scope "/japi" {
             req {
                 pathParam "show_id" "ShowID"
                 query {
-                    timezone "string" minLength=1 optional=true
+                    (?)timezone "string" minLength=1
                 }
             }
             res {

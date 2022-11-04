@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest"
 
-import { optional, string } from "../../dsl/schema"
-import { toParam, toSchemaOrRef } from "../to-open-api"
+import { toParam, toSchemaOrRef } from "./to-open-api"
+import { optional, string } from "../dsl/schema"
 
 describe.concurrent("to OpenAPI", () => {
   test("to param", () => {

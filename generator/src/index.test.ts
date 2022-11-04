@@ -1,10 +1,19 @@
 import { describe, expect, test } from "vitest"
-import * as fs from "fs/promises"
+import { readFile } from "fs/promises"
 import { parse } from "kdljs"
 
 describe.concurrent("index", () => {
-  test("KDL parsing", async () => {
-    const loaded = parse(await fs.readFile("tryout/listenbox.kdl", "utf-8"))
-    expect(loaded.errors, JSON.stringify(loaded.errors, null, 2)).empty
+  test("kdl parse no errors", async () => {
+    const texts = await Promise.all(
+      ["listenbox", "yanic", "elkx"].map(name =>
+        readFile(`tryout/${name}.kdl`, "utf-8"),
+      ),
+    )
+
+    for (const text of texts) {
+      const x = parse(text)
+      console.log(JSON.stringify(x.output, null, 2))
+      expect(x.errors, JSON.stringify(x.errors, null, 2)).to.be.empty
+    }
   })
 })
