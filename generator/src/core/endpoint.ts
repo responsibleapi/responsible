@@ -1,5 +1,4 @@
-import { ScopeOpts } from "../dsl/endpoint"
-import { RefsRec } from "./core"
+import { CoreTypeRefs } from "./core"
 
 export type Mime = `${string}/${string}${`; charset=${string}` | ""}`
 
@@ -78,8 +77,10 @@ export const isSchema = (x: unknown): x is RSchema =>
 export const isKey = <T>(o: T, k: unknown): k is keyof T =>
   typeof k === "string" && k in o
 
-export const isSchemaOrRef = (refs: RefsRec, x: unknown): x is SchemaOrRef =>
-  isKey(refs, x) || isSchema(x)
+export const isSchemaOrRef = (
+  refs: CoreTypeRefs,
+  x: unknown,
+): x is SchemaOrRef => isKey(refs, x) || isSchema(x)
 
 interface Template {
   strings: ReadonlyArray<string>
@@ -130,10 +131,17 @@ export type RSchema =
   | { type: "array"; items: SchemaOrRef }
   | RObject
   | { type: "union"; oneOf: RSchema[] }
-  | { type: "newtype"; underlying: RSchema }
+  | { type: "newtype"; schema: RSchema }
   | { type: "external" }
+  | { type: "dict"; k: SchemaOrRef; v: SchemaOrRef }
   | {
-      type: "dict"
-      k: SchemaOrRef
-      v: SchemaOrRef
+      type: "runtime-library"
+      name:
+        | "httpURL"
+        | "nat32"
+        | "email"
+        | "hostname"
+        | "nat64"
+        | "seconds"
+        | "utcMillis"
     }

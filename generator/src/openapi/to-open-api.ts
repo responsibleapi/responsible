@@ -7,8 +7,8 @@ import {
   CoreRes,
   CoreResponses,
   CoreService,
-  Mimes,
-  RefsRec,
+  CoreMimes,
+  CoreTypeRefs,
   StatusCodeStr,
 } from "../core/core"
 import {
@@ -81,7 +81,7 @@ export const toSchemaOrRef = (
   }
 }
 
-const refsToOpenAPI = (refs: RefsRec): Record<string, OpenAPIV3.SchemaObject> =>
+const refsToOpenAPI = (refs: CoreTypeRefs): Record<string, OpenAPIV3.SchemaObject> =>
   Object.fromEntries(Object.keys(refs).map(k => [k, toSchemaOrRef(refs[k])]))
 
 export type ParamWhere = "header" | "query" | "path" | "cookie"
@@ -103,7 +103,7 @@ const toParams = (
 ): ReadonlyArray<OpenAPIV3_1.ParameterObject> =>
   Object.entries(what ?? {}).map(([k, v]) => toParam(k, v, where))
 
-const toContent = (b: Mimes): Record<string, OpenAPIV3.MediaTypeObject> =>
+const toContent = (b: CoreMimes): Record<string, OpenAPIV3.MediaTypeObject> =>
   Object.fromEntries(
     Object.entries(b).map(([type, s]) => [type, { schema: toSchemaOrRef(s) }]),
   )

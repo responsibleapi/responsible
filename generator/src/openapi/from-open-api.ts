@@ -7,7 +7,7 @@ import {
   CoreRes,
   CoreResponses,
   CoreService,
-  RefsRec,
+  CoreTypeRefs,
   ServiceInfo,
 } from "../core/core"
 import {
@@ -78,7 +78,7 @@ const toSchema = (schema: OpenAPIV3_1.SchemaObject): RSchema => {
   }
 }
 
-const toRefs = (schemas: Record<string, OpenAPIV3_1.SchemaObject>): RefsRec =>
+const toRefs = (schemas: Record<string, OpenAPIV3_1.SchemaObject>): CoreTypeRefs =>
   Object.fromEntries(Object.entries(schemas).map(([k, v]) => [k, toSchema(v)]))
 
 type SchemaRef = `#/components/schemas/${string}`

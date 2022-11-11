@@ -7,7 +7,7 @@ import {
   RSchema,
   SchemaOrRef,
 } from "../core/endpoint"
-import { CoreService, RefsRec } from "../core/core"
+import { CoreService, CoreTypeRefs } from "../core/core"
 
 const DATACLASS = "dataclasses.dataclass"
 const TYPING_OPTIONAL = "typing.Optional"
@@ -38,7 +38,7 @@ const importsStr = (is: Set<Import>): string =>
     ),
   ].join("\n")
 
-const schemaTypeName = <Refs extends RefsRec>(
+const schemaTypeName = <Refs extends CoreTypeRefs>(
   imports: Set<Import>,
   x: RSchema<Refs>,
 ): string => {
@@ -60,7 +60,7 @@ const schemaTypeName = <Refs extends RefsRec>(
 /**
  * TODO consider generics
  */
-const typeName = <Refs extends RefsRec>(
+const typeName = <Refs extends CoreTypeRefs>(
   x: SchemaOrRef<Refs> | Optional<Refs>,
   imports: Set<Import>,
 ): string => {
@@ -76,7 +76,7 @@ const typeName = <Refs extends RefsRec>(
   return String(x)
 }
 
-const declareDataclass = <Refs extends RefsRec>(
+const declareDataclass = <Refs extends CoreTypeRefs>(
   refs: Refs,
   refName: keyof Refs,
   imports: Set<Import>,
@@ -106,7 +106,7 @@ const declareDataclass = <Refs extends RefsRec>(
   return `@${dataclass}\nclass ${cName}(${generics}):\n${fields}\n`
 }
 
-const declareType = <Refs extends RefsRec>(
+const declareType = <Refs extends CoreTypeRefs>(
   refs: Refs,
   name: keyof Refs,
   imports: Set<Import>,
@@ -125,7 +125,7 @@ const declareType = <Refs extends RefsRec>(
   }
 }
 
-export const genPythonTypes = <Refs extends RefsRec>({
+export const genPythonTypes = <Refs extends CoreTypeRefs>({
   refs,
 }: CoreService<Refs>): string => {
   const imports = new Set<Import>()

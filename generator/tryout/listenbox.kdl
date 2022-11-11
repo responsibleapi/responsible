@@ -1,6 +1,14 @@
+responsible syntax="0.0.1"
+
 info {
     title "Listenbox"
     version "0.1"
+    termsOfService "/terms"
+}
+
+servers {
+    url "http://localhost:3000"
+    url "https://listenbox.app"
 }
 
 newType "FeedID" "string" length=11
@@ -29,10 +37,10 @@ struct "UserResp" {
 }
 
 struct "RecentResp" {
-    list: "array" minItems=0 {
+    list "array" minItems=0 {
         struct {
-            id: "ShowID"
-            feed_id: "FeedID"
+            id "ShowID"
+            feed_id "FeedID"
             title "string"
             episodes "nat32"
             (?)image "httpURL"
@@ -41,7 +49,7 @@ struct "RecentResp" {
             (?)owner "string"
         }
     }
-    plan: "Plan"
+    plan "Plan"
 }
 
 enum "ValidationExceptionErrorType" {
@@ -79,8 +87,8 @@ enum "YouTubeFeedType" {
 }
 
 struct "Show" {
-    id: "ShowID"
-    feed_id: "FeedID"
+    id "ShowID"
+    feed_id "FeedID"
     audioFeedURL "httpURL"
     description "string"
     episodes "nat32"
@@ -98,9 +106,9 @@ struct "Show" {
     (?)owner "string"
     (?)ownerEmail "email"
     (?)primaryCategory "ITunesCategory"
+    (?)secondaryCategory "ITunesCategory"
     (?)refreshedUTC "utcMillis"
     (?)reverse "boolean"
-    (?)secondaryCategory "ITunesCategory"
     (?)website "httpURL"
 }
 
@@ -124,44 +132,44 @@ struct "EditShowReq" {
 }
 
 struct "JsonItem" {
-    id: "ItemID"
-    title: "string"
-    webpage_url: "httpURL"
-    (?)duration_seconds: "seconds"
-    (?)image: "httpURL"
-    (?)mime: "mime"
+    id "ItemID"
+    title "string"
+    webpage_url "httpURL"
+    (?)duration_seconds "seconds"
+    (?)image "httpURL"
+    (?)mime "mime"
 }
 
 struct "ItemsResp" {
-    items: "array" "JsonItem" minItems=0
-    total: "nat32"
+    items "array" "JsonItem" minItems=0
+    total "nat32"
 }
 
 struct "PreSignedUploadURL" {
-    fileUrl: "httpURL"
-    uploadUrl: "httpURL"
-    headers: "dict" "string" "string"
+    fileUrl "httpURL"
+    uploadUrl "httpURL"
+    headers "dict" "string" "string"
 }
 
 struct "DownloadsChart" {
 
 //    TODO figure out minItems
-    list: "array" {
+    list "array" {
         struct {
-            day: "utcMillis"
-            downloads: "nat32"
+            day "utcMillis"
+            downloads "nat32"
         }
     }
-    total: "nat64"
+    total "nat64"
 }
 
 struct "ReverseReq" {
-    showID: "ShowID"
-    value: "boolean"
+    showID "ShowID"
+    value "boolean"
 }
 
 struct "ReverseResp" {
-    value: "boolean"
+    value "boolean"
 }
 
 struct "LoginReq" {
@@ -169,9 +177,9 @@ struct "LoginReq" {
     host "hostname"
 }
 
-scope "/japi" {
+"/japi" {
 
-    forAll {
+    scope {
         req {
             mime "application/json"
         }
@@ -191,7 +199,7 @@ scope "/japi" {
 
         res {
             "200" "struct" {
-                login: "enum" {
+                login "enum" {
                     NEW
                     EXISTING
                 }
@@ -202,15 +210,15 @@ scope "/japi" {
     POST "/otp" {
         name "submitOtp"
 
-        req: "struct" {
+        req "struct" {
             email "email"
             otp "string" minLength=1
             (?)updates "boolean"
         }
 
-        res: {
+        res {
             "201" "struct" {
-                jwt: "string" minLength=1
+                jwt "string" minLength=1
             }
 
             "401" "unknown"
@@ -220,18 +228,17 @@ scope "/japi" {
     POST "/submit" {
         name "submitUrl"
 
-        req: {
-            (?)header "Authorization" "string" minLength=1
+        req {
+            (?)header "authorization" "string" minLength=1
             body "SubmitReq"
         }
 
         res {
             "200" "struct" {
-                showID: "ShowID"
+                showID "ShowID"
                 plan "Plan"
             }
 
-            "400" "unknown"
             "401" "unknown"
             "404" "unknown"
         }
@@ -240,9 +247,9 @@ scope "/japi" {
     GET "/show/:show_id" {
         name "getShow"
 
-        req: {
+        req {
             pathParam "show_id" "ShowID"
-            (?)header "Authorization" "string" minLength=1
+            (?)header "authorization" "string" minLength=1
         }
 
         res {
@@ -255,7 +262,7 @@ scope "/japi" {
     GET "/show/:show_id/items" {
         name "getItems"
 
-        req: {
+        req {
             pathParam "show_id" "ShowID"
             query {
                 (?)before "dateTime"
@@ -273,7 +280,7 @@ scope "/japi" {
         name "unsubscribe"
         description "Unsubscribe the email from product updates"
 
-        req: "struct" {
+        req "struct" {
             email "email"
         }
 
@@ -282,11 +289,18 @@ scope "/japi" {
         }
     }
 
-    scope "/auth" {
-        forAll {
+    "/auth" {
+
+        scope {
             req {
-                header "Authorization" "string" minLength=1
+                security {
+                    oneOf {
+                        header "authorization" "string" minLength=1
+                        cookie "token" "string" minLength=1
+                    }
+                }
             }
+
             res {
                 "401" "unknown"
             }
@@ -302,7 +316,7 @@ scope "/japi" {
 
             POST {
                 name "patchUser"
-                req: "struct" {
+                req "struct" {
                     updates "boolean"
                 }
                 res {
@@ -328,7 +342,7 @@ scope "/japi" {
         POST "/checkout" {
             name "checkout"
 
-            req: "struct" {
+            req "struct" {
                 plan "Plan"
                 interval "enum" {
                     month
@@ -348,7 +362,7 @@ scope "/japi" {
 
         POST "/portal" {
             name "customerPortal"
-            req: "struct" {
+            req "struct" {
                 return_url "httpURL"
             }
             res {
@@ -382,7 +396,7 @@ scope "/japi" {
 
             POST {
                 name "addLater"
-                req: "unknown"
+                req "unknown"
                 res {
                     "200" "unknown"
                     "402" "unknown"
@@ -399,7 +413,7 @@ scope "/japi" {
 
         DELETE "/feed/:show_id" {
             name "deleteFeed"
-            req: {
+            req {
                 pathParam "show_id" "ShowID"
             }
             res {
@@ -410,7 +424,7 @@ scope "/japi" {
         GET "/s3_presign_image" {
             name "preSignedImageUploadURL"
 
-            req: {
+            req {
                 query {
                     filename "string" minLength=1
                 }
@@ -424,10 +438,12 @@ scope "/japi" {
 
         PUT "/show/:show_id" {
             name "editShow"
+
             req {
                 pathParam "show_id" "ShowID"
-                body: "EditShowReq"
+                body "EditShowReq"
             }
+
             res {
                 "200" "Show"
                 "403" "unknown"
@@ -437,12 +453,14 @@ scope "/japi" {
 
         GET "/show/:show_id/downloads" {
             name "getDownloads"
+
             req {
                 pathParam "show_id" "ShowID"
                 query {
                     (?)timezone "string" minLength=1
                 }
             }
+
             res {
                 "200" "DownloadsChart"
                 "403" "unknown"
@@ -451,7 +469,7 @@ scope "/japi" {
 
         POST "/reverse" {
             name "reversePlaylist"
-            req: "ReverseReq"
+            req "ReverseReq"
             res {
                 "200" "ReverseResp"
                 "403" "unknown"
@@ -460,25 +478,77 @@ scope "/japi" {
     }
 }
 
-scope "/oauth/google" {
+"/oauth/google" {
 
-    forAll {
+    GET "/" {
         res {
             "302" {
-                header "Location" "httpURL"
+                header "location" "httpURL"
             }
         }
     }
-
-    GET "/" {}
 
     GET "/callback" {
         req {
             query "code" "string" minLength=1
         }
+
         res {
             "302" {
+                header "location" "httpURL"
                 cookie "token" "string" minLength=1
+            }
+        }
+    }
+}
+
+GET "/f/:show_id" head=true {
+    name "audioRSS"
+
+    req {
+        pathParam "show_id" "ShowID"
+    }
+
+    res {
+        "302" {
+            header "Location" "httpURL"
+        }
+    }
+}
+
+GET "/v/:show_id" head=true {
+    name "videoRSS"
+
+    req {
+        pathParam "show_id" "ShowID"
+    }
+
+    res {
+        "302" {
+            header "Location" "httpURL"
+        }
+    }
+}
+
+GET "/rss/:show_id/:type.rss" head=true {
+    name "rss"
+
+    req {
+        pathParams {
+            show_id "ShowID"
+            type "enum" {
+                audio
+                video
+            }
+        }
+    }
+
+    res {
+        "200" {
+            mime "application/rss+xml"
+            headers {
+                "content-length" "int32" minimum=1
+                "etag" "string" minLength=1
             }
         }
     }

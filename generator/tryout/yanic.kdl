@@ -3,6 +3,7 @@ info {
     version: "1.0.0"
 }
 
+// defined in an external lib. yt-dlp for python, manually for kotlin
 external: "YtDlInfo"
 external: "YtDlOpts"
 
@@ -16,7 +17,7 @@ struct "DownloadReq" {
     opts "YtDlOpts"
 }
 
-forAll {
+scope {
     req {
         mime "application/json"
     }
@@ -25,9 +26,12 @@ forAll {
         mime "application/json"
         header "Content-Length" "int32" minimum=1
 
-    //  TODO responses can be components
-        "400" "text/plain" "string" minLength=1
-        "422" "text/plain" "string" minLength=1
+        "400" {
+            mime "text/plain" "string" minLength=1
+        }
+        "422" {
+            mime "text/plain" "string" minLength=1
+        }
     }
 }
 

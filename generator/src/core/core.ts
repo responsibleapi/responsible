@@ -8,7 +8,7 @@ import {
 
 export interface ServiceInfo {
   title: string
-  version: `${string}.${string}`
+  version: string
 }
 
 export type CoreMethod = "GET" | "HEAD" | "DELETE" | "POST" | "PUT" | "PATCH"
@@ -16,13 +16,16 @@ export type CoreMethod = "GET" | "HEAD" | "DELETE" | "POST" | "PUT" | "PATCH"
 /**
  * a record containing types
  */
-export type RefsRec = Record<string, RSchema>
+export type CoreTypeRefs = Record<string, RSchema>
 
-export type Mimes = Record<Mime, SchemaOrRef>
+export type CoreMimes = {
+  type: "mimes"
+  [k: Mime]: SchemaOrRef
+}
 
 export interface CoreRes {
   headers?: OptionalBag
-  body?: Mimes
+  body?: CoreMimes
 }
 
 type StatusCode1 = "1" | "2" | "3" | "4" | "5"
@@ -36,7 +39,7 @@ export interface CoreReq {
   query?: OptionalBag
   params?: RequiredBag
   cookies?: OptionalBag
-  body?: Mimes
+  body?: CoreMimes
 }
 
 export interface CoreOp {
@@ -47,8 +50,13 @@ export interface CoreOp {
 
 export type CorePaths = Record<`/${string}`, Record<CoreMethod, CoreOp>>
 
+export interface CoreServer {
+  url: string
+}
+
 export interface CoreService {
   info: ServiceInfo
-  refs: RefsRec
+  refs: CoreTypeRefs
   paths: CorePaths
+  servers: ReadonlyArray<CoreServer>
 }

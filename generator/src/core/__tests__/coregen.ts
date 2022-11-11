@@ -17,8 +17,8 @@ import {
   CoreRes,
   CoreResponses,
   CoreService,
-  Mimes,
-  RefsRec,
+  CoreMimes,
+  CoreTypeRefs,
 } from "../core"
 
 const fromArr = <T>(...a: ReadonlyArray<T>): fc.Arbitrary<T> =>
@@ -42,7 +42,7 @@ const arbStringFormat = (): fc.Arbitrary<StringFormat> =>
 const optional = <T>(a: fc.Arbitrary<T>): fc.Arbitrary<T | undefined> =>
   fc.option(a, { nil: undefined })
 
-const arbRString = <Refs extends RefsRec>(
+const arbRString = <Refs extends CoreTypeRefs>(
   itemsForTemplate: fc.Arbitrary<SchemaOrRef<Refs>>,
 ): fc.Arbitrary<RString<Refs>> =>
   fc.record({
@@ -62,7 +62,7 @@ const arbRString = <Refs extends RefsRec>(
 const arbNumFormat = (): fc.Arbitrary<NumFormat> =>
   fromArr("int32", "int64", "float", "double")
 
-const arbArr = <Refs extends RefsRec>(
+const arbArr = <Refs extends CoreTypeRefs>(
   items: fc.Arbitrary<SchemaOrRef<Refs>>,
 ): fc.Arbitrary<RArr<Refs>> =>
   fc.record({
@@ -85,7 +85,7 @@ const arbRNum = (): fc.Arbitrary<RNum> =>
     ),
   })
 
-const arbSchema = <Refs extends RefsRec>(): fc.Arbitrary<RSchema<Refs>> =>
+const arbSchema = <Refs extends CoreTypeRefs>(): fc.Arbitrary<RSchema<Refs>> =>
   fc.letrec<{ schema: RSchema<Refs> }>(tie => ({
     schema: fc.oneof(
       arbRString(tie("schema")),
@@ -94,7 +94,7 @@ const arbSchema = <Refs extends RefsRec>(): fc.Arbitrary<RSchema<Refs>> =>
     ),
   })).schema
 
-const arbSchemaOrRef = <Refs extends RefsRec>(
+const arbSchemaOrRef = <Refs extends CoreTypeRefs>(
   refs: Refs,
 ): fc.Arbitrary<SchemaOrRef<Refs>> =>
   fc.oneof(arbSchema(), fromArr(...Object.keys(refs)))
@@ -105,21 +105,21 @@ const arbPath = () =>
 const arbMethod = (): fc.Arbitrary<CoreMethod> =>
   fromArr("GET", "HEAD", "DELETE", "POST", "PUT", "PATCH")
 
-const arbBag = <Refs extends RefsRec>(): fc.Arbitrary<OptionalBag<Refs>> => {
+const arbBag = <Refs extends CoreTypeRefs>(): fc.Arbitrary<OptionalBag<Refs>> => {
   throw new Error("not implemented")
 }
 
-const arbMimes = <Refs extends RefsRec>(): fc.Arbitrary<Mimes<Refs>> => {
+const arbMimes = <Refs extends CoreTypeRefs>(): fc.Arbitrary<CoreMimes<Refs>> => {
   throw new Error("not implemented")
 }
 
-const arbRes = <Refs extends RefsRec>(): fc.Arbitrary<CoreRes<Refs>> =>
+const arbRes = <Refs extends CoreTypeRefs>(): fc.Arbitrary<CoreRes<Refs>> =>
   fc.record({
     headers: optional(arbBag()),
     body: optional(arbMimes()),
   })
 
-const arbOp = <Refs extends RefsRec>(): fc.Arbitrary<CoreOp<Refs>> =>
+const arbOp = <Refs extends CoreTypeRefs>(): fc.Arbitrary<CoreOp<Refs>> =>
   fc.record({
     name: optional(fc.string()),
     req: fc.record({}),
@@ -131,13 +131,13 @@ const arbOp = <Refs extends RefsRec>(): fc.Arbitrary<CoreOp<Refs>> =>
       .map(x => x as unknown as CoreResponses<Refs>),
   })
 
-const arbPaths = <Refs extends RefsRec>(): fc.Arbitrary<CorePaths<Refs>> =>
+const arbPaths = <Refs extends CoreTypeRefs>(): fc.Arbitrary<CorePaths<Refs>> =>
   fc.dictionary(arbPath(), fc.dictionary(arbMethod(), arbOp()))
 
-const arbRefs = <Refs extends RefsRec>(): fc.Arbitrary<Refs> =>
+const arbRefs = <Refs extends CoreTypeRefs>(): fc.Arbitrary<Refs> =>
   fc.dictionary(fc.string({ minLength: 1 }), arbSchema()) as fc.Arbitrary<Refs>
 
-export const arbCoreSvc = <Refs extends RefsRec>(): fc.Arbitrary<
+export const arbCoreSvc = <Refs extends CoreTypeRefs>(): fc.Arbitrary<
   CoreService<Refs>
 > =>
   arbRefs<Refs>().chain(refs =>

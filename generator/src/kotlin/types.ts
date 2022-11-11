@@ -7,10 +7,10 @@ import {
   RSchema,
   SchemaOrRef,
 } from "../core/endpoint"
-import { RefsRec } from "../core/core"
+import { CoreTypeRefs } from "../core/core"
 
-const schemaKotlinName = <Refs extends RefsRec>(
-  x: RSchema<Refs>,
+const schemaKotlinName = (
+  x: RSchema,
   what: "type" | "class",
 ): KotlinType | KotlinClassName => {
   switch (x.type) {
@@ -50,10 +50,10 @@ const isAlreadyOptional = (s: string): s is `${string}?` => s.endsWith("?")
 export type KotlinType = string | `${string}?`
 type KotlinClassName = string
 
-export const typeGenerics = <Refs extends RefsRec>(
-  refs: Refs,
-  refName: keyof Refs,
-): Set<keyof Refs> => {
+export const typeGenerics = (
+  refs: CoreTypeRefs,
+  refName: string,
+): Set<string> => {
   const schema = refs[refName]
   switch (schema.type) {
     case "object": {
@@ -71,25 +71,20 @@ export const typeGenerics = <Refs extends RefsRec>(
 
 type RenderedGenerics = "" | `<${string}>`
 
-const renderGenerics = <Refs extends RefsRec>(
-  refs: Refs,
-  ref: keyof Refs,
-): RenderedGenerics => {
+const renderGenerics = (refs: CoreTypeRefs, ref: string): RenderedGenerics => {
   const generics = typeGenerics(refs, ref)
   return generics.size ? `<${[...generics].join(", ")}>` : ""
 }
 
-const refTypeNameWithGenerics = <Refs extends RefsRec>(
-  refs: Refs,
-  ref: keyof Refs,
-) => `${String(ref)}${renderGenerics(refs, ref)}` as const
+const refTypeNameWithGenerics = (refs: CoreTypeRefs, ref: string) =>
+  `${String(ref)}${renderGenerics(refs, ref)}` as const
 
 /**
  * TODO should show generics
  */
-export const kotlinTypeName = <Refs extends RefsRec>(
-  refs: Refs,
-  x: SchemaOrRef<Refs> | Optional<Refs>,
+export const kotlinTypeName = (
+  refs: CoreTypeRefs,
+  x: SchemaOrRef | Optional,
 ): KotlinType => {
   if (isSchema(x)) {
     return schemaKotlinName(x, "type")
@@ -108,9 +103,7 @@ export const kotlinTypeName = <Refs extends RefsRec>(
   throw new Error(JSON.stringify(x))
 }
 
-export const kotlinClassName = <Refs extends RefsRec>(
-  x: SchemaOrRef<Refs> | Optional<Refs>,
-): string => {
+export const kotlinClassName = (x: SchemaOrRef | Optional): string => {
   if (isSchema(x)) {
     return schemaKotlinName(x, "class")
   }
@@ -122,13 +115,10 @@ export const kotlinClassName = <Refs extends RefsRec>(
   return String(x)
 }
 
-const declareDataclass = <Refs extends RefsRec>(
-  refs: Refs,
-  refName: keyof Refs,
-): string => {
+const declareDataclass = (refs: CoreTypeRefs, refName: string): string => {
   const nameWithGenerics = refTypeNameWithGenerics(refs, refName)
 
-  const o = refs[refName] as RObject<Refs>
+  const o = refs[refName] as RObject
   const fields = Object.entries(o.fields)
     .map(
       ([fieldName, schema]) =>
@@ -139,23 +129,29 @@ const declareDataclass = <Refs extends RefsRec>(
   return `data class ${nameWithGenerics}(\n${fields}\n)\n`
 }
 
-const declareType = <Refs extends RefsRec>(
-  refs: Refs,
-  name: keyof Refs,
-): string => {
-  switch (refs[name].type) {
+const declareType = (refs: CoreTypeRefs, name: string): string => {
+  const ref = refs[name]
+  switch (ref.type) {
     case "external":
       return ""
 
     case "object":
       return declareDataclass(refs, name)
 
+    case "string": {
+      if (ref.enum?.length) {
+        return `enum class ${name} {\n${ref.enum.join(",\n")}\n}\n`
+      } else {
+        throw new Error(JSON.stringify(ref))
+      }
+    }
+
     default:
       throw new Error("")
   }
 }
 
-export const genKotlinTypes = <Refs extends RefsRec>(refs: Refs): string =>
+export const genKotlinTypes = (refs: CoreTypeRefs): string =>
   Object.keys(refs)
     .map(k => declareType(refs, k))
     .filter(x => x)

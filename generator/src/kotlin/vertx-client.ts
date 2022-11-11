@@ -4,7 +4,7 @@ import {
   CorePaths,
   CoreReq,
   CoreService,
-  RefsRec,
+  CoreTypeRefs,
   StatusCodeStr,
 } from "../core/core"
 import { genKotlinTypes, kotlinClassName, kotlinTypeName } from "./types"
@@ -40,7 +40,7 @@ type Path = `/${string}`
 
 const toCamelCase = (p: string): string => p.split("/").map(capitalize).join("")
 
-const toMethodParams = <Refs extends RefsRec>(
+const toMethodParams = <Refs extends CoreTypeRefs>(
   refs: Refs,
   req: CoreReq<Refs>,
   body: { body?: SchemaOrRef<Refs> },
@@ -58,12 +58,12 @@ const toMethodParams = <Refs extends RefsRec>(
     )
     .join(", ")
 
-const isExternal = <Refs extends RefsRec>(
+const isExternal = <Refs extends CoreTypeRefs>(
   refs: Refs,
   sor: SchemaOrRef<Refs>,
 ): sor is keyof Refs => isKey(refs, sor) && refs[sor].type === "external"
 
-const extractBodyExpr = <Refs extends RefsRec>(
+const extractBodyExpr = <Refs extends CoreTypeRefs>(
   refs: Refs,
   mime: Mime,
   sor: SchemaOrRef<Refs>,
@@ -82,12 +82,12 @@ const extractBodyExpr = <Refs extends RefsRec>(
   throw new Error(`unsupported mime ${mime}`)
 }
 
-const classGenerics = <Refs extends RefsRec>(
+const classGenerics = <Refs extends CoreTypeRefs>(
   refs: Refs,
 ): ReadonlyArray<keyof Refs> =>
   Object.entries(refs).flatMap(([k, v]) => (v.type === "external" ? [k] : []))
 
-const methodGenerics = <Refs extends RefsRec>(
+const methodGenerics = <Refs extends CoreTypeRefs>(
   refs: Refs,
   op: CoreOp<Refs>,
 ): Generics => {
@@ -97,7 +97,7 @@ const methodGenerics = <Refs extends RefsRec>(
 /**
  * TODO method generics + inline + reified
  */
-const declareMethod = <Refs extends RefsRec>(
+const declareMethod = <Refs extends CoreTypeRefs>(
   refs: Refs,
   path: Path,
   method: CoreMethod,
@@ -167,7 +167,7 @@ suspend fun ${methodGenerics1} ${mName}(${methodParams}): ${returnType} {
 `
 }
 
-const genReqBodyOp = <Refs extends RefsRec>(
+const genReqBodyOp = <Refs extends CoreTypeRefs>(
   refs: Refs,
   path: Path,
   method: CoreMethod,
@@ -192,7 +192,7 @@ const genReqBodyOp = <Refs extends RefsRec>(
   return declareMethod(refs, path, method, op, mName, sor)
 }
 
-const genOp = <Refs extends RefsRec>(
+const genOp = <Refs extends CoreTypeRefs>(
   refs: Refs,
   path: Path,
   method: CoreMethod,
@@ -211,7 +211,7 @@ const genOp = <Refs extends RefsRec>(
   }
 }
 
-const toMethods = <Refs extends RefsRec>(
+const toMethods = <Refs extends CoreTypeRefs>(
   refs: Refs,
   paths: CorePaths<Refs>,
 ): string =>
@@ -227,11 +227,11 @@ const toMethods = <Refs extends RefsRec>(
 
 type Generics = "" | `<${string}>`
 
-const externalClassField = <Refs extends RefsRec>(
+const externalClassField = <Refs extends CoreTypeRefs>(
   k: keyof Refs,
 ): `${string}Class` => `${String(k)}Class`
 
-export const genVertxKotlinClient = <Refs extends RefsRec>(
+export const genVertxKotlinClient = <Refs extends CoreTypeRefs>(
   { info, paths, refs }: CoreService<Refs>,
   { packageName }: { packageName: string },
 ): string => {
