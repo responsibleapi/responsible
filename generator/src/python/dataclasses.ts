@@ -1,12 +1,12 @@
 import {
-  isOptional,
   isKey,
+  isOptional,
   isSchema,
   Optional,
-  RObject,
   RSchema,
+  RStruct,
   SchemaOrRef,
-} from "../core/endpoint"
+} from "../core/RSchema"
 import { CoreService, CoreTypeRefs } from "../core/core"
 
 const DATACLASS = "dataclasses.dataclass"
@@ -38,10 +38,7 @@ const importsStr = (is: Set<Import>): string =>
     ),
   ].join("\n")
 
-const schemaTypeName = <Refs extends CoreTypeRefs>(
-  imports: Set<Import>,
-  x: RSchema<Refs>,
-): string => {
+const schemaTypeName = (imports: Set<Import>, x: RSchema): string => {
   switch (x.type) {
     case "string":
       return "str"
@@ -60,10 +57,7 @@ const schemaTypeName = <Refs extends CoreTypeRefs>(
 /**
  * TODO consider generics
  */
-const typeName = <Refs extends CoreTypeRefs>(
-  x: SchemaOrRef<Refs> | Optional<Refs>,
-  imports: Set<Import>,
-): string => {
+const typeName = (x: SchemaOrRef | Optional, imports: Set<Import>): string => {
   if (isSchema(x)) {
     return schemaTypeName(imports, x)
   }
@@ -76,12 +70,12 @@ const typeName = <Refs extends CoreTypeRefs>(
   return String(x)
 }
 
-const declareDataclass = <Refs extends CoreTypeRefs>(
-  refs: Refs,
-  refName: keyof Refs,
+const declareDataclass = (
+  refs: CoreTypeRefs,
+  refName: string,
   imports: Set<Import>,
 ): string => {
-  const o = refs[refName] as RObject<Refs>
+  const o = refs[refName] as RStruct
 
   const genericNames = Object.values(o.fields).flatMap(field =>
     isKey(refs, field) && refs[field].type === "external" ? [field] : [],
@@ -106,9 +100,9 @@ const declareDataclass = <Refs extends CoreTypeRefs>(
   return `@${dataclass}\nclass ${cName}(${generics}):\n${fields}\n`
 }
 
-const declareType = <Refs extends CoreTypeRefs>(
-  refs: Refs,
-  name: keyof Refs,
+const declareType = (
+  refs: CoreTypeRefs,
+  name: string,
   imports: Set<Import>,
 ): string => {
   switch (refs[name].type) {
@@ -125,9 +119,7 @@ const declareType = <Refs extends CoreTypeRefs>(
   }
 }
 
-export const genPythonTypes = <Refs extends CoreTypeRefs>({
-  refs,
-}: CoreService<Refs>): string => {
+export const genPythonTypes = ({ refs }: CoreService): string => {
   const imports = new Set<Import>()
 
   const declarations = Object.keys(refs)

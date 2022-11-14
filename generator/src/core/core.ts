@@ -1,14 +1,9 @@
-import {
-  Mime,
-  OptionalBag,
-  RequiredBag,
-  RSchema,
-  SchemaOrRef,
-} from "./endpoint"
+import { Mime, OptionalBag, RequiredBag, RSchema, SchemaOrRef } from "./RSchema"
 
 export interface ServiceInfo {
   title: string
   version: string
+  termsOfService?: string
 }
 
 export type CoreMethod = "GET" | "HEAD" | "DELETE" | "POST" | "PUT" | "PATCH"
@@ -18,21 +13,22 @@ export type CoreMethod = "GET" | "HEAD" | "DELETE" | "POST" | "PUT" | "PATCH"
  */
 export type CoreTypeRefs = Record<string, RSchema>
 
-export type CoreMimes = {
-  type: "mimes"
-  [k: Mime]: SchemaOrRef
-}
-
-export interface CoreRes {
-  headers?: OptionalBag
-  body?: CoreMimes
-}
+export type CoreMimes = Record<Mime, SchemaOrRef>
 
 type StatusCode1 = "1" | "2" | "3" | "4" | "5"
 type DigitStr = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
 export type StatusCodeStr = `${StatusCode1}${DigitStr}${DigitStr}`
 
-export type CoreResponses = Record<StatusCodeStr, CoreRes>
+export const toStatusCode = (code: number): StatusCodeStr =>
+  String(code) as StatusCodeStr
+
+export type CoreStatus = {
+  headers: OptionalBag
+  cookies?: OptionalBag
+  body: CoreMimes
+}
+
+export type CoreResponses = Partial<Record<StatusCodeStr, CoreStatus>>
 
 export interface CoreReq {
   headers?: OptionalBag
@@ -44,11 +40,14 @@ export interface CoreReq {
 
 export interface CoreOp {
   name?: string
+  description?: string
   req: CoreReq
   res: CoreResponses
 }
 
-export type CorePaths = Record<`/${string}`, Record<CoreMethod, CoreOp>>
+export type URLPath = `/${string}`
+
+export type CorePaths = Record<URLPath, Record<CoreMethod, CoreOp>>
 
 export interface CoreServer {
   url: string

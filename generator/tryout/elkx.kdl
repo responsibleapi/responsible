@@ -8,6 +8,7 @@ forAll {
 
     res {
         mime "application/json"
+
         header "Content-Length" "int32" minimum=1
     }
 }

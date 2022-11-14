@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import { isMime } from "../endpoint"
+import { isMime } from "../RSchema"
 
 describe.concurrent("endpoint", () => {
   test("is mime", () => {

@@ -4,9 +4,9 @@ import {
   CoreMethod,
   CoreOp,
   CorePaths,
-  CoreRes,
   CoreResponses,
   CoreService,
+  CoreStatus,
   CoreTypeRefs,
   ServiceInfo,
 } from "../core/core"
@@ -18,9 +18,8 @@ import {
   RSchema,
   SchemaOrRef,
   StringFormat,
-} from "../core/endpoint"
+} from "../core/RSchema"
 import { ParamWhere } from "./to-open-api"
-import { string } from "../dsl/schema"
 
 /**
  * TODO dict
@@ -35,7 +34,7 @@ const toObject = ({
   if (typeof additionalProperties === "object") {
     return {
       type: "dict",
-      k: string(),
+      k: { type: "string" },
       v: schemaOfRef(additionalProperties),
     }
   }
@@ -78,7 +77,9 @@ const toSchema = (schema: OpenAPIV3_1.SchemaObject): RSchema => {
   }
 }
 
-const toRefs = (schemas: Record<string, OpenAPIV3_1.SchemaObject>): CoreTypeRefs =>
+const toRefs = (
+  schemas: Record<string, OpenAPIV3_1.SchemaObject>,
+): CoreTypeRefs =>
   Object.fromEntries(Object.entries(schemas).map(([k, v]) => [k, toSchema(v)]))
 
 type SchemaRef = `#/components/schemas/${string}`
@@ -132,7 +133,7 @@ export const toRequiredBag = (
     ) ?? [],
   )
 
-const toResp = (r: OpenAPIV3.ResponseObject): CoreRes => ({
+const toResp = (r: OpenAPIV3.ResponseObject): CoreStatus => ({
   headers: Object.fromEntries(
     Object.entries(r.headers ?? {}).map(([k, v]) =>
       "$ref" in v ? [k, schemaOfRef(v)] : [k, fromParam(v)],
@@ -187,4 +188,5 @@ export const fromOpenApi = (d: OpenAPIV3_1.Document): CoreService => ({
   info: d.info as ServiceInfo,
   refs: toRefs(d.components?.schemas ?? {}),
   paths: toPaths(d.paths ?? {}),
+  servers: d.servers ?? [],
 })

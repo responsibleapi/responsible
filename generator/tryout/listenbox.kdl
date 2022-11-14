@@ -294,7 +294,7 @@ struct "LoginReq" {
         scope {
             req {
                 security {
-                    oneOf {
+                    OR {
                         header "authorization" "string" minLength=1
                         cookie "token" "string" minLength=1
                     }
@@ -545,11 +545,11 @@ GET "/rss/:show_id/:type.rss" head=true {
 
     res {
         "200" {
-            mime "application/rss+xml"
             headers {
                 "content-length" "int32" minimum=1
                 "etag" "string" minLength=1
             }
+            body "application/rss+xml" "string" minLength=1
         }
     }
 }

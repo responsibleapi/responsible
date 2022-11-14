@@ -2,7 +2,7 @@ import { describe, expect, test } from "vitest"
 import fc from "fast-check"
 
 import { fromOpenApi, schemaName, toRequiredBag } from "./from-open-api"
-import { arbOpenApiDoc } from "./__tests__/openapigen"
+import { arbOpenApiDoc } from "./__tests__/openapigen.test"
 import { toOpenApi } from "./to-open-api"
 import { string } from "../dsl/schema"
 

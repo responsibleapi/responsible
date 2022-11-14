@@ -3,10 +3,10 @@ import {
   isOptional,
   isSchema,
   Optional,
-  RObject,
+  RStruct,
   RSchema,
   SchemaOrRef,
-} from "../core/endpoint"
+} from "../core/RSchema"
 import { CoreTypeRefs } from "../core/core"
 
 const schemaKotlinName = (
@@ -118,7 +118,7 @@ export const kotlinClassName = (x: SchemaOrRef | Optional): string => {
 const declareDataclass = (refs: CoreTypeRefs, refName: string): string => {
   const nameWithGenerics = refTypeNameWithGenerics(refs, refName)
 
-  const o = refs[refName] as RObject
+  const o = refs[refName] as RStruct
   const fields = Object.entries(o.fields)
     .map(
       ([fieldName, schema]) =>

@@ -5,10 +5,10 @@ import {
   CoreReq,
   CoreService,
   CoreTypeRefs,
-  StatusCodeStr,
+  toStatusCode,
 } from "../core/core"
 import { genKotlinTypes, kotlinClassName, kotlinTypeName } from "./types"
-import { isKey, isOptional, Mime, SchemaOrRef } from "../core/endpoint"
+import { isKey, isOptional, Mime, SchemaOrRef } from "../core/RSchema"
 
 const VERTX_T = "io.vertx.core.Vertx"
 const CLOSEABLE_T = "java.io.Closeable"
@@ -40,10 +40,10 @@ type Path = `/${string}`
 
 const toCamelCase = (p: string): string => p.split("/").map(capitalize).join("")
 
-const toMethodParams = <Refs extends CoreTypeRefs>(
-  refs: Refs,
-  req: CoreReq<Refs>,
-  body: { body?: SchemaOrRef<Refs> },
+const toMethodParams = (
+  refs: CoreTypeRefs,
+  req: CoreReq,
+  body: { body?: SchemaOrRef },
 ): string =>
   Object.entries({
     ...req.params,
@@ -58,15 +58,13 @@ const toMethodParams = <Refs extends CoreTypeRefs>(
     )
     .join(", ")
 
-const isExternal = <Refs extends CoreTypeRefs>(
-  refs: Refs,
-  sor: SchemaOrRef<Refs>,
-): sor is keyof Refs => isKey(refs, sor) && refs[sor].type === "external"
+const isExternal = (refs: CoreTypeRefs, sor: SchemaOrRef): sor is string =>
+  isKey(refs, sor) && refs[sor].type === "external"
 
-const extractBodyExpr = <Refs extends CoreTypeRefs>(
-  refs: Refs,
+const extractBodyExpr = (
+  refs: CoreTypeRefs,
   mime: Mime,
-  sor: SchemaOrRef<Refs>,
+  sor: SchemaOrRef,
 ): "Unit" | `res.body${string}` => {
   if (mime.includes("application/json")) {
     if (isExternal(refs, sor)) {
@@ -82,34 +80,29 @@ const extractBodyExpr = <Refs extends CoreTypeRefs>(
   throw new Error(`unsupported mime ${mime}`)
 }
 
-const classGenerics = <Refs extends CoreTypeRefs>(
-  refs: Refs,
-): ReadonlyArray<keyof Refs> =>
+const classGenerics = (refs: CoreTypeRefs): ReadonlyArray<string> =>
   Object.entries(refs).flatMap(([k, v]) => (v.type === "external" ? [k] : []))
 
-const methodGenerics = <Refs extends CoreTypeRefs>(
-  refs: Refs,
-  op: CoreOp<Refs>,
-): Generics => {
+const methodGenerics = (refs: CoreTypeRefs, op: CoreOp): Generics => {
   throw new Error("not implemented")
 }
 
 /**
  * TODO method generics + inline + reified
  */
-const declareMethod = <Refs extends CoreTypeRefs>(
-  refs: Refs,
+const declareMethod = (
+  refs: CoreTypeRefs,
   path: Path,
   method: CoreMethod,
-  op: CoreOp<Refs>,
+  op: CoreOp,
   mName: string,
-  body?: SchemaOrRef<Refs>,
+  body?: SchemaOrRef,
 ): string => {
   const sorted = Object.keys(op.res).map(Number).sort()
   const code = sorted[0]
   if (code >= 400) throw new Error(JSON.stringify(sorted))
 
-  const codeStr = String(code) as StatusCodeStr
+  const codeStr = toStatusCode(code)
   const what = op.res[codeStr]
   const schemas = Object.entries(what.body ?? {})
   if (schemas.length !== 1) {
@@ -167,13 +160,13 @@ suspend fun ${methodGenerics1} ${mName}(${methodParams}): ${returnType} {
 `
 }
 
-const genReqBodyOp = <Refs extends CoreTypeRefs>(
-  refs: Refs,
+const genReqBodyOp = (
+  refs: CoreTypeRefs,
   path: Path,
   method: CoreMethod,
-  op: CoreOp<Refs>,
+  op: CoreOp,
   mime: Mime,
-  sor: SchemaOrRef<Refs>,
+  sor: SchemaOrRef,
 ): string => {
   const bodyMimes = Object.entries(op.req.body ?? {})
   const lowerMethod = method.toLowerCase()
@@ -192,11 +185,11 @@ const genReqBodyOp = <Refs extends CoreTypeRefs>(
   return declareMethod(refs, path, method, op, mName, sor)
 }
 
-const genOp = <Refs extends CoreTypeRefs>(
+const genOp = (
   refs: Refs,
   path: Path,
   method: CoreMethod,
-  op: CoreOp<Refs>,
+  op: CoreOp,
 ): string => {
   const bodyMimes = Object.entries(op.req.body ?? {})
   if (bodyMimes.length) {
@@ -211,10 +204,7 @@ const genOp = <Refs extends CoreTypeRefs>(
   }
 }
 
-const toMethods = <Refs extends CoreTypeRefs>(
-  refs: Refs,
-  paths: CorePaths<Refs>,
-): string =>
+const toMethods = (refs: CoreTypeRefs, paths: CorePaths): string =>
   Object.entries(paths)
     .map(([path, methods]) =>
       Object.entries(methods)
@@ -227,12 +217,10 @@ const toMethods = <Refs extends CoreTypeRefs>(
 
 type Generics = "" | `<${string}>`
 
-const externalClassField = <Refs extends CoreTypeRefs>(
-  k: keyof Refs,
-): `${string}Class` => `${String(k)}Class`
+const externalClassField = (k: string): `${string}Class` => `${String(k)}Class`
 
-export const genVertxKotlinClient = <Refs extends CoreTypeRefs>(
-  { info, paths, refs }: CoreService<Refs>,
+export const genVertxKotlinClient = (
+  { info, paths, refs }: CoreService,
   { packageName }: { packageName: string },
 ): string => {
   const cName = capitalize(info.title)

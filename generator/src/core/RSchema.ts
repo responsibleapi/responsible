@@ -5,37 +5,6 @@ export type Mime = `${string}/${string}${`; charset=${string}` | ""}`
 export const isMime = (x: unknown): x is Mime =>
   typeof x === "string" && x.length > 2 && x.includes("/")
 
-export const mergeOpts = (
-  ...arr: ReadonlyArray<ScopeOpts | undefined>
-): ScopeOpts => {
-  const noMime = undefined as Mime | undefined
-
-  const ret = {
-    req: { headers: {}, body: noMime, cookies: {} },
-    res: { headers: {}, body: noMime, codes: {} },
-  }
-
-  for (const opts of arr) {
-    if (!opts) continue
-
-    if (opts.req?.body && ret.req.body) {
-      throw new Error("trying to register multiple request bodies")
-    }
-    ret.req.body = opts.req?.body ?? ret.req.body
-    Object.assign(ret.req.headers, opts.req?.headers)
-    Object.assign(ret.req.cookies, opts.req?.cookies)
-
-    if (opts.res?.body && ret.res.body) {
-      throw new Error("trying to register multiple response bodies")
-    }
-    ret.res.body = opts.res?.body ?? ret.res.body
-    Object.assign(ret.res.headers, opts.res?.headers)
-    Object.assign(ret.res.codes, opts.res?.codes)
-  }
-
-  return ret
-}
-
 export interface Range {
   start: number
   end: number
@@ -82,11 +51,6 @@ export const isSchemaOrRef = (
   x: unknown,
 ): x is SchemaOrRef => isKey(refs, x) || isSchema(x)
 
-interface Template {
-  strings: ReadonlyArray<string>
-  expr: SchemaOrRef[]
-}
-
 export interface RString {
   type: "string"
   format?: StringFormat
@@ -94,14 +58,13 @@ export interface RString {
   maxLength?: number
   pattern?: RegExp
   enum?: ReadonlyArray<string>
-  template?: Template
 }
 
 export type OptionalBag = Record<string, SchemaOrRef | Optional>
 
 export type RequiredBag = Record<string, SchemaOrRef>
 
-export interface RObject {
+export interface RStruct {
   type: "object"
   fields: OptionalBag
 }
@@ -129,7 +92,7 @@ export type RSchema =
   | { type: "boolean" }
   | { type: "unknown" }
   | { type: "array"; items: SchemaOrRef }
-  | RObject
+  | RStruct
   | { type: "union"; oneOf: RSchema[] }
   | { type: "newtype"; schema: RSchema }
   | { type: "external" }

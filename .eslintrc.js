@@ -15,6 +15,7 @@ module.exports = {
     eqeqeq: "error",
     "no-throw-literal": "error",
     "no-console": "error",
+    "default-case": "error",
 
     "no-shadow": "off",
     "@typescript-eslint/no-shadow": "error",

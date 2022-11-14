@@ -1,0 +1,7 @@
+{
+  "name": "@responsible/cli",
+  "version": "0.0.1",
+  "dependencies": {
+    "arg": "^5.0.2"
+  }
+}

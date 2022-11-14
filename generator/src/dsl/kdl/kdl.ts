@@ -1,21 +1,26 @@
 import {
+  CoreMethod,
   CoreMimes,
+  CoreOp,
   CorePaths,
+  CoreResponses,
   CoreServer,
   CoreService,
+  CoreStatus,
   CoreTypeRefs,
   ServiceInfo,
   StatusCodeStr,
+  URLPath,
 } from "../../core/core"
 import {
   Mime,
   OptionalBag,
   RequiredBag,
-  RObject,
+  RStruct,
   RSchema,
   RString,
   SchemaOrRef,
-} from "../../core/endpoint"
+} from "../../core/RSchema"
 import { kdljs } from "kdljs"
 
 const stringValue = (node: kdljs.Node, idx: number): string => {
@@ -24,28 +29,21 @@ const stringValue = (node: kdljs.Node, idx: number): string => {
   return v
 }
 
-const toInfo = (node: kdljs.Node): ServiceInfo => {
-  let title: string | undefined
-  let version: string | undefined
+const toJSObj = <T>(n: kdljs.Node, keys?: Set<keyof T>): T =>
+  Object.fromEntries(
+    n.children.map(c => {
+      const k = c.name as keyof T
+      if (keys?.size && !keys.has(k)) {
+        throw new Error(JSON.stringify({ c, keys }))
+      }
 
-  for (const child of node.children) {
-    const v1 = stringValue(child, 0)
+      const v = c.children.length ? toJSObj(c) : stringValue(c, 0)
+      return [k, v]
+    }),
+  ) as T
 
-    switch (child.name) {
-      case "title":
-        title = v1
-        break
-
-      case "version":
-        version = v1
-        break
-    }
-  }
-
-  if (!title || !version) throw new Error(JSON.stringify(node))
-
-  return { title, version }
-}
+const toInfo = (node: kdljs.Node): ServiceInfo =>
+  toJSObj(node, new Set(["title", "version", "termsOfService"]))
 
 const strToSchema = (name: string): SchemaOrRef =>
   nodeToSchemaOrRef({
@@ -58,7 +56,7 @@ const strToSchema = (name: string): SchemaOrRef =>
 
 const TAG_OPTIONAL = "?"
 
-const toStruct = (node: kdljs.Node): RObject => ({
+const toStruct = (node: kdljs.Node): RStruct => ({
   type: "object",
   fields: Object.fromEntries(
     node.children.map(c => {
@@ -143,79 +141,260 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
 const nodeToSchemaOrRef = (node: kdljs.Node): SchemaOrRef =>
   nodeToSchema(node) ?? typeName(node)
 
+interface ScopeRes {
+  mime?: Mime
+
+  headers: OptionalBag
+  cookies: OptionalBag
+
+  body: CoreResponses
+}
+
 interface Scope {
-  path: `/${string}` | ""
+  // path: `/${string}` | ""
 
   req: {
     mime?: Mime
-    // security: {}
-  }
-
-  res: {
-    mime?: Mime
-
     headers: OptionalBag
     cookies: OptionalBag
     query: OptionalBag
     pathParams: RequiredBag
-
-    codes: Record<
-      StatusCodeStr,
-      {
-        body?: CoreMimes | SchemaOrRef
-        headers: OptionalBag
-        cookies: OptionalBag
-        query: OptionalBag
-        pathParams: RequiredBag
-      }
-    >
+    // security: {}
   }
+
+  res: ScopeRes
 }
 
-const toScope = (scope: kdljs.Node): Scope => {
-  for (const scopeChild of scope.children) {
-    switch (scopeChild.name) {
-      case "req": {
-        for (const reqNode of scopeChild.children) {
-          switch (reqNode.name) {
-            case "mime": {
-              break
-            }
+const emptyScope = (): Scope => ({
+  req: {
+    headers: {},
+    cookies: {},
+    query: {},
+    pathParams: {},
+  },
+  res: {
+    headers: {},
+    body: {},
+    cookies: {},
+  },
+})
 
-            case "header": {
-              break
-            }
-          }
+const mergeScopes = (
+  ...arr: ReadonlyArray<Scope | undefined>
+): Readonly<Scope> => {
+  const ret: Scope = emptyScope()
+
+  for (const opts of arr) {
+    if (!opts) continue
+
+    ret.req.mime = opts.req.mime ?? ret.req.mime
+    Object.assign(ret.req.headers, opts.req.headers)
+    Object.assign(ret.req.cookies, opts.req.cookies)
+    Object.assign(ret.req.query, opts.req.query)
+    Object.assign(ret.req.pathParams, opts.req.pathParams)
+
+    ret.res.mime = opts.res.mime ?? ret.res.mime
+    Object.assign(ret.res.headers, opts.res.headers)
+    Object.assign(ret.res.body, opts.res.body)
+  }
+
+  return ret
+}
+
+const parseCoreStatus = (resChild: kdljs.Node): CoreStatus => {
+  const headers: OptionalBag = {}
+  const cookies: OptionalBag = {}
+  const body: CoreMimes = {}
+
+  for (const statusChild of resChild.children) {
+    switch (statusChild.name) {
+      case "header": {
+        const name = stringValue(statusChild, 0).toLowerCase()
+        headers[name] = nodeToSchemaOrRef(statusChild)
+        break
+      }
+
+      case "headers": {
+        for (const header of statusChild.children) {
+          headers[header.name.toLowerCase()] = nodeToSchemaOrRef(header)
         }
         break
       }
 
-      case "res": {
-        for (const resChild of scopeChild.children) {
-          switch (resChild.name) {
-            case "mime": {
-              break
-            }
+      case "cookie": {
+        const name = stringValue(statusChild, 0)
+        cookies[name] = nodeToSchemaOrRef(statusChild)
+        break
+      }
 
-            default: {
-              const status = parseInt(resChild.name)
-              if (status) {
-                if (resChild.values.length) {
-                } else if (resChild.children.length) {
-                } else {
-                  throw new Error(JSON.stringify(resChild))
-                }
-              } else {
-                throw new Error(JSON.stringify(resChild))
-              }
-              break
-            }
-          }
+      case "body": {
+        const orRef = nodeToSchemaOrRef(statusChild)
+
+        const mime: Mime =
+          statusChild.values.length === 2
+            ? (stringValue(statusChild, 0) as Mime)
+            : ("*" as Mime)
+
+        body[mime] = orRef
+        break
+      }
+
+      default:
+        throw new Error(JSON.stringify(statusChild))
+    }
+  }
+
+  return { headers, cookies, body }
+}
+
+const parseScopeRes = (scopeChild: kdljs.Node): ScopeRes => {
+  const res: ScopeRes = emptyScope().res
+
+  for (const resChild of scopeChild.children) {
+    switch (resChild.name) {
+      case "mime": {
+        res.mime = stringValue(resChild, 0) as Mime
+        break
+      }
+
+      case "header": {
+        const name = stringValue(resChild, 0).toLowerCase()
+        res.headers[name] = nodeToSchemaOrRef(resChild)
+        break
+      }
+
+      case "headers": {
+        for (const header of resChild.children) {
+          const name = header.name.toLowerCase()
+          res.headers[name] = nodeToSchemaOrRef(header)
         }
+        break
+      }
+
+      default: {
+        const status = parseInt(resChild.name)
+        if (!status) throw new Error(JSON.stringify(resChild))
+
+        const statusStr = resChild.name as StatusCodeStr
+
+        const codeO: CoreStatus = res.body[statusStr] ?? {
+          cookies: {},
+          headers: {},
+          body: {},
+        }
+
+        switch (true) {
+          case Boolean(resChild.values.length):
+            codeO.body["*" as Mime] = nodeToSchemaOrRef(resChild)
+            break
+
+          case Boolean(resChild.children.length): {
+            for (const statusChild of resChild.children) {
+              switch (statusChild.name) {
+                case "header": {
+                  const name = stringValue(statusChild, 0).toLowerCase()
+                  codeO.headers[name] = nodeToSchemaOrRef(statusChild)
+                  break
+                }
+
+                case "headers": {
+                  for (const header of statusChild.children) {
+                    codeO.headers[header.name.toLowerCase()] =
+                      nodeToSchemaOrRef(header)
+                  }
+                  break
+                }
+
+                case "cookie": {
+                  const name = stringValue(statusChild, 0)
+                  codeO.cookies[name] = nodeToSchemaOrRef(statusChild)
+                  break
+                }
+
+                case "body": {
+                  const orRef = nodeToSchemaOrRef(statusChild)
+
+                  const mime: Mime =
+                    statusChild.values.length === 2
+                      ? (stringValue(statusChild, 0) as Mime)
+                      : ("*" as Mime)
+
+                  codeO.body[mime] = orRef
+                  break
+                }
+
+                default:
+                  throw new Error(JSON.stringify(statusChild))
+              }
+            }
+            break
+          }
+
+          default:
+            throw new Error(JSON.stringify(resChild))
+        }
+
+        res.body[statusStr] = codeO
         break
       }
     }
   }
+
+  return res
+}
+
+const parseScopeReq = (scopeChild: kdljs.Node): Scope["req"] => {
+  const req: Scope["req"] = emptyScope().req
+
+  for (const reqNode of scopeChild.children) {
+    switch (reqNode.name) {
+      case "mime": {
+        req.mime = stringValue(reqNode, 0) as Mime
+        break
+      }
+
+      case "header": {
+        req.headers[stringValue(reqNode, 0)] = nodeToSchemaOrRef(reqNode)
+        break
+      }
+
+      case "security": {
+        // TODO
+        break
+      }
+
+      default:
+        throw new Error(JSON.stringify(reqNode))
+    }
+  }
+
+  return req
+}
+
+const parseScope = (n: kdljs.Node): Readonly<Scope> => {
+  let req: Scope["req"] | undefined
+  let res: ScopeRes | undefined
+
+  for (const c of n.children) {
+    switch (c.name) {
+      case "req": {
+        req = parseScopeReq(c)
+        break
+      }
+
+      case "res": {
+        res = parseScopeRes(c)
+        break
+      }
+
+      default:
+        throw new Error(JSON.stringify(c))
+    }
+  }
+
+  if (!req || !res) throw new Error(JSON.stringify(n))
+
+  return { req, res }
 }
 
 const toEnum = (node: kdljs.Node): RString => ({
@@ -255,6 +434,11 @@ const topLevel = (
         }
         break
       }
+
+      default: {
+        // everything else parsed as a scope
+        break
+      }
     }
   }
 
@@ -268,9 +452,65 @@ interface FishedScope {
   paths: CorePaths
 }
 
-const enterScope = (doc: kdljs.Node): FishedScope => {
+const parseOps = (
+  scope: Scope,
+  node: kdljs.Node,
+): Partial<Record<CoreMethod, CoreOp>> => {
+  const head = node.properties.head === true
+  const method = node.name as CoreMethod
+
+  const op: CoreOp = {}
+
+  for (const child of node.children) {
+    switch (child.name) {
+      case "name": {
+        op.name = stringValue(child, 0)
+        break
+      }
+
+      case "description": {
+        op.description = stringValue(child, 0)
+        break
+      }
+
+      case "req": {
+        op.req = {}
+        for (const reqChild of child.children) {
+          // TODO
+        }
+        break
+      }
+
+      case "res": {
+        op.res = parseScopeRes(child)
+        break
+      }
+
+      default:
+        throw new Error(JSON.stringify(child))
+    }
+  }
+
+  return {
+    HEAD: method === "GET" && head ? op : undefined,
+    [method]: op,
+  }
+}
+
+const enterScope = (
+  doc: kdljs.Node,
+  {
+    path,
+    parentScope,
+  }: {
+    path: `/${string}` | ""
+    parentScope: Readonly<Scope>
+  },
+): FishedScope => {
   const refs: CoreTypeRefs = {}
   const paths: CorePaths = {}
+
+  let scope: Scope = parentScope
 
   // TODO fish for 'scope' first
 
@@ -309,16 +549,19 @@ const enterScope = (doc: kdljs.Node): FishedScope => {
       case "POST":
       case "PUT":
       case "GET": {
-        if (node.values.length) {
-          const appendPath = stringValue(node, 0)
-        }
-        const head = node.properties.head === true
-        // TODO define op
+        const thePath: URLPath = node.values.length
+          ? (`${path}${stringValue(node, 0)}` as URLPath)
+          : (path as URLPath)
+
+        const xxx: Record<CoreMethod, CoreOp> = paths[thePath] ?? {}
+        Object.assign(xxx, parseOps(scope, node))
+        paths[thePath] = xxx
+
         break
       }
 
       case "scope": {
-        // TODO scope definition
+        scope = mergeScopes(scope, parseScope(node))
         break
       }
 
@@ -329,12 +572,16 @@ const enterScope = (doc: kdljs.Node): FishedScope => {
 
       default: {
         if (node.name.startsWith("/")) {
-          // TODO append to paths
-          enterScope(node)
+          const entered = enterScope(node, {
+            path: `${path}${node.name}` as `/${string}`,
+            parentScope: scope,
+          })
+          Object.assign(refs, entered.refs)
+          Object.assign(paths, entered.paths)
+          break
         } else {
           throw new Error(JSON.stringify(node))
         }
-        break
       }
     }
   }
@@ -345,13 +592,19 @@ const enterScope = (doc: kdljs.Node): FishedScope => {
 export const toCore = (doc: kdljs.Document): CoreService => {
   const { info, servers } = topLevel(doc)
 
-  const { refs, paths } = enterScope({
-    name: "",
-    children: doc,
-    values: [],
-    tags: { name: "", values: [], properties: {} },
-    properties: {},
-  })
+  const { refs, paths } = enterScope(
+    {
+      name: "",
+      children: doc,
+      values: [],
+      tags: { name: "", values: [], properties: {} },
+      properties: {},
+    },
+    {
+      path: "",
+      parentScope: emptyScope(),
+    },
+  )
 
   return { info, servers, refs, paths }
 }

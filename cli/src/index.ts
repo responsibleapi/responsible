@@ -1,7 +1,7 @@
 import arg from "arg"
 
-import { genVertxKotlinClient } from "./kotlin/vertx-client"
-import { genPythonTypes } from "./python/dataclasses"
+import { genVertxKotlinClient } from "@responsible/generator/src/kotlin/vertx-client"
+import { genPythonTypes } from "@responsible/generator/src/python/dataclasses"
 
 const generators = {
   "kotlin-vertx": genVertxKotlinClient,

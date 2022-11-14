@@ -190,5 +190,10 @@ export const arbOpenApiDoc = (): fc.Arbitrary<OpenAPIV3_1.Document> =>
         arbPath(),
         fc.dictionary(arbMethod(), arbOp(schemas)),
       ),
+      servers: fc.array(
+        fc.record({
+          url: fc.webUrl(),
+        }),
+      ),
     }),
   )

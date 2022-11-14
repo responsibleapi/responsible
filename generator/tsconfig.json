@@ -4,6 +4,5 @@
     "target": "ESNext"
   },
   "extends": "../tsconfig.base.json",
-  "files": ["src/index.ts"],
   "include": ["src/"]
 }

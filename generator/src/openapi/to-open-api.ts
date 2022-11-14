@@ -2,12 +2,12 @@ import { OpenAPIV3, OpenAPIV3_1 } from "openapi-types"
 
 import {
   CoreMethod,
+  CoreMimes,
   CoreOp,
   CorePaths,
-  CoreRes,
   CoreResponses,
   CoreService,
-  CoreMimes,
+  CoreStatus,
   CoreTypeRefs,
   StatusCodeStr,
 } from "../core/core"
@@ -16,11 +16,11 @@ import {
   Optional,
   OptionalBag,
   optionalGet,
-  RObject,
+  RStruct,
   SchemaOrRef,
-} from "../core/endpoint"
+} from "../core/RSchema"
 
-const toObj = (schema: RObject): OpenAPIV3.SchemaObject => {
+const toObj = (schema: RStruct): OpenAPIV3.SchemaObject => {
   const required = Object.entries(schema.fields).flatMap(([k, v]) =>
     isOptional(v) ? [] : [k],
   )
@@ -45,13 +45,8 @@ export const toSchemaOrRef = (
   if (typeof schema === "object" && "type" in schema) {
     switch (schema.type) {
       case "string": {
-        const { ...copy } = schema
-
-        // TODO WTF
-        delete copy.template
-
         return {
-          ...copy,
+          ...schema,
           pattern: schema.pattern?.toString(),
           enum: schema.enum ? [...schema.enum] : undefined,
         }
@@ -81,7 +76,9 @@ export const toSchemaOrRef = (
   }
 }
 
-const refsToOpenAPI = (refs: CoreTypeRefs): Record<string, OpenAPIV3.SchemaObject> =>
+const refsToOpenAPI = (
+  refs: CoreTypeRefs,
+): Record<string, OpenAPIV3.SchemaObject> =>
   Object.fromEntries(Object.keys(refs).map(k => [k, toSchemaOrRef(refs[k])]))
 
 export type ParamWhere = "header" | "query" | "path" | "cookie"
@@ -110,7 +107,7 @@ const toContent = (b: CoreMimes): Record<string, OpenAPIV3.MediaTypeObject> =>
 
 const toResponse = (
   status: StatusCodeStr,
-  r: CoreRes,
+  r: CoreStatus,
 ): OpenAPIV3_1.ResponseObject => ({
   description: String(status),
   headers: Object.fromEntries(
@@ -179,9 +176,11 @@ export const toOpenApi = ({
   info,
   refs,
   paths,
+  servers,
 }: CoreService): OpenAPIV3_1.Document => ({
   openapi: "3.1.0",
   info: info,
   components: { schemas: refsToOpenAPI(refs) },
   paths: toPaths(paths),
+  servers: [...servers],
 })

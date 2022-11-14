@@ -24,14 +24,11 @@ scope {
 
     res {
         mime "application/json"
+
         header "Content-Length" "int32" minimum=1
 
-        "400" {
-            mime "text/plain" "string" minLength=1
-        }
-        "422" {
-            mime "text/plain" "string" minLength=1
-        }
+        "400" "text/plain" "string" minLength=1
+        "422" "text/plain" "string" minLength=1
     }
 }
 
