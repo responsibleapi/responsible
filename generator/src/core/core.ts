@@ -23,17 +23,17 @@ export const toStatusCode = (code: number): StatusCodeStr =>
   String(code) as StatusCodeStr
 
 export type CoreStatus = {
-  headers: OptionalBag
+  headers?: OptionalBag
   cookies?: OptionalBag
   body: CoreMimes
 }
 
-export type CoreResponses = Partial<Record<StatusCodeStr, CoreStatus>>
+export type CoreRes = Partial<Record<StatusCodeStr, CoreStatus>>
 
 export interface CoreReq {
   headers?: OptionalBag
   query?: OptionalBag
-  params?: RequiredBag
+  pathParams?: RequiredBag
   cookies?: OptionalBag
   body?: CoreMimes
 }
@@ -42,7 +42,7 @@ export interface CoreOp {
   name?: string
   description?: string
   req: CoreReq
-  res: CoreResponses
+  res: CoreRes
 }
 
 export type URLPath = `/${string}`

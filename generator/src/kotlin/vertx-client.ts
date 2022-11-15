@@ -46,7 +46,7 @@ const toMethodParams = (
   body: { body?: SchemaOrRef },
 ): string =>
   Object.entries({
-    ...req.params,
+    ...req.pathParams,
     ...req.query,
     ...req.cookies,
     ...req.headers,

@@ -5,7 +5,7 @@ import {
   CoreMimes,
   CoreOp,
   CorePaths,
-  CoreResponses,
+  CoreRes,
   CoreService,
   CoreStatus,
   CoreTypeRefs,
@@ -122,7 +122,7 @@ const toResponse = (
   content: r.body ? toContent(r.body) : undefined,
 })
 
-const codesToResponses = (res: CoreResponses): OpenAPIV3_1.ResponsesObject =>
+const codesToResponses = (res: CoreRes): OpenAPIV3_1.ResponsesObject =>
   Object.fromEntries(
     Object.entries(res).map(([k, v]) => [
       String(k),
@@ -138,7 +138,7 @@ export const compareParams = (
 const toOperation = (op: CoreOp): OpenAPIV3.OperationObject => {
   const parameters = toParams("header", op.req?.headers)
     .concat(toParams("query", op.req?.query))
-    .concat(toParams("path", op.req?.params))
+    .concat(toParams("path", op.req?.pathParams))
     .concat(toParams("cookie", op.req?.cookies))
 
   parameters.sort(compareParams)
@@ -147,12 +147,10 @@ const toOperation = (op: CoreOp): OpenAPIV3.OperationObject => {
     operationId: op.name,
     parameters,
     requestBody: op.req?.body
-      ? {
-          required: true,
-          content: toContent(op.req.body),
-        }
+      ? { required: true, content: toContent(op.req.body) }
       : undefined,
     responses: codesToResponses(op.res),
+    description: op.description,
   }
 }
 

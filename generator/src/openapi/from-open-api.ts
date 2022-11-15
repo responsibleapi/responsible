@@ -4,7 +4,7 @@ import {
   CoreMethod,
   CoreOp,
   CorePaths,
-  CoreResponses,
+  CoreRes,
   CoreService,
   CoreStatus,
   CoreTypeRefs,
@@ -147,7 +147,7 @@ const toResp = (r: OpenAPIV3.ResponseObject): CoreStatus => ({
 const toOp = (op: OpenAPIV3_1.OperationObject): CoreOp => ({
   name: op.operationId,
   req: {
-    params: toRequiredBag("path", op),
+    pathParams: toRequiredBag("path", op),
     headers: toOptionalBag("header", op),
     query: toOptionalBag("query", op),
     cookies: toOptionalBag("cookie", op),
@@ -156,7 +156,7 @@ const toOp = (op: OpenAPIV3_1.OperationObject): CoreOp => ({
     Object.entries(op.responses ?? {}).flatMap(([k, v]) =>
       "$ref" in v ? [] : [[k, toResp(v)]],
     ),
-  ) as CoreResponses,
+  ) as CoreRes,
 })
 
 const METHODS = new Set<string>(Object.values(OpenAPIV3.HttpMethods))

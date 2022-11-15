@@ -5,7 +5,7 @@ import {
   CoreMimes,
   CoreOp,
   CorePaths,
-  CoreResponses,
+  CoreRes,
   CoreService,
   CoreStatus,
   CoreTypeRefs,
@@ -124,7 +124,7 @@ const arbOp = (): fc.Arbitrary<CoreOp> =>
         fc.integer({ min: 100, max: 599 }).map(x => x.toString()),
         arbRes(),
       )
-      .map(x => x as unknown as CoreResponses),
+      .map(x => x as unknown as CoreRes),
   })
 
 const arbPaths = (): fc.Arbitrary<CorePaths> =>

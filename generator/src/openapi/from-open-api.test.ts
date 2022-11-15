@@ -4,7 +4,6 @@ import fc from "fast-check"
 import { fromOpenApi, schemaName, toRequiredBag } from "./from-open-api"
 import { arbOpenApiDoc } from "./__tests__/openapigen.test"
 import { toOpenApi } from "./to-open-api"
-import { string } from "../dsl/schema"
 
 const clean = (t: unknown): unknown => JSON.parse(JSON.stringify(t))
 
