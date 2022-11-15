@@ -3,3 +3,4 @@ tsconfig.tsbuildinfo
 node_modules/
 samples/
 dist/
+yarn-error.log

@@ -15,7 +15,7 @@
   "workspaces": [
     "generator",
     "testing",
-    "web",
+    "remix",
     "cli"
   ]
 }
