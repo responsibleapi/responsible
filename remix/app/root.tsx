@@ -9,6 +9,7 @@ import {
 import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare"
 import styles from "./styles/app.css"
 
+// noinspection JSUnusedGlobalSymbols
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
   title: "New Remix App",
@@ -18,7 +19,8 @@ export const meta: MetaFunction = () => ({
 // noinspection JSUnusedGlobalSymbols
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }]
 
-export default function App() {
+// noinspection JSUnusedGlobalSymbols
+export default function App(): JSX.Element {
   return (
     <html lang="en">
       <head>

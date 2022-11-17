@@ -132,6 +132,7 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
       }
     }
 
+    case "mime":
     case "httpURL":
     case "nat32":
     case "nat64":
@@ -476,49 +477,43 @@ const toEnum = (node: kdljs.Node): RString => ({
   enum: node.children.map(x => x.name),
 })
 
-const topLevel = (
-  doc: kdljs.Document,
-): {
+interface TopLevel {
+  version: string
   info: ServiceInfo
-  servers: ReadonlyArray<CoreServer>
-} => {
-  let info: ServiceInfo | undefined
-  const servers: { url: string }[] = []
+  servers?: ReadonlyArray<CoreServer>
+}
 
-  for (const node of doc) {
-    switch (node.name) {
-      case "responsible": {
-        const version = node.properties.syntax
-        break
-      }
+type Handlers = Partial<Record<string, (node: kdljs.Node) => void>>
 
-      case "info": {
-        info = toInfo(node)
-        break
-      }
+const topLevel = (doc: kdljs.Document): Readonly<TopLevel> => {
+  const ret: Partial<TopLevel> = {}
 
-      case "servers": {
-        for (const s of node.children) {
-          const url = s.values[0]
-          if (s.name === "url" && typeof url === "string") {
-            servers.push({ url })
-          } else {
-            throw new Error(JSON.stringify(s))
-          }
+  const map: Handlers = {
+    responsible({ properties }) {
+      ret.version = properties.syntax as string
+    },
+
+    info(node) {
+      ret.info = toInfo(node)
+    },
+
+    servers({ children }) {
+      ret.servers = children.map(s => {
+        const url = s.values[0]
+        if (s.name === "url" && typeof url === "string") {
+          return { url }
+        } else {
+          throw new Error(JSON.stringify(s))
         }
-        break
-      }
-
-      default: {
-        // everything else parsed as a scope
-        break
-      }
-    }
+      })
+    },
   }
 
-  if (!info) throw new Error(JSON.stringify(doc))
+  for (const node of doc) {
+    map[node.name]?.(node)
+  }
 
-  return { info: info, servers }
+  return ret as TopLevel
 }
 
 interface FishedScope {

@@ -104,9 +104,9 @@ const declareMethod = (
 
   const codeStr = toStatusCode(code)
   const what = op.res[codeStr]
-  const schemas = Object.entries(what.body ?? {})
+  const schemas = Object.entries(what?.body ?? {})
   if (schemas.length !== 1) {
-    throw new Error(JSON.stringify(what.body))
+    throw new Error(JSON.stringify(what?.body))
   }
 
   const [mime, sor] = schemas[0]
@@ -186,7 +186,7 @@ const genReqBodyOp = (
 }
 
 const genOp = (
-  refs: Refs,
+  refs: CoreTypeRefs,
   path: Path,
   method: CoreMethod,
   op: CoreOp,

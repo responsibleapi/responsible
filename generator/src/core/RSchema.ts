@@ -44,7 +44,7 @@ export const isSchema = (x: unknown): x is RSchema =>
   typeof (x as RSchema)["type"] === "string"
 
 export const isKey = <T>(o: T, k: unknown): k is keyof T =>
-  typeof k === "string" && k in o
+  o && typeof o === "object" && typeof k === "string" && k in o
 
 export const isSchemaOrRef = (
   refs: CoreTypeRefs,
@@ -107,4 +107,5 @@ export type RSchema =
         | "nat64"
         | "seconds"
         | "utcMillis"
+        | "mime"
     }

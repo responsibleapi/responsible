@@ -44,6 +44,38 @@ export const toSchemaOrRef = (
 ): OpenAPIV3_1.ReferenceObject | OpenAPIV3.SchemaObject => {
   if (typeof schema === "object" && "type" in schema) {
     switch (schema.type) {
+      case "runtime-library": {
+        switch (schema.name) {
+          case "httpURL":
+            return { type: "string", format: "uri" }
+          case "nat32":
+            return { type: "number", format: "int32", minimum: 0 }
+          case "email":
+            return { type: "string", format: "email" }
+          case "hostname":
+            return { type: "string", format: "hostname" }
+
+          case "nat64":
+            return { type: "number", format: "int64", minimum: 0 }
+
+          case "seconds":
+            return { type: "number", format: "int64" }
+
+          case "utcMillis":
+            return { type: "number", format: "int64" }
+
+          case "mime":
+            return { type: "string" }
+
+          default:
+            throw new Error(`Unknown runtime library type ${schema.name}`)
+        }
+      }
+
+      case "newtype": {
+        return toSchemaOrRef(schema.schema)
+      }
+
       case "string": {
         return {
           ...schema,
@@ -158,10 +190,9 @@ const pathItem = (
   what: Record<CoreMethod, CoreOp>,
 ): OpenAPIV3_1.PathItemObject =>
   Object.fromEntries(
-    Object.entries(what).map(([k, op]) => [
-      toMethod(k as CoreMethod),
-      toOperation(op),
-    ]),
+    Object.entries(what).flatMap(([k, op]) =>
+      op ? [[toMethod(k as CoreMethod), toOperation(op)]] : [],
+    ),
   )
 
 const toMethod = (m: CoreMethod): OpenAPIV3_1.HttpMethods =>
@@ -180,5 +211,5 @@ export const toOpenApi = ({
   info: info,
   components: { schemas: refsToOpenAPI(refs) },
   paths: toPaths(paths),
-  servers: [...servers],
+  servers: servers ? [...servers] : undefined,
 })

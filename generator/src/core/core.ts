@@ -57,5 +57,5 @@ export interface CoreService {
   info: ServiceInfo
   refs: CoreTypeRefs
   paths: CorePaths
-  servers: ReadonlyArray<CoreServer>
+  servers?: ReadonlyArray<CoreServer>
 }
