@@ -38,10 +38,7 @@ export const optionalGet = (o: Optional | SchemaOrRef): SchemaOrRef =>
 export type SchemaOrRef = RSchema | string
 
 export const isSchema = (x: unknown): x is RSchema =>
-  typeof x === "object" &&
-  !!x &&
-  "type" in x &&
-  typeof (x as RSchema)["type"] === "string"
+  !!x && typeof x === "object" && "type" in x && typeof x["type"] === "string"
 
 export const isKey = <T>(o: T, k: unknown): k is keyof T =>
   o && typeof o === "object" && typeof k === "string" && k in o
@@ -86,6 +83,16 @@ export interface RArr {
   minItems?: number
 }
 
+export type RuntimeType =
+  | "httpURL"
+  | "nat32"
+  | "email"
+  | "hostname"
+  | "nat64"
+  | "seconds"
+  | "utcMillis"
+  | "mime"
+
 export type RSchema =
   | RString
   | RNum
@@ -97,15 +104,4 @@ export type RSchema =
   | { type: "newtype"; schema: RSchema }
   | { type: "external" }
   | { type: "dict"; k: SchemaOrRef; v: SchemaOrRef }
-  | {
-      type: "runtime-library"
-      name:
-        | "httpURL"
-        | "nat32"
-        | "email"
-        | "hostname"
-        | "nat64"
-        | "seconds"
-        | "utcMillis"
-        | "mime"
-    }
+  | { type: "runtime-library"; name: RuntimeType }

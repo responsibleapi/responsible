@@ -1,14 +1,14 @@
 info {
-    title: "yanic"
-    version: "1.0.0"
+    title "yanic"
+    version "1.0.0"
 }
 
 // defined in an external lib. yt-dlp for python, manually for kotlin
-external: "YtDlInfo"
-external: "YtDlOpts"
+external "YtDlInfo"
+external "YtDlOpts"
 
 struct "InfoReq" {
-    url: "httpURL"
+    url "httpURL"
     opts "YtDlOpts"
 }
 

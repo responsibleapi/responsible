@@ -1,6 +1,7 @@
+import { genPythonTypes } from "../../../generator/src/python/dataclasses"
 import { toOpenApi } from "../../../generator/src/openapi/to-open-api"
 import { toCore } from "../../../generator/src/dsl/kdl/kdl"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useMemo, useState } from "react"
 import { RadioGroup } from "@headlessui/react"
 import Editor from "@monaco-editor/react"
 import { parse } from "kdljs"
@@ -21,40 +22,54 @@ const labels: Record<Format, string> = {
   "python-types": "Python dataclasses",
 }
 
+const languages: Record<Format, string> = {
+  openapi: "json",
+  "vertx-kotlin": "kotlin",
+  "python-types": "python",
+}
+
+const LOCAL_STORAGE_KEY = "kdl"
+
+// noinspection JSUnusedGlobalSymbols
 export default function Index(): JSX.Element {
   const [kdl, setKDL] = useState("")
   const [format, setFormat] = useState(formats[2])
-  const [result, setResult] = useState("")
 
   useEffect(() => {
+    const x = localStorage.getItem(LOCAL_STORAGE_KEY)
+    if (x) {
+      setKDL(x)
+    }
+  }, [])
+  useEffect(() => localStorage.setItem(LOCAL_STORAGE_KEY, kdl), [kdl])
+
+  const result: string = useMemo(() => {
     const { output } = parse(kdl)
-    if (!output) return
+    if (!output) return ""
 
     try {
-      const c = toCore(output)
+      const core = toCore(output)
       switch (format) {
         case "python-types":
-          break
+          return genPythonTypes(core)
 
         case "openapi":
-          setResult(JSON.stringify(toOpenApi(c), null, 2))
-          break
+          return JSON.stringify(toOpenApi(core), null, 2)
 
         case "vertx-kotlin":
-          break
-
-        default:
           throw new Error(format)
       }
     } catch (e) {
       console.error(e)
+      return ""
     }
   }, [kdl, format])
 
   return (
     <div className="flex flex-row w-full h-screen divide-x">
-      <div className={"flex-1"}>
+      <div className="flex-1">
         <Editor
+          value={kdl}
           options={{ minimap: { enabled: false } }}
           onChange={e => setKDL(e ?? "")}
         />
@@ -85,7 +100,16 @@ export default function Index(): JSX.Element {
           ))}
         </RadioGroup>
 
-        <textarea className={"h-full"} defaultValue={result} />
+        <div className={"h-full"}>
+          <Editor
+            options={{
+              readOnly: true,
+              minimap: { enabled: false },
+            }}
+            value={result}
+            language={languages[format]}
+          />
+        </div>
       </div>
     </div>
   )

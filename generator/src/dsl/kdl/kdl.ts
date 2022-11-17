@@ -217,11 +217,11 @@ const mergeScopes = (
 
 const parseScopeStatus = (resChild: kdljs.Node): CoreStatus => {
   if (resChild.values.length) {
-    return {
-      body: {
-        ["*" as Mime]: nodeToSchemaOrRef(resChild),
-      },
-    }
+    const mime: Mime = (
+      resChild.values.length === 1 ? "*" : stringValue(resChild, 0)
+    ) as Mime
+
+    return { body: { [mime]: nodeToSchemaOrRef(resChild) } }
   }
 
   if (!resChild.children.length) throw new Error(JSON.stringify(resChild))
@@ -281,10 +281,13 @@ const parseCoreRes = (scope: ScopeRes, res: kdljs.Node): CoreRes => {
     if (!coreStatus) continue
 
     ret[scs] = {
+      headers: scope.headers,
+      cookies: scope.cookies,
       ...coreStatus,
       body: Object.fromEntries(
         Object.entries(coreStatus.body).map(([k, v]) => {
           if (!scope.mime) throw new Error(JSON.stringify(scope))
+
           return k === "*" ? [scope.mime, v] : [k as Mime, v]
         }),
       ),
@@ -292,17 +295,13 @@ const parseCoreRes = (scope: ScopeRes, res: kdljs.Node): CoreRes => {
   }
 
   for (const c of res.children) {
-    switch (c.name) {
-      default: {
-        if (parseInt(c.name)) {
-          ret[c.name as StatusCodeStr] = parseCoreStatus(scope, c)
-        } else {
-          throw new Error(JSON.stringify(c))
-        }
-        break
-      }
+    if (parseInt(c.name)) {
+      ret[c.name as StatusCodeStr] = parseCoreStatus(scope, c)
+    } else {
+      throw new Error(JSON.stringify(c))
     }
   }
+
   return ret
 }
 
@@ -728,6 +727,9 @@ const enterScope = (
   return { refs, paths }
 }
 
+/**
+ * TODO return errors
+ */
 export const toCore = (doc: kdljs.Document): CoreService => {
   const { info, servers } = topLevel(doc)
 

@@ -5,15 +5,23 @@ import {
   Optional,
   RSchema,
   RStruct,
+  RuntimeType,
   SchemaOrRef,
 } from "../core/RSchema"
 import { CoreService, CoreTypeRefs } from "../core/core"
 
 const DATACLASS = "dataclasses.dataclass"
+
 const TYPING_OPTIONAL = "typing.Optional"
 const TYPING_ANY = "typing.Any"
-const TYPING_TYPEVAR = "typing.TypeVar"
+const TYPING_TYPE_VAR = "typing.TypeVar"
 const TYPING_GENERIC = "typing.Generic"
+const TYPING_NEW_TYPE = "typing.NewType"
+const TYPING_LIST = "typing.List"
+
+const RESPONSIBLE_HTTP_URL = "responsible.types.HttpURL"
+const RESPONSIBLE_MIME = "responsible.types.Mime"
+const RESPONSIBLE_EMAIL = "responsible.types.Email"
 
 type Indentation = Array<"\t">
 
@@ -38,8 +46,20 @@ const importsStr = (is: Set<Import>): string =>
     ),
   ].join("\n")
 
+const runtimes: Record<RuntimeType, Import> = {
+  httpURL: RESPONSIBLE_HTTP_URL,
+  mime: RESPONSIBLE_MIME,
+  email: RESPONSIBLE_EMAIL,
+}
+
 const schemaTypeName = (imports: Set<Import>, x: RSchema): string => {
   switch (x.type) {
+    case "array":
+      return `${imported(imports, TYPING_LIST)}[${typeName(imports, x.items)}]`
+
+    case "runtime-library":
+      return imported(imports, runtimes[x.name])
+
     case "string":
       return "str"
 
@@ -57,14 +77,14 @@ const schemaTypeName = (imports: Set<Import>, x: RSchema): string => {
 /**
  * TODO consider generics
  */
-const typeName = (x: SchemaOrRef | Optional, imports: Set<Import>): string => {
-  if (isSchema(x)) {
-    return schemaTypeName(imports, x)
-  }
-
+const typeName = (imports: Set<Import>, x: SchemaOrRef | Optional): string => {
   if (isOptional(x)) {
     const opt = imported(imports, TYPING_OPTIONAL)
-    return `${opt}[${typeName(x.schema, imports)}]`
+    return `${opt}[${typeName(imports, x.schema)}]`
+  }
+
+  if (isSchema(x)) {
+    return schemaTypeName(imports, x)
   }
 
   return String(x)
@@ -90,7 +110,7 @@ const declareDataclass = (
     Object.entries(o.fields)
       .map(
         ([fieldName, schema]) =>
-          `${indent}${fieldName}: ${typeName(schema, imports)}` as const,
+          `${indent}${fieldName}: ${typeName(imports, schema)}` as const,
       )
       .join("\n"),
   )
@@ -105,17 +125,27 @@ const declareType = (
   name: string,
   imports: Set<Import>,
 ): string => {
-  switch (refs[name].type) {
+  const x = refs[name]
+  switch (x.type) {
+    case "string":
+    case "runtime-library":
+      return ""
+
+    case "newtype": {
+      const NewType = imported(imports, TYPING_NEW_TYPE)
+      return `${name} = ${NewType}('${name}', ${typeName(imports, x.schema)})\n`
+    }
+
     case "external": {
       const T = String(name)
-      return `${T} = ${imported(imports, TYPING_TYPEVAR)}('${T}')\n`
+      return `${T} = ${imported(imports, TYPING_TYPE_VAR)}('${T}')\n`
     }
 
     case "object":
       return declareDataclass(refs, name, imports)
 
     default:
-      throw new Error("")
+      throw new Error(x.type)
   }
 }
 

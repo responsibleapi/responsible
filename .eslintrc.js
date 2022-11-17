@@ -15,12 +15,12 @@ module.exports = {
     eqeqeq: "error",
     "no-throw-literal": "error",
     "no-console": "error",
-    "default-case": "error",
 
     "no-shadow": "off",
     "@typescript-eslint/no-shadow": "error",
 
     "@typescript-eslint/no-inferrable-types": "off",
+    "@typescript-eslint/switch-exhaustiveness-check": "error",
 
     "@typescript-eslint/no-for-in-array": "error",
     "@typescript-eslint/ban-ts-comment": [
