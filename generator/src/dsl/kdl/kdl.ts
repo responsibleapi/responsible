@@ -39,8 +39,7 @@ const toJSObj = <T>(n: kdljs.Node, keys?: Set<keyof T>): T =>
         throw new Error(JSON.stringify({ c, keys }))
       }
 
-      const v = c.children.length ? toJSObj(c) : stringValue(c, 0)
-      return [k, v]
+      return [k, c.children.length ? toJSObj(c) : c.values[0]]
     }),
   ) as T
 
@@ -480,6 +479,7 @@ interface TopLevel {
   version: string
   info: ServiceInfo
   servers?: ReadonlyArray<CoreServer>
+  options?: Record<string, string>
 }
 
 type Handlers = Partial<Record<string, (node: kdljs.Node) => void>>
@@ -506,11 +506,17 @@ const topLevel = (doc: kdljs.Document): Readonly<TopLevel> => {
         }
       })
     },
+
+    options(node) {
+      ret.options = toJSObj(node)
+    },
   }
 
   for (const node of doc) {
     map[node.name]?.(node)
   }
+
+  if (!ret?.info?.title) throw new Error(JSON.stringify(doc))
 
   return ret as TopLevel
 }
@@ -731,7 +737,7 @@ const enterScope = (
  * TODO return errors
  */
 export const toCore = (doc: kdljs.Document): CoreService => {
-  const { info, servers } = topLevel(doc)
+  const { info, servers, options } = topLevel(doc)
 
   const { refs, paths } = enterScope(
     {
@@ -747,5 +753,5 @@ export const toCore = (doc: kdljs.Document): CoreService => {
     },
   )
 
-  return { info, servers, refs, paths }
+  return { info, servers, refs, paths, options }
 }

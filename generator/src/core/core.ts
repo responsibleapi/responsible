@@ -2,7 +2,7 @@ import { Mime, OptionalBag, RequiredBag, RSchema, SchemaOrRef } from "./RSchema"
 
 export interface ServiceInfo {
   title: string
-  version: string
+  version?: string
   termsOfService?: string
 }
 
@@ -55,6 +55,7 @@ export interface CoreServer {
 
 export interface CoreService {
   info: ServiceInfo
+  options?: Record<string, unknown>
   refs: CoreTypeRefs
   paths: CorePaths
   servers?: ReadonlyArray<CoreServer>

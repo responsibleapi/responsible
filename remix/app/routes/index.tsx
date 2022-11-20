@@ -1,5 +1,7 @@
 import { genPythonTypes } from "../../../generator/src/python/dataclasses"
 import { toOpenApi } from "../../../generator/src/openapi/to-open-api"
+import { CoreService } from "@responsible/generator/src/core/core"
+import { genVertxKotlinClient } from "@responsible/generator/src"
 import { toCore } from "../../../generator/src/dsl/kdl/kdl"
 import React, { useEffect, useMemo, useState } from "react"
 import { RadioGroup } from "@headlessui/react"
@@ -43,27 +45,28 @@ export default function Index(): JSX.Element {
   }, [])
   useEffect(() => localStorage.setItem(LOCAL_STORAGE_KEY, kdl), [kdl])
 
-  const result: string = useMemo(() => {
-    const { output } = parse(kdl)
-    if (!output) return ""
-
+  const core: CoreService = useMemo(() => {
     try {
-      const core = toCore(output)
-      switch (format) {
-        case "python-types":
-          return genPythonTypes(core)
-
-        case "openapi":
-          return JSON.stringify(toOpenApi(core), null, 2)
-
-        case "vertx-kotlin":
-          throw new Error(format)
-      }
+      return toCore(parse(kdl).output ?? [])
     } catch (e) {
       console.error(e)
-      return ""
+      return { info: {}, refs: {}, paths: {} }
     }
-  }, [kdl, format])
+  }, [kdl])
+
+  const result: string = useMemo(() => {
+    switch (format) {
+      case "python-types":
+        return genPythonTypes(core)
+
+      case "openapi":
+        return JSON.stringify(toOpenApi(core), null, 2) + "\n"
+
+      case "vertx-kotlin":
+        // TODO think about introducing packageName to DSL
+        return genVertxKotlinClient(core)
+    }
+  }, [core, format])
 
   return (
     <div className="flex flex-row w-full h-screen divide-x">

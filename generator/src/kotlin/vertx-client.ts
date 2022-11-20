@@ -219,14 +219,23 @@ type Generics = "" | `<${string}>`
 
 const externalClassField = (k: string): `${string}Class` => `${String(k)}Class`
 
-export const genVertxKotlinClient = (
-  { info, paths, refs }: CoreService,
-  { packageName }: { packageName: string },
-): string => {
+interface Options {
+  packageName: string
+  resilient: boolean
+}
+
+export const genVertxKotlinClient = ({
+  info,
+  paths,
+  refs,
+  options,
+}: CoreService): string => {
   const cName = capitalize(info.title)
 
+  if (!options?.packageName) throw new Error(JSON.stringify(options))
+
   return `  
-package ${packageName}
+package ${String(options.packageName)}
   
 import io.vertx.kotlin.coroutines.await
 

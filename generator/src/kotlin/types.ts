@@ -3,8 +3,8 @@ import {
   isOptional,
   isSchema,
   Optional,
-  RStruct,
   RSchema,
+  RStruct,
   SchemaOrRef,
 } from "../core/RSchema"
 import { CoreTypeRefs } from "../core/core"
@@ -33,15 +33,37 @@ const schemaKotlinName = (
 
         case "int64":
           return "Long"
+
+        case undefined:
+          return "Double"
       }
-      return "Double"
+      break
     }
 
     case "object":
       throw new Error(JSON.stringify(x))
 
-    default:
-      throw new Error(x.type)
+    case "boolean": {
+      throw new Error('Not implemented yet: "boolean" case')
+    }
+    case "array": {
+      throw new Error('Not implemented yet: "array" case')
+    }
+    case "union": {
+      throw new Error('Not implemented yet: "union" case')
+    }
+    case "newtype": {
+      throw new Error('Not implemented yet: "newtype" case')
+    }
+    case "external": {
+      throw new Error('Not implemented yet: "external" case')
+    }
+    case "dict": {
+      throw new Error('Not implemented yet: "dict" case')
+    }
+    case "runtime-library": {
+      throw new Error('Not implemented yet: "runtime-library" case')
+    }
   }
 }
 
@@ -86,10 +108,6 @@ export const kotlinTypeName = (
   refs: CoreTypeRefs,
   x: SchemaOrRef | Optional,
 ): KotlinType => {
-  if (isSchema(x)) {
-    return schemaKotlinName(x, "type")
-  }
-
   if (isOptional(x)) {
     const name = kotlinTypeName(refs, x.schema)
     const questionSuffix = isAlreadyOptional(name) ? "" : "?"
@@ -98,6 +116,10 @@ export const kotlinTypeName = (
 
   if (isKey(refs, x)) {
     return refTypeNameWithGenerics(refs, x)
+  }
+
+  if (isSchema(x)) {
+    return schemaKotlinName(x, "type")
   }
 
   throw new Error(JSON.stringify(x))
@@ -120,10 +142,12 @@ const declareDataclass = (refs: CoreTypeRefs, refName: string): string => {
 
   const o = refs[refName] as RStruct
   const fields = Object.entries(o.fields)
-    .map(
-      ([fieldName, schema]) =>
-        `val ${fieldName}: ${kotlinTypeName(refs, schema)}`,
-    )
+    .map(([fieldName, schema]) => {
+      const tpe = kotlinTypeName(refs, schema)
+      if (!tpe) throw new Error(JSON.stringify(schema))
+
+      return `val ${fieldName}: ${tpe}`
+    })
     .join(",\n")
 
   return `data class ${nameWithGenerics}(\n${fields}\n)\n`
@@ -132,6 +156,13 @@ const declareDataclass = (refs: CoreTypeRefs, refName: string): string => {
 const declareType = (refs: CoreTypeRefs, name: string): string => {
   const ref = refs[name]
   switch (ref.type) {
+    case "newtype": {
+      const tpe = kotlinTypeName(refs, ref.schema)
+      if (!tpe) throw new Error(JSON.stringify(ref))
+
+      return `inline class ${name}(val value: ${tpe})\n`
+    }
+
     case "external":
       return ""
 
@@ -147,7 +178,7 @@ const declareType = (refs: CoreTypeRefs, name: string): string => {
     }
 
     default:
-      throw new Error("")
+      throw new Error(ref.type)
   }
 }
 
