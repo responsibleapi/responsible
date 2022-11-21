@@ -9,8 +9,10 @@
     "dev": "remix build && run-p \"dev:*\"",
     "dev:css": "tailwindcss -w -i styles/app.css -o app/styles/app.css",
     "dev:remix": "remix watch",
-    "dev:wrangler": "cross-env NODE_ENV=development wrangler pages dev ./public",
-    "start": "cross-env NODE_ENV=production yarn dev:wrangler"
+    "dev:wrangler": "cross-env NODE_ENV=development wrangler pages dev public/",
+    "start": "cross-env NODE_ENV=production yarn dev:wrangler",
+    "clean": "rm -rf .cache/ function/ public/build/",
+    "deploy": "cross-env NODE_ENV=production wrangler pages publish public/"
   },
   "dependencies": {
     "@headlessui/react": "^1.7.4",
