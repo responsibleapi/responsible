@@ -1,4 +1,4 @@
-/** @type {import("@remix-run/dev").AppConfig} */
+/** @type {import('@remix-run/dev').AppConfig} */
 module.exports = {
   serverBuildTarget: "cloudflare-pages",
   server: "./server.js",
@@ -8,5 +8,4 @@ module.exports = {
   // assetsBuildDirectory: "public/build",
   // serverBuildPath: "functions/[[path]].js",
   // publicPath: "/build/",
-  watchPaths: ["../generator/"],
-}
+};
