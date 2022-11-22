@@ -19,12 +19,12 @@ const numberTypes: Record<NumFormat, Capitalize<string>> = {
   double: "Double",
 }
 
-const runtimeTypes: Record<RuntimeType, `responsible.kotlin.${string}`> = {
+const runtimeTypes: Record<RuntimeType, KotlinClassName> = {
   httpURL: "responsible.kotlin.HttpURL",
-  nat32: "responsible.kotlin.Nat32",
+  nat32: "UInt",
+  nat64: "ULong",
   email: "responsible.kotlin.Email",
   hostname: "responsible.kotlin.Hostname",
-  nat64: "responsible.kotlin.Nat64",
   mime: "responsible.kotlin.Mime",
   seconds: "responsible.kotlin.Seconds",
   utcMillis: "responsible.kotlin.UtcMillis",
@@ -172,7 +172,7 @@ const declareType = (refs: CoreTypeRefs, name: string): string => {
       const tpe = kotlinTypeName(refs, ref.schema)
       if (!tpe) throw new Error(JSON.stringify(ref))
 
-      return `inline class ${name}(val value: ${tpe})\n`
+      return `@JvmInline value class ${name}(val value: ${tpe})\n`
     }
 
     case "external":
