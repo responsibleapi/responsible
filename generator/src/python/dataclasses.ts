@@ -7,7 +7,7 @@ import {
   RStruct,
   RuntimeType,
   SchemaOrRef,
-} from "../core/RSchema"
+} from "../core/schema"
 import { CoreService, CoreTypeRefs } from "../core/core"
 
 const DATACLASS = "dataclasses.dataclass"

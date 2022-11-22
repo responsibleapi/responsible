@@ -43,6 +43,9 @@ export const isSchema = (x: unknown): x is RSchema =>
 export const isKey = <T>(o: T, k: unknown): k is keyof T =>
   o && typeof o === "object" && typeof k === "string" && k in o
 
+export const schemaGet = (refs: CoreTypeRefs, x: SchemaOrRef): RSchema =>
+  isSchema(x) ? x : refs[x]
+
 export const isSchemaOrRef = (
   refs: CoreTypeRefs,
   x: unknown,
@@ -86,9 +89,9 @@ export interface RArr {
 export type RuntimeType =
   | "httpURL"
   | "nat32"
+  | "nat64"
   | "email"
   | "hostname"
-  | "nat64"
   | "seconds"
   | "utcMillis"
   | "mime"
@@ -101,7 +104,7 @@ export type RSchema =
   | { type: "array"; items: SchemaOrRef }
   | RStruct
   | { type: "union"; oneOf: RSchema[] }
+  | { type: "dict"; k: SchemaOrRef; v: SchemaOrRef }
   | { type: "newtype"; schema: RSchema }
   | { type: "external" }
-  | { type: "dict"; k: SchemaOrRef; v: SchemaOrRef }
   | { type: "runtime-library"; name: RuntimeType }

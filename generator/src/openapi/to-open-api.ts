@@ -18,7 +18,7 @@ import {
   optionalGet,
   RStruct,
   SchemaOrRef,
-} from "../core/RSchema"
+} from "../core/schema"
 
 const toObj = (schema: RStruct): OpenAPIV3.SchemaObject => {
   const required = Object.entries(schema.fields).flatMap(([k, v]) =>

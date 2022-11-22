@@ -8,19 +8,20 @@ import {
   toStatusCode,
 } from "../core/core"
 import {
-  genKotlinTypes,
-  kotlinClassName,
-  kotlinTypeName,
-  render,
-  typeGenerics,
-} from "./types"
-import {
   isKey,
   isOptional,
   Mime,
   OptionalBag,
+  optionalGet,
+  schemaGet,
   SchemaOrRef,
-} from "../core/RSchema"
+} from "../core/schema"
+import {
+  genKotlinTypes,
+  kotlinClassName,
+  kotlinTypeName,
+  typeGenerics,
+} from "./types"
 
 const VERTX_T = "io.vertx.core.Vertx"
 const CLOSEABLE_T = "java.io.Closeable"
@@ -28,17 +29,18 @@ const WEBCLIENT_T = "io.vertx.ext.web.client.WebClient"
 const WEBCLIENT_OPTIONS_T = "io.vertx.ext.web.client.WebClientOptions"
 
 const HTTP_EXCEPTION_T = "HttpException"
-const UNEXPECTED_STATUS_T = "UndeclaredStatusException"
 
 const DECLARE_RESILIENT = `
-private suspend fun <T> resilient(
+suspend fun <T> resilient(
     attempt: Int = 1,
     f: suspend () -> io.vertx.ext.web.client.HttpResponse<T>,
 ): io.vertx.ext.web.client.HttpResponse<T> =
     try {
         f()
-    } catch (e: Exception) {
-        if (attempt < 20) {
+    } catch (e: Throwable) {
+        onError(e)
+
+        if (attempt < 10) {
             kotlinx.coroutines.delay(timeMillis = 1000)
             resilient(attempt = attempt + 1, f = f)
         } else throw e
@@ -70,41 +72,74 @@ const toMethodParams = (
     )
     .join(", ")
 
-const isExternal = (refs: CoreTypeRefs, sor: SchemaOrRef): sor is string =>
+const isExternal = (
+  refs: CoreTypeRefs,
+  sor: SchemaOrRef,
+): sor is keyof CoreTypeRefs =>
   isKey(refs, sor) && refs[sor].type === "external"
 
 const extractBodyExpr = (
   refs: CoreTypeRefs,
   mime: Mime,
   sor: SchemaOrRef,
-): "Unit" | `res.body${string}` => {
+): `res.bodyAs${string}` | "Unit" => {
+  if (schemaGet(refs, sor).type === "string") {
+    return "res.bodyAsString()"
+  }
+
   if (mime.includes("application/json")) {
     if (isExternal(refs, sor)) {
-      return `res.bodyAsJson(${externalClassField(sor)})`
+      return `res.bodyAsJson(${sor}::class.java)`
     } else {
       const cn = kotlinClassName(sor)
+      // TODO think about `Any` bro
       return cn === "Any" ? "Unit" : `res.bodyAsJson(${cn}::class.java)`
     }
-  } else if (mime.includes("text/plain")) {
-    return "res.bodyAsString()"
   }
 
   throw new Error(`unsupported mime ${mime}`)
 }
 
-const classGenerics = (refs: CoreTypeRefs): ReadonlyArray<string> =>
-  Object.entries(refs).flatMap(([k, v]) => (v.type === "external" ? [k] : []))
+type RenderedGenerics = "" | `<${string}>`
 
-const methodGenerics = (refs: CoreTypeRefs, op: CoreOp): Set<string> =>
-  new Set(
-    Object.values(op.req)
-      .flatMap(x => Object.values(x as OptionalBag))
-      .flatMap(x => [...typeGenerics(refs, isOptional(x) ? x.schema : x)]),
-  )
+type MethodGenerics = Record<string, "" | "reified">
 
-/**
- * TODO method generics + inline + reified
- */
+export const methodGenerics = (
+  refs: CoreTypeRefs,
+  op: CoreOp,
+): MethodGenerics => {
+  const statuses = Object.values(op.res)
+  const resBodies = statuses.flatMap(x => Object.values(x.body))
+
+  const regularSchemas = [
+    ...Object.values(op.req).flatMap(x =>
+      Object.values((x as OptionalBag) ?? {}),
+    ),
+    ...statuses.flatMap(x => [
+      ...Object.values(x.headers ?? {}),
+      ...Object.values(x.cookies ?? {}),
+    ]),
+    ...resBodies.filter(x => !isExternal(refs, x)),
+  ]
+
+  return Object.fromEntries([
+    ...regularSchemas
+      .flatMap(x => [...typeGenerics(refs, optionalGet(x))])
+      .map(x => [x, ""] as const),
+
+    ...resBodies.flatMap(x =>
+      isExternal(refs, x) ? [[x, "reified"] as const] : [],
+    ),
+  ])
+}
+
+const render = (g: MethodGenerics): RenderedGenerics => {
+  const es = Object.entries(g)
+  if (!es.length) return ""
+
+  return `<${es.map(([k, v]) => (k ? `${v} ${k}` : v)).join(", ")}>`
+}
+
 const declareMethod = (
   refs: CoreTypeRefs,
   path: Path,
@@ -129,9 +164,10 @@ const declareMethod = (
   const tn = kotlinTypeName(refs, sor)
   const returnType = tn === "Any?" ? "Unit" : tn
 
-  const returnExpr = extractBodyExpr(refs, mime as Mime, sor)
-
   const methodParams = toMethodParams(refs, op.req, { body })
+
+  const mg = methodGenerics(refs, op)
+  const inline = Object.values(mg).find(x => x === "reified") ? "inline" : ""
 
   const addHeaders = Object.keys(op.req.headers ?? {})
     .map(k => `.addHeader("${k}", ${k})`)
@@ -141,10 +177,10 @@ const declareMethod = (
     .map(k => `.addQueryParam("${k}", ${k})`)
     .join("\n")
 
-  const gs = methodGenerics(refs, op)
+  const returnExpr = extractBodyExpr(refs, mime as Mime, sor)
 
   return `
-suspend fun ${render(gs)} ${mName}(${methodParams}): ${returnType} {
+suspend ${inline} fun ${render(mg)} ${mName}(${methodParams}): ${returnType} {
   val path = "${path}"
   val res = resilient {
     client.${method.toLowerCase()}(path)
@@ -171,7 +207,7 @@ suspend fun ${render(gs)} ${mName}(${methodParams}): ${returnType} {
           }
         })
         .join("\n")}
-      else -> throw ${UNEXPECTED_STATUS_T}(path, status)
+      else -> error("${method} $path response did not declare $status")
     }
     throw ${HTTP_EXCEPTION_T}(path, status, resBody)
   }
@@ -234,14 +270,10 @@ const toMethods = (refs: CoreTypeRefs, paths: CorePaths): string =>
     )
     .join("\n")
 
-const externalClassField = (k: string): `${string}Class` => `${String(k)}Class`
-
-export const genVertxKotlinClient = ({
-  info,
-  paths,
-  refs,
-  options,
-}: CoreService): string => {
+export const genVertxKotlinClient = (
+  { info, paths, refs }: CoreService,
+  options: Record<string, string>,
+): string => {
   const cName = capitalize(info.title)
 
   return `  
@@ -251,18 +283,17 @@ import io.vertx.kotlin.coroutines.await
 
 ${genKotlinTypes(refs)}
 
-class ${HTTP_EXCEPTION_T}(val path: String, val statusCode: Int, val body: Any?) : Exception()
-
-class ${UNEXPECTED_STATUS_T}(val path: String, val statusCode: Int): Exception()
-
-${DECLARE_RESILIENT}
-
 class ${cName}Client(
   vertx: ${VERTX_T},
   opts: ${WEBCLIENT_OPTIONS_T},
+  val onError: (e: Throwable) -> Unit,
 ) : ${CLOSEABLE_T} {
+
+  class ${HTTP_EXCEPTION_T}(val path: String, val statusCode: Int, val body: Any?) : Exception()
+
+  ${DECLARE_RESILIENT}
   
-  private val client = ${WEBCLIENT_T}.create(vertx, opts)
+  val client: ${WEBCLIENT_T} = ${WEBCLIENT_T}.create(vertx, opts)
   
   ${toMethods(refs, paths)}
   

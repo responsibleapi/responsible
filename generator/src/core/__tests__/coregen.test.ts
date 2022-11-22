@@ -20,7 +20,7 @@ import {
   RStruct,
   SchemaOrRef,
   StringFormat,
-} from "../RSchema"
+} from "../schema"
 
 const oneOf = <T>(...a: ReadonlyArray<T>): fc.Arbitrary<T> =>
   fc.oneof(...a.map(fc.constant))

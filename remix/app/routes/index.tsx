@@ -37,6 +37,19 @@ const LOCAL_STORAGE_FMT_KEY = "fmt"
 const useSaveLocalStorage = (k: string, v: string): void =>
   useEffect(() => localStorage.setItem(k, v), [k, v])
 
+const render = (fmt: Format, core: CoreService): string => {
+  switch (fmt) {
+    case "python-types":
+      return genPythonTypes(core)
+
+    case "openapi":
+      return JSON.stringify(toOpenApi(core), null, 2) + "\n"
+
+    case "vertx-kotlin":
+      return genVertxKotlinClient(core, {})
+  }
+}
+
 // noinspection JSUnusedGlobalSymbols
 export default function Index(): JSX.Element {
   const [kdl, setKDL] = useState("")
@@ -56,24 +69,11 @@ export default function Index(): JSX.Element {
     try {
       return kdlToCore(parse(kdl).output ?? [])
     } catch (e) {
-      console.error(e)
       return { info: { title: "", version: "" }, refs: {}, paths: {} }
     }
   }, [kdl])
 
-  const result: string = useMemo(() => {
-    switch (fmt) {
-      case "python-types":
-        return genPythonTypes(core)
-
-      case "openapi":
-        return JSON.stringify(toOpenApi(core), null, 2) + "\n"
-
-      case "vertx-kotlin":
-        // TODO think about introducing packageName to DSL
-        return genVertxKotlinClient(core)
-    }
-  }, [core, fmt])
+  const result: string = useMemo(() => render(fmt, core), [core, fmt])
 
   return (
     <div className="flex flex-row w-full h-screen divide-x">

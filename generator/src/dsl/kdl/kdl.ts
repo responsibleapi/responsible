@@ -22,7 +22,7 @@ import {
   RString,
   RStruct,
   SchemaOrRef,
-} from "../../core/RSchema"
+} from "../../core/schema"
 import { kdljs } from "kdljs"
 
 const stringValue = (node: kdljs.Node, idx: number): string => {
@@ -65,7 +65,7 @@ const toStruct = (node: kdljs.Node): RStruct => ({
 
       return [
         c.name,
-        c.tags.name === TAG_OPTIONAL ? { type: "optional", schema } : schema,
+        c.tags.name === TAG_OPTIONAL ? { kind: "optional", schema } : schema,
       ]
     }),
   ),
@@ -151,7 +151,7 @@ const nodeToSchemaOrRef = (node: kdljs.Node): SchemaOrRef =>
 
 const optionalSchema = (node: kdljs.Node): SchemaOrRef | Optional => {
   const schema = nodeToSchemaOrRef(node)
-  return node.tags.name === TAG_OPTIONAL ? { type: "optional", schema } : schema
+  return node.tags.name === TAG_OPTIONAL ? { kind: "optional", schema } : schema
 }
 
 interface ScopeRes {
@@ -479,7 +479,6 @@ interface TopLevel {
   version: string
   info: ServiceInfo
   servers?: ReadonlyArray<CoreServer>
-  options?: Record<string, string>
 }
 
 type Handlers = Partial<Record<string, (node: kdljs.Node) => void>>
@@ -505,10 +504,6 @@ const topLevel = (doc: kdljs.Document): Readonly<TopLevel> => {
           throw new Error(JSON.stringify(s))
         }
       })
-    },
-
-    options(node) {
-      ret.options = toJSObj(node)
     },
   }
 
@@ -697,7 +692,7 @@ const enterScope = (
           ? (`${path}${stringValue(node, 0)}` as URLPath)
           : (path as URLPath)
 
-        const xxx: Record<CoreMethod, CoreOp> = paths[thePath] ?? {}
+        const xxx: Partial<Record<CoreMethod, CoreOp>> = paths[thePath] ?? {}
         Object.assign(xxx, parseOps(scope, node))
         paths[thePath] = xxx
 
@@ -710,8 +705,7 @@ const enterScope = (
       }
 
       case "pathParam": {
-        // TODO scope's path param
-        break
+        throw new Error(JSON.stringify(node))
       }
 
       default: {
@@ -737,7 +731,7 @@ const enterScope = (
  * TODO return errors
  */
 export const kdlToCore = (doc: kdljs.Document): CoreService => {
-  const { info, servers, options } = topLevel(doc)
+  const { info, servers } = topLevel(doc)
 
   const { refs, paths } = enterScope(
     {
@@ -753,5 +747,5 @@ export const kdlToCore = (doc: kdljs.Document): CoreService => {
     },
   )
 
-  return { info, servers, refs, paths, options }
+  return { info, servers, refs, paths }
 }

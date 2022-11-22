@@ -18,7 +18,7 @@ import {
   RSchema,
   SchemaOrRef,
   StringFormat,
-} from "../core/RSchema"
+} from "../core/schema"
 import { ParamWhere } from "./to-open-api"
 
 /**

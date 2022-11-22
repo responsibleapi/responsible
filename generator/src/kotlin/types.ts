@@ -7,8 +7,9 @@ import {
   RSchema,
   RStruct,
   RuntimeType,
+  schemaGet,
   SchemaOrRef,
-} from "../core/RSchema"
+} from "../core/schema"
 import { CoreTypeRefs } from "../core/core"
 
 const numberTypes: Record<NumFormat, Capitalize<string>> = {
@@ -79,13 +80,19 @@ export const typeGenerics = (
   refs: CoreTypeRefs,
   sor: SchemaOrRef,
 ): Set<string> => {
-  const schema = isSchema(sor) ? sor : refs[sor]
+  const schema = schemaGet(refs, sor)
 
   switch (schema.type) {
+    // case "external": {
+    //   return isKey(refs, sor) ? new Set([sor]) : new Set()
+    // }
+
     case "object": {
       return new Set(
-        Object.values(schema.fields).flatMap(field =>
-          isKey(refs, field) && refs[field].type === "external" ? [field] : [],
+        Object.values(schema.fields).flatMap(fieldSchema =>
+          isKey(refs, fieldSchema) && refs[fieldSchema].type === "external"
+            ? [fieldSchema]
+            : [],
         ),
       )
     }
@@ -97,7 +104,7 @@ export const typeGenerics = (
 
 type RenderedGenerics = "" | `<${string}>`
 
-export const render = (generics: Set<string>): RenderedGenerics =>
+const render = (generics: Set<string>): RenderedGenerics =>
   generics.size ? `<${[...generics].join(", ")}>` : ""
 
 const renderGenerics = (refs: CoreTypeRefs, ref: string): RenderedGenerics =>
