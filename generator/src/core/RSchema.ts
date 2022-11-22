@@ -25,12 +25,12 @@ export type StringFormat =
   | "binary"
 
 export interface Optional {
-  type: "optional"
+  kind: "optional"
   schema: SchemaOrRef
 }
 
 export const isOptional = (x: Optional | SchemaOrRef): x is Optional =>
-  typeof x === "object" && "type" in x && x["type"] === "optional"
+  typeof x === "object" && "kind" in x && x["kind"] === "optional"
 
 export const optionalGet = (o: Optional | SchemaOrRef): SchemaOrRef =>
   isOptional(o) ? o.schema : o

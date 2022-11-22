@@ -2,7 +2,7 @@ import { Mime, OptionalBag, RequiredBag, RSchema, SchemaOrRef } from "./RSchema"
 
 export interface ServiceInfo {
   title: string
-  version?: string
+  version: string
   termsOfService?: string
 }
 
@@ -47,7 +47,7 @@ export interface CoreOp {
 
 export type URLPath = `/${string}`
 
-export type CorePaths = Record<URLPath, Record<CoreMethod, CoreOp>>
+export type CorePaths = Record<URLPath, Partial<Record<CoreMethod, CoreOp>>>
 
 export interface CoreServer {
   url: string

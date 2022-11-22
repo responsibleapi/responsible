@@ -2,12 +2,32 @@ import {
   isKey,
   isOptional,
   isSchema,
+  NumFormat,
   Optional,
   RSchema,
   RStruct,
+  RuntimeType,
   SchemaOrRef,
 } from "../core/RSchema"
 import { CoreTypeRefs } from "../core/core"
+
+const numberTypes: Record<NumFormat, Capitalize<string>> = {
+  int32: "Int",
+  int64: "Long",
+  float: "Float",
+  double: "Double",
+}
+
+const runtimeTypes: Record<RuntimeType, `responsible.kotlin.${string}`> = {
+  httpURL: "responsible.kotlin.HttpURL",
+  nat32: "responsible.kotlin.Nat32",
+  email: "responsible.kotlin.Email",
+  hostname: "responsible.kotlin.Hostname",
+  nat64: "responsible.kotlin.Nat64",
+  mime: "responsible.kotlin.Mime",
+  seconds: "responsible.kotlin.Seconds",
+  utcMillis: "responsible.kotlin.UtcMillis",
+}
 
 const schemaKotlinName = (
   x: RSchema,
@@ -20,25 +40,11 @@ const schemaKotlinName = (
     case "unknown":
       return what === "type" ? "Any?" : "Any"
 
-    case "number": {
-      switch (x.format) {
-        case "float":
-          return "Float"
+    case "number":
+      return x.format ? numberTypes[x.format] : "Double"
 
-        case "double":
-          return "Double"
-
-        case "int32":
-          return "Int"
-
-        case "int64":
-          return "Long"
-
-        case undefined:
-          return "Double"
-      }
-      break
-    }
+    case "runtime-library":
+      return runtimeTypes[x.name]
 
     case "object":
       throw new Error(JSON.stringify(x))
@@ -61,9 +67,6 @@ const schemaKotlinName = (
     case "dict": {
       throw new Error('Not implemented yet: "dict" case')
     }
-    case "runtime-library": {
-      throw new Error('Not implemented yet: "runtime-library" case')
-    }
   }
 }
 
@@ -74,9 +77,10 @@ type KotlinClassName = string
 
 export const typeGenerics = (
   refs: CoreTypeRefs,
-  refName: string,
+  sor: SchemaOrRef,
 ): Set<string> => {
-  const schema = refs[refName]
+  const schema = isSchema(sor) ? sor : refs[sor]
+
   switch (schema.type) {
     case "object": {
       return new Set(
@@ -93,10 +97,11 @@ export const typeGenerics = (
 
 type RenderedGenerics = "" | `<${string}>`
 
-const renderGenerics = (refs: CoreTypeRefs, ref: string): RenderedGenerics => {
-  const generics = typeGenerics(refs, ref)
-  return generics.size ? `<${[...generics].join(", ")}>` : ""
-}
+export const render = (generics: Set<string>): RenderedGenerics =>
+  generics.size ? `<${[...generics].join(", ")}>` : ""
+
+const renderGenerics = (refs: CoreTypeRefs, ref: string): RenderedGenerics =>
+  render(typeGenerics(refs, ref))
 
 const refTypeNameWithGenerics = (refs: CoreTypeRefs, ref: string) =>
   `${String(ref)}${renderGenerics(refs, ref)}` as const

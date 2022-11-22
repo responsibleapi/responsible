@@ -7,8 +7,20 @@ import {
   CoreTypeRefs,
   toStatusCode,
 } from "../core/core"
-import { genKotlinTypes, kotlinClassName, kotlinTypeName } from "./types"
-import { isKey, isOptional, Mime, SchemaOrRef } from "../core/RSchema"
+import {
+  genKotlinTypes,
+  kotlinClassName,
+  kotlinTypeName,
+  render,
+  typeGenerics,
+} from "./types"
+import {
+  isKey,
+  isOptional,
+  Mime,
+  OptionalBag,
+  SchemaOrRef,
+} from "../core/RSchema"
 
 const VERTX_T = "io.vertx.core.Vertx"
 const CLOSEABLE_T = "java.io.Closeable"
@@ -83,9 +95,12 @@ const extractBodyExpr = (
 const classGenerics = (refs: CoreTypeRefs): ReadonlyArray<string> =>
   Object.entries(refs).flatMap(([k, v]) => (v.type === "external" ? [k] : []))
 
-const methodGenerics = (refs: CoreTypeRefs, op: CoreOp): Generics => {
-  throw new Error("not implemented")
-}
+const methodGenerics = (refs: CoreTypeRefs, op: CoreOp): Set<string> =>
+  new Set(
+    Object.values(op.req)
+      .flatMap(x => Object.values(x as OptionalBag))
+      .flatMap(x => [...typeGenerics(refs, isOptional(x) ? x.schema : x)]),
+  )
 
 /**
  * TODO method generics + inline + reified
@@ -118,20 +133,24 @@ const declareMethod = (
 
   const methodParams = toMethodParams(refs, op.req, { body })
 
-  const methodGenerics1 = methodGenerics(refs, op)
+  const addHeaders = Object.keys(op.req.headers ?? {})
+    .map(k => `.addHeader("${k}", ${k})`)
+    .join("\n")
+
+  const addQueryParams = Object.keys(op.req.query ?? {})
+    .map(k => `.addQueryParam("${k}", ${k})`)
+    .join("\n")
+
+  const gs = methodGenerics(refs, op)
 
   return `
-suspend fun ${methodGenerics1} ${mName}(${methodParams}): ${returnType} {
+suspend fun ${render(gs)} ${mName}(${methodParams}): ${returnType} {
   val path = "${path}"
   val res = resilient {
     client.${method.toLowerCase()}(path)
       .expect(io.vertx.ext.web.client.predicate.ResponsePredicate.status(100, 500))
-      ${Object.keys(op.req.query ?? {})
-        .map(k => `.addQueryParam("${k}", ${k})`)
-        .join("\n")}
-      ${Object.keys(op.req.headers ?? {})
-        .map(k => `.addHeader("${k}", ${k})`)
-        .join("\n")}
+      ${addHeaders}
+      ${addQueryParams}
       ${body ? ".sendJson(body)" : ""}
       .await()
   }
@@ -208,21 +227,14 @@ const toMethods = (refs: CoreTypeRefs, paths: CorePaths): string =>
   Object.entries(paths)
     .map(([path, methods]) =>
       Object.entries(methods)
-        .map(([method, op]) =>
-          genOp(refs, path as Path, method as CoreMethod, op),
+        .flatMap(([method, op]) =>
+          op ? [genOp(refs, path as Path, method as CoreMethod, op)] : [],
         )
         .join("\n"),
     )
     .join("\n")
 
-type Generics = "" | `<${string}>`
-
 const externalClassField = (k: string): `${string}Class` => `${String(k)}Class`
-
-interface Options {
-  packageName: string
-  resilient: boolean
-}
 
 export const genVertxKotlinClient = ({
   info,
@@ -232,10 +244,8 @@ export const genVertxKotlinClient = ({
 }: CoreService): string => {
   const cName = capitalize(info.title)
 
-  if (!options?.packageName) throw new Error(JSON.stringify(options))
-
   return `  
-package ${String(options.packageName)}
+${options?.packageName ? `package ${String(options.packageName)}` : ""}
   
 import io.vertx.kotlin.coroutines.await
 

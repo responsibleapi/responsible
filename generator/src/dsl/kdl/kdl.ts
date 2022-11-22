@@ -736,7 +736,7 @@ const enterScope = (
 /**
  * TODO return errors
  */
-export const toCore = (doc: kdljs.Document): CoreService => {
+export const kdlToCore = (doc: kdljs.Document): CoreService => {
   const { info, servers, options } = topLevel(doc)
 
   const { refs, paths } = enterScope(

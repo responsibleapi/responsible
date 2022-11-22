@@ -2,7 +2,7 @@ import { toOpenApi } from "../../openapi/to-open-api"
 import yanicJSON from "../../../tryout/yanic.json"
 import { describe, expect, test } from "vitest"
 import { readFile } from "fs/promises"
-import { toCore } from "./kdl"
+import { kdlToCore } from "./kdl"
 import { parse } from "kdljs"
 
 describe.concurrent("kdl", () => {
@@ -12,7 +12,7 @@ describe.concurrent("kdl", () => {
     )
     expect(errors).toEqual([])
 
-    const core = toCore(output)
+    const core = kdlToCore(output)
     expect(core.info.title).toEqual("Listenbox")
 
     const es = core.refs["ErrorStruct"]
@@ -29,6 +29,6 @@ describe.concurrent("kdl", () => {
   test("yanic", async () => {
     const { output } = parse(await readFile("tryout/yanic.kdl", "utf8"))
 
-    expect(clean(toOpenApi(toCore(output)))).toEqual(yanicJSON)
+    expect(clean(toOpenApi(kdlToCore(output)))).toEqual(yanicJSON)
   })
 })

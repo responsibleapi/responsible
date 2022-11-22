@@ -208,7 +208,7 @@ export const toOpenApi = ({
   servers,
 }: CoreService): OpenAPIV3_1.Document => ({
   openapi: "3.1.0",
-  info: info,
+  info,
   components: { schemas: refsToOpenAPI(refs) },
   paths: toPaths(paths),
   servers: servers ? [...servers] : undefined,
