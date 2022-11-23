@@ -1,0 +1,16 @@
+info {
+    title "foo"
+    version "1.0"
+}
+
+"/scope/:foo" {
+    pathParam "foo" "string"
+
+    POST {
+
+    }
+
+    DELETE {
+
+    }
+}

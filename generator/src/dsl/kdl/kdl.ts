@@ -591,6 +591,17 @@ const parseCoreReq = (scope: ScopeReq, n: kdljs.Node): CoreReq => {
   }
 }
 
+export const capitalize = <T extends string>(s: T): Capitalize<T> | "" =>
+  (s.length ? `${s[0].toUpperCase()}${s.slice(1)}` : s) as Capitalize<T>
+
+const EMPTY_NODE: Readonly<kdljs.Node> = {
+  name: "",
+  values: [],
+  properties: {},
+  tags: { name: "", values: [], properties: {} },
+  children: [],
+}
+
 const parseOps = (
   scope: Scope,
   node: kdljs.Node,
@@ -598,30 +609,30 @@ const parseOps = (
   const head = node.properties.head === true
   const method = node.name as CoreMethod
 
-  const op: CoreOp = {
-    req: {},
-    res: {},
-  }
+  let name: string | undefined
+  let description: string | undefined
+  let req: CoreReq | undefined
+  let res: CoreRes | undefined
 
   for (const child of node.children) {
     switch (child.name) {
       case "name": {
-        op.name = stringValue(child, 0)
+        name = stringValue(child, 0)
         break
       }
 
       case "description": {
-        op.description = stringValue(child, 0)
+        description = stringValue(child, 0)
         break
       }
 
       case "req": {
-        op.req = parseCoreReq(scope.req, child)
+        req = parseCoreReq(scope.req, child)
         break
       }
 
       case "res": {
-        op.res = parseCoreRes(scope.res, child)
+        res = parseCoreRes(scope.res, child)
         break
       }
 
@@ -630,10 +641,22 @@ const parseOps = (
     }
   }
 
-  return {
-    HEAD: method === "GET" && head ? op : undefined,
-    [method]: op,
+  req ??= parseCoreReq(scope.req, EMPTY_NODE)
+  res ??= parseCoreRes(scope.res, EMPTY_NODE)
+
+  const op: CoreOp = { req, name, description, res }
+  const ret: Partial<Record<CoreMethod, CoreOp>> = { [method]: op }
+
+  if (method === "GET" && head) {
+    op.name = name ? `get${capitalize(name)}` : undefined
+
+    ret.HEAD = {
+      ...op,
+      name: name ? `head${capitalize(name)}` : undefined,
+    }
   }
+
+  return ret
 }
 
 const enterScope = (
@@ -705,21 +728,36 @@ const enterScope = (
       }
 
       case "pathParam": {
-        throw new Error(JSON.stringify(node))
+        scope = mergeScopes(scope, {
+          req: {
+            pathParams: {
+              [stringValue(node, 0)]: nodeToSchemaOrRef(node),
+            },
+            headers: {},
+            query: {},
+            cookies: {},
+          },
+          res: {
+            headers: {},
+            cookies: {},
+            codes: {},
+          },
+        })
+        break
       }
 
       default: {
-        if (node.name.startsWith("/")) {
-          const entered = enterScope(node, {
-            path: `${path}${node.name}` as `/${string}`,
-            parentScope: scope,
-          })
-          Object.assign(refs, entered.refs)
-          Object.assign(paths, entered.paths)
-          break
-        } else {
+        if (!node.name.startsWith("/")) {
           throw new Error(JSON.stringify(node))
         }
+
+        const entered = enterScope(node, {
+          path: `${path}${node.name}` as `/${string}`,
+          parentScope: scope,
+        })
+        Object.assign(refs, entered.refs)
+        Object.assign(paths, entered.paths)
+        break
       }
     }
   }

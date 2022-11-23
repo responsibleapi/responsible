@@ -22,11 +22,15 @@ import {
   kotlinTypeName,
   typeGenerics,
 } from "./types"
+import { capitalize } from "../dsl/kdl/kdl"
+import { GenOptions } from "../index"
 
 const VERTX_T = "io.vertx.core.Vertx"
 const CLOSEABLE_T = "java.io.Closeable"
 const WEBCLIENT_T = "io.vertx.ext.web.client.WebClient"
 const WEBCLIENT_OPTIONS_T = "io.vertx.ext.web.client.WebClientOptions"
+const RESPONSE_PREDICATE_T =
+  "io.vertx.ext.web.client.predicate.ResponsePredicate"
 
 const HTTP_EXCEPTION_T = "HttpException"
 
@@ -46,9 +50,6 @@ suspend fun <T> resilient(
         } else throw e
     }
 `
-
-const capitalize = <T extends string>(s: T): Capitalize<T> =>
-  (s ? `${s.charAt(0).toUpperCase()}${s.slice(1)}` : s) as Capitalize<T>
 
 type Path = `/${string}`
 
@@ -146,6 +147,7 @@ const declareMethod = (
   method: CoreMethod,
   op: CoreOp,
   mName: string,
+  options: GenOptions,
   body?: SchemaOrRef,
 ): string => {
   const sorted = Object.keys(op.res).map(Number).sort()
@@ -179,12 +181,14 @@ const declareMethod = (
 
   const returnExpr = extractBodyExpr(refs, mime as Mime, sor)
 
+  const resilient = options.resilient ? "resilient" : "run"
+
   return `
 suspend ${inline} fun ${render(mg)} ${mName}(${methodParams}): ${returnType} {
   val path = "${path}"
-  val res = resilient {
+  val res = ${resilient} {
     client.${method.toLowerCase()}(path)
-      .expect(io.vertx.ext.web.client.predicate.ResponsePredicate.status(100, 500))
+      .expect(predicate)
       ${addHeaders}
       ${addQueryParams}
       ${body ? ".sendJson(body)" : ""}
@@ -222,6 +226,7 @@ const genReqBodyOp = (
   op: CoreOp,
   mime: Mime,
   sor: SchemaOrRef,
+  options: GenOptions,
 ): string => {
   const bodyMimes = Object.entries(op.req.body ?? {})
   const lowerMethod = method.toLowerCase()
@@ -237,7 +242,7 @@ const genReqBodyOp = (
     throw new Error(`unsupported mime ${mime}`)
   }
 
-  return declareMethod(refs, path, method, op, mName, sor)
+  return declareMethod(refs, path, method, op, mName, options, sor)
 }
 
 const genOp = (
@@ -245,26 +250,33 @@ const genOp = (
   path: Path,
   method: CoreMethod,
   op: CoreOp,
+  options: GenOptions,
 ): string => {
   const bodyMimes = Object.entries(op.req.body ?? {})
   if (bodyMimes.length) {
     return bodyMimes
       .map(([mime, sor]) =>
-        genReqBodyOp(refs, path, method, op, mime as Mime, sor),
+        genReqBodyOp(refs, path, method, op, mime as Mime, sor, options),
       )
       .join("\n")
   } else {
     const mName = op.name || `${method.toLowerCase()}${toCamelCase(path)}`
-    return declareMethod(refs, path, method, op, mName)
+    return declareMethod(refs, path, method, op, mName, options)
   }
 }
 
-const toMethods = (refs: CoreTypeRefs, paths: CorePaths): string =>
+const toMethods = (
+  refs: CoreTypeRefs,
+  paths: CorePaths,
+  options: GenOptions,
+): string =>
   Object.entries(paths)
     .map(([path, methods]) =>
       Object.entries(methods)
         .flatMap(([method, op]) =>
-          op ? [genOp(refs, path as Path, method as CoreMethod, op)] : [],
+          op
+            ? [genOp(refs, path as Path, method as CoreMethod, op, options)]
+            : [],
         )
         .join("\n"),
     )
@@ -272,7 +284,7 @@ const toMethods = (refs: CoreTypeRefs, paths: CorePaths): string =>
 
 export const genVertxKotlinClient = (
   { info, paths, refs }: CoreService,
-  options: Record<string, string>,
+  options: GenOptions,
 ): string => {
   const cName = capitalize(info.title)
 
@@ -286,16 +298,18 @@ ${genKotlinTypes(refs)}
 class ${cName}Client(
   vertx: ${VERTX_T},
   opts: ${WEBCLIENT_OPTIONS_T},
-  val onError: (e: Throwable) -> Unit,
+  ${options.resilient ? "val onError: (e: Throwable) -> Unit," : ""}
 ) : ${CLOSEABLE_T} {
 
   class ${HTTP_EXCEPTION_T}(val path: String, val statusCode: Int, val body: Any?) : Exception()
 
-  ${DECLARE_RESILIENT}
+  ${options.resilient ? DECLARE_RESILIENT : ""}
   
   val client: ${WEBCLIENT_T} = ${WEBCLIENT_T}.create(vertx, opts)
   
-  ${toMethods(refs, paths)}
+  val predicate: ${RESPONSE_PREDICATE_T} = ${RESPONSE_PREDICATE_T}.status(100, 500)
+  
+  ${toMethods(refs, paths, options)}
   
   override fun close(): Unit = client.close()
 }

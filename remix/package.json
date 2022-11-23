@@ -4,10 +4,10 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
-    "build": "yarn build:css && remix build",
+    "build": "yarn build:css && cross-env NODE_ENV=production remix build",
     "build:css": "tailwindcss -m -i ./styles/app.css -o app/styles/app.css",
     "clean": "rm -rf .cache/ app/styles/ function/ public/build/",
-    "deploy": "cross-env NODE_ENV=production wrangler pages publish ./public",
+    "deploy": "cross-env NODE_ENV=production wrangler pages publish ./public --commit-dirty=true",
     "dev": "yarn build && run-p \"dev:*\"",
     "dev:css": "tailwindcss -w -i ./styles/app.css -o app/styles/app.css",
     "dev:remix": "remix watch",

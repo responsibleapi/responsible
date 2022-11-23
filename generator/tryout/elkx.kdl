@@ -1,7 +1,7 @@
 external "ElkNode"
 external "LayoutOpts"
 
-forAll {
+scope {
     req {
         mime "application/json"
     }
@@ -14,7 +14,7 @@ forAll {
 }
 
 POST "/json" {
-    req: "struct" {
+    req "struct" {
         root "ElkNode"
         opts "LayoutOpts"
     }
