@@ -297,11 +297,9 @@ const parseCoreRes = (scope: ScopeRes, res: kdljs.Node): CoreRes => {
   }
 
   for (const c of res.children) {
-    if (parseInt(c.name)) {
-      ret[c.name as StatusCodeStr] = parseCoreStatus(scope, c)
-    } else {
-      throw new Error(JSON.stringify(c))
-    }
+    if (!parseInt(c.name)) throw new Error(JSON.stringify(c))
+
+    ret[c.name as StatusCodeStr] = parseCoreStatus(scope, c)
   }
 
   return ret
@@ -331,9 +329,7 @@ const parseCoreStatus = (
     return {
       headers: { ...scope.headers, ...scopeStatus?.headers },
       cookies: { ...scope.cookies, ...scopeStatus?.cookies },
-      body: scope.mime
-        ? { [scope.mime]: nodeToSchemaOrRef(statusNode) }
-        : {},
+      body: scope.mime ? { [scope.mime]: nodeToSchemaOrRef(statusNode) } : {},
     }
   }
 
