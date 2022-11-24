@@ -56,7 +56,7 @@ export interface RString {
   format?: StringFormat
   minLength?: number
   maxLength?: number
-  pattern?: RegExp
+  pattern?: string
   enum?: ReadonlyArray<string>
 }
 

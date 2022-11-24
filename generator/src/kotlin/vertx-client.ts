@@ -207,7 +207,7 @@ suspend ${inline} fun ${render(mg)} ${mName}(${methodParams}): ${returnType} {
         .map(([cde, resp]) => {
           if (resp.body) {
             const [mme, sro] = Object.entries(resp.body)[0]
-            return `${cde} -> ${extractBodyExpr(refs,  mme as Mime, sro)}`
+            return `${cde} -> ${extractBodyExpr(refs, mme as Mime, sro)}`
           } else {
             return `${cde} -> null`
           }

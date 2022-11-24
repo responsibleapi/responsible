@@ -71,7 +71,6 @@ export const toSchemaOrRef = (
     case "string": {
       return {
         ...schema,
-        pattern: schema.pattern?.toString(),
         enum: schema.enum ? [...schema.enum] : undefined,
       }
     }
@@ -83,8 +82,10 @@ export const toSchemaOrRef = (
       return toObj(schema)
 
     case "unknown":
-    case "external":
       return { nullable: true }
+
+    case "external":
+      return {}
 
     case "array":
       return {
