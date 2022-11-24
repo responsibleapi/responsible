@@ -6,7 +6,7 @@ describe.concurrent("index", () => {
   test("kdl parse no errors", async () => {
     const texts = await Promise.all(
       ["listenbox", "yanic", "elkx"].map(name =>
-        readFile(`tryout/${name}.kdl`, "utf-8"),
+        readFile(`../generator/tryout/${name}.kdl`, "utf-8"),
       ),
     )
 

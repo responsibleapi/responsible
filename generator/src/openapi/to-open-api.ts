@@ -76,6 +76,7 @@ export const toSchemaOrRef = (
     }
 
     case "number":
+    case "boolean":
       return schema
 
     case "object":
@@ -124,7 +125,9 @@ const toParams = (
 
 const toContent = (b: CoreMimes): Record<string, OpenAPIV3.MediaTypeObject> =>
   Object.fromEntries(
-    Object.entries(b).map(([type, s]) => [type, { schema: toSchemaOrRef(s) }]),
+    Object.entries(b).map(
+      ([mime, s]) => [mime, { schema: toSchemaOrRef(s) }] as const,
+    ),
   )
 
 const toResponse = (
@@ -165,12 +168,16 @@ const toOperation = (op: CoreOp): OpenAPIV3.OperationObject => {
 
   parameters.sort(compareParams)
 
+  const content = op.req?.body ? toContent(op.req.body) : undefined
+  const requestBody =
+    content && Object.keys(content).length
+      ? { required: true, content }
+      : undefined
+
   return {
     operationId: op.name,
     parameters,
-    requestBody: op.req?.body
-      ? { required: true, content: toContent(op.req.body) }
-      : undefined,
+    requestBody,
     responses: codesToResponses(op.res),
     description: op.description,
   }

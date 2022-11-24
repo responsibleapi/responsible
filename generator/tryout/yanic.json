@@ -6,12 +6,8 @@
   },
   "components": {
     "schemas": {
-      "YtDlInfo": {
-        "nullable": true
-      },
-      "YtDlOpts": {
-        "nullable": true
-      },
+      "YtDlInfo": {},
+      "YtDlOpts": {},
       "InfoReq": {
         "type": "object",
         "properties": {

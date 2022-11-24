@@ -513,6 +513,8 @@ GET "/f/:show_id" head=true {
         "302" {
             header "Location" "httpURL"
         }
+
+        "404" "unknown"
     }
 }
 
@@ -527,6 +529,8 @@ GET "/v/:show_id" head=true {
         "302" {
             header "Location" "httpURL"
         }
+
+        "404" "unknown"
     }
 }
 
@@ -551,5 +555,7 @@ GET "/rss/:show_id/:type.rss" head=true {
             }
             body "application/rss+xml" "string" minLength=1
         }
+
+        "404" "unknown"
     }
 }

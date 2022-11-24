@@ -1,27 +1,25 @@
-import arg from "arg"
+import { toOpenApi } from "../../generator/src/openapi/to-open-api"
+import { kdlToCore } from "../../generator/src/dsl/kdl/kdl"
+import { readFile } from "fs/promises"
+import * as process from "process"
+import { parse } from "kdljs"
 
-import { genPythonTypes, genVertxKotlinClient } from "../../generator/src/index"
+const die = (s: string): never => {
+  console.error(s)
+  return process.exit(1)
+}
 
-const generators = {
-  "kotlin-vertx": genVertxKotlinClient,
-  python: genPythonTypes,
-} as const
+void (async () => {
+  const file = process.argv[process.argv.length - 1]
+  if (!file.endsWith(".kdl")) {
+    return die(`expected .kdl file, got ${file}`)
+  }
 
-const args = arg({
-  "--outDir": String,
-  "--generator": String,
-  "--packageName": String,
+  const kdl = await readFile(file, "utf8")
+  const doc = parse(kdl)
+  if (!doc.output) {
+    return die(`kdl parse errors: ${JSON.stringify(doc.errors, null, 2)}`)
+  }
 
-  "-o": "--outDir",
-  "-g": "--generator",
-})
-
-const g = args["--generator"]
-
-if (!args._.length) throw new Error("no input files")
-if (!g) throw new Error("No generator specified")
-if (!(g in generators)) throw new Error(`Unknown generator ${g}`)
-
-const outDir = args["--outDir"] || "."
-
-const file = args._[0]
+  console.log(JSON.stringify(toOpenApi(kdlToCore(doc.output)), null, 2))
+})()

@@ -328,12 +328,12 @@ const parseCoreStatus = (
   const scopeStatus = scope.codes[statusNode.name as StatusCodeStr]
 
   if (statusNode.values.length) {
-    if (!scope.mime) throw new Error(JSON.stringify(statusNode))
-
     return {
       headers: { ...scope.headers, ...scopeStatus?.headers },
       cookies: { ...scope.cookies, ...scopeStatus?.cookies },
-      body: { [scope.mime]: nodeToSchemaOrRef(statusNode) },
+      body: scope.mime
+        ? { [scope.mime]: nodeToSchemaOrRef(statusNode) }
+        : {},
     }
   }
 
