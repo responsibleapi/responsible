@@ -1,0 +1,17 @@
+kotlin {
+    packageName "listenbox.yanic"
+
+    resilient true
+
+    typeMapping {
+        httpURL "responsible.HttpURL"
+        email "responsible.Email"
+    }
+}
+
+typescript {
+    typeMapping {
+        string format="uri" "gen/types/HttpURL"
+        string format="email" "gen/types/Email"
+    }
+}

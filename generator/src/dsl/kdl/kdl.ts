@@ -96,6 +96,9 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
     case "string":
       return { type: "string", ...node.properties }
 
+    case "boolean":
+      return { type: "boolean", ...node.properties }
+
     case "int32":
     case "int64":
       return { type: "number", format: typName, ...node.properties }

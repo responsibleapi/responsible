@@ -81,6 +81,7 @@ const isExternal = (
 
 const extractBodyExpr = (
   refs: CoreTypeRefs,
+  path: ReadonlyArray<string>,
   mime: Mime,
   sor: SchemaOrRef,
 ): `res.bodyAs${string}` | "Unit" => {
@@ -92,7 +93,7 @@ const extractBodyExpr = (
     if (isExternal(refs, sor)) {
       return `res.bodyAsJson(${sor}::class.java)`
     } else {
-      const cn = kotlinClassName(sor)
+      const cn = kotlinClassName(refs, path, sor)
       // TODO think about `Any` bro
       return cn === "Any" ? "Unit" : `res.bodyAsJson(${cn}::class.java)`
     }
@@ -148,6 +149,7 @@ const declareMethod = (
   op: CoreOp,
   mName: string,
   options: GenOptions,
+  docPath: ReadonlyArray<string>,
   body?: SchemaOrRef,
 ): string => {
   const sorted = Object.keys(op.res).map(Number).sort()
@@ -163,7 +165,7 @@ const declareMethod = (
 
   const [mime, sor] = schemas[0]
 
-  const tn = kotlinTypeName(refs, sor)
+  const tn = kotlinTypeName(refs, docPath, sor)
   const returnType = tn === "Any?" ? "Unit" : tn
 
   const methodParams = toMethodParams(refs, op.req, { body })
@@ -179,7 +181,7 @@ const declareMethod = (
     .map(k => `.addQueryParam("${k}", ${k})`)
     .join("\n")
 
-  const returnExpr = extractBodyExpr(refs, mime as Mime, sor)
+  const returnExpr = extractBodyExpr(refs, docPath, mime as Mime, sor)
 
   const resilient = options.resilient ? "resilient" : "run"
 
@@ -205,7 +207,7 @@ suspend ${inline} fun ${render(mg)} ${mName}(${methodParams}): ${returnType} {
         .map(([cde, resp]) => {
           if (resp.body) {
             const [mme, sro] = Object.entries(resp.body)[0]
-            return `${cde} -> ${extractBodyExpr(refs, mme as Mime, sro)}`
+            return `${cde} -> ${extractBodyExpr(refs,  mme as Mime, sro)}`
           } else {
             return `${cde} -> null`
           }
@@ -283,33 +285,34 @@ const toMethods = (
     .join("\n")
 
 export const genVertxKotlinClient = (
-  { info, paths, refs }: CoreService,
-  options: GenOptions,
+  svc: CoreService,
+  opts: GenOptions,
 ): string => {
+  const { info, paths, refs } = svc
   const cName = capitalize(info.title)
 
   return `  
-${options?.packageName ? `package ${String(options.packageName)}` : ""}
+${opts?.packageName ? `package ${String(opts.packageName)}` : ""}
   
 import io.vertx.kotlin.coroutines.await
 
-${genKotlinTypes(refs)}
+${genKotlinTypes(svc)}
 
 class ${cName}Client(
   vertx: ${VERTX_T},
   opts: ${WEBCLIENT_OPTIONS_T},
-  ${options.resilient ? "val onError: (e: Throwable) -> Unit," : ""}
+  ${opts.resilient ? "val onError: (e: Throwable) -> Unit," : ""}
 ) : ${CLOSEABLE_T} {
 
   class ${HTTP_EXCEPTION_T}(val path: String, val statusCode: Int, val body: Any?) : Exception()
 
-  ${options.resilient ? DECLARE_RESILIENT : ""}
+  ${opts.resilient ? DECLARE_RESILIENT : ""}
   
   val client: ${WEBCLIENT_T} = ${WEBCLIENT_T}.create(vertx, opts)
   
   val predicate: ${RESPONSE_PREDICATE_T} = ${RESPONSE_PREDICATE_T}.status(100, 500)
   
-  ${toMethods(refs, paths, options)}
+  ${toMethods(refs, paths, opts)}
   
   override fun close(): Unit = client.close()
 }

@@ -8,6 +8,21 @@ export interface ServiceInfo {
 
 export type CoreMethod = "GET" | "HEAD" | "DELETE" | "POST" | "PUT" | "PATCH"
 
+const isCoreMethod = (x: string): x is CoreMethod => {
+  switch (x) {
+    case "GET":
+    case "HEAD":
+    case "DELETE":
+    case "POST":
+    case "PUT":
+    case "PATCH":
+      return true
+
+    default:
+      return false
+  }
+}
+
 /**
  * a record containing types
  */

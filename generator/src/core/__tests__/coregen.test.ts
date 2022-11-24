@@ -1,16 +1,6 @@
 import fc from "fast-check"
 
 import {
-  CoreMethod,
-  CoreMimes,
-  CoreOp,
-  CorePaths,
-  CoreRes,
-  CoreService,
-  CoreStatus,
-  CoreTypeRefs,
-} from "../core"
-import {
   NumFormat,
   OptionalBag,
   RArr,
@@ -21,6 +11,16 @@ import {
   SchemaOrRef,
   StringFormat,
 } from "../schema"
+import {
+  CoreMethod,
+  CoreMimes,
+  CoreOp,
+  CorePaths,
+  CoreRes,
+  CoreService,
+  CoreStatus,
+  CoreTypeRefs,
+} from "../core"
 
 const oneOf = <T>(...a: ReadonlyArray<T>): fc.Arbitrary<T> =>
   fc.oneof(...a.map(fc.constant))

@@ -15,6 +15,7 @@ export const meta: MetaFunction = () => ({
   viewport: "width=device-width,initial-scale=1",
 })
 
+// noinspection JSUnusedGlobalSymbols
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }]
 
 export default function App(): JSX.Element {
@@ -24,6 +25,7 @@ export default function App(): JSX.Element {
         <Meta />
         <Links />
       </head>
+
       <body>
         <Outlet />
         <ScrollRestoration />

@@ -10,7 +10,7 @@ import {
   schemaGet,
   SchemaOrRef,
 } from "../core/schema"
-import { CoreTypeRefs } from "../core/core"
+import { CoreService, CoreTypeRefs } from "../core/core"
 
 const numberTypes: Record<NumFormat, Capitalize<string>> = {
   int32: "Int",
@@ -31,10 +31,15 @@ const runtimeTypes: Record<RuntimeType, KotlinClassName> = {
 }
 
 const schemaKotlinName = (
-  x: RSchema,
+  refs: CoreTypeRefs,
+  path: ReadonlyArray<string>,
   what: "type" | "class",
+  x: RSchema,
 ): KotlinType | KotlinClassName => {
   switch (x.type) {
+    case "boolean":
+      return "Boolean"
+
     case "string":
       return "String"
 
@@ -50,12 +55,11 @@ const schemaKotlinName = (
     case "object":
       throw new Error(JSON.stringify(x))
 
-    case "boolean": {
-      throw new Error('Not implemented yet: "boolean" case')
-    }
-    case "array": {
-      throw new Error('Not implemented yet: "array" case')
-    }
+    case "array":
+      return what === "type"
+        ? `List<${kotlinTypeName(refs, [...path, "items"], x.items)}>`
+        : "List"
+
     case "union": {
       throw new Error('Not implemented yet: "union" case')
     }
@@ -118,10 +122,11 @@ const refTypeNameWithGenerics = (refs: CoreTypeRefs, ref: string) =>
  */
 export const kotlinTypeName = (
   refs: CoreTypeRefs,
+  path: ReadonlyArray<string>,
   x: SchemaOrRef | Optional,
 ): KotlinType => {
   if (isOptional(x)) {
-    const name = kotlinTypeName(refs, x.schema)
+    const name = kotlinTypeName(refs, path, x.schema)
     const questionSuffix = isAlreadyOptional(name) ? "" : "?"
     return `${name}${questionSuffix}` as const
   }
@@ -131,31 +136,39 @@ export const kotlinTypeName = (
   }
 
   if (isSchema(x)) {
-    return schemaKotlinName(x, "type")
+    return schemaKotlinName(refs, path, "type", x)
   }
 
   throw new Error(JSON.stringify(x))
 }
 
-export const kotlinClassName = (x: SchemaOrRef | Optional): string => {
-  if (isSchema(x)) {
-    return schemaKotlinName(x, "class")
+export const kotlinClassName = (
+  refs: CoreTypeRefs,
+  path: ReadonlyArray<string>,
+  x: SchemaOrRef | Optional,
+): string => {
+  if (isOptional(x)) {
+    return kotlinClassName(refs, path, x.schema)
   }
 
-  if (isOptional(x)) {
-    return kotlinClassName(x.schema)
+  if (isSchema(x)) {
+    return schemaKotlinName(refs, path, "class", x)
   }
 
   return String(x)
 }
 
-const declareDataclass = (refs: CoreTypeRefs, refName: string): string => {
+const declareDataclass = (
+  refs: CoreTypeRefs,
+  path: ReadonlyArray<string>,
+  refName: string,
+): string => {
   const nameWithGenerics = refTypeNameWithGenerics(refs, refName)
 
   const o = refs[refName] as RStruct
   const fields = Object.entries(o.fields)
     .map(([fieldName, schema]) => {
-      const tpe = kotlinTypeName(refs, schema)
+      const tpe = kotlinTypeName(refs, [...path, fieldName], schema)
       if (!tpe) throw new Error(JSON.stringify(schema))
 
       return `val ${fieldName}: ${tpe}`
@@ -165,11 +178,15 @@ const declareDataclass = (refs: CoreTypeRefs, refName: string): string => {
   return `data class ${nameWithGenerics}(\n${fields}\n)\n`
 }
 
-const declareType = (refs: CoreTypeRefs, name: string): string => {
+const declareType = (
+  refs: CoreTypeRefs,
+  path: ReadonlyArray<string>,
+  name: string,
+): string => {
   const ref = refs[name]
   switch (ref.type) {
     case "newtype": {
-      const tpe = kotlinTypeName(refs, ref.schema)
+      const tpe = kotlinTypeName(refs, path, ref.schema)
       if (!tpe) throw new Error(JSON.stringify(ref))
 
       return `@JvmInline value class ${name}(val value: ${tpe})\n`
@@ -179,7 +196,7 @@ const declareType = (refs: CoreTypeRefs, name: string): string => {
       return ""
 
     case "object":
-      return declareDataclass(refs, name)
+      return declareDataclass(refs, path, name)
 
     case "string": {
       if (ref.enum?.length) {
@@ -194,8 +211,9 @@ const declareType = (refs: CoreTypeRefs, name: string): string => {
   }
 }
 
-export const genKotlinTypes = (refs: CoreTypeRefs): string =>
-  Object.keys(refs)
-    .map(k => declareType(refs, k))
+export const genKotlinTypes = ({ refs }: CoreService): string => {
+  return Object.keys(refs)
+    .map(k => declareType(refs, [k], k))
     .filter(x => x)
     .join("\n")
+}

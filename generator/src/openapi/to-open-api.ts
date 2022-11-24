@@ -13,10 +13,12 @@ import {
 } from "../core/core"
 import {
   isOptional,
+  isSchema,
   Optional,
   OptionalBag,
   optionalGet,
   RStruct,
+  RuntimeType,
   SchemaOrRef,
 } from "../core/schema"
 
@@ -39,72 +41,59 @@ const toObj = (schema: RStruct): OpenAPIV3.SchemaObject => {
   }
 }
 
+const runtimeTypes: Record<RuntimeType, Readonly<OpenAPIV3.SchemaObject>> = {
+  httpURL: { type: "string", format: "uri" },
+  nat32: { type: "number", format: "int32", minimum: 0 },
+  email: { type: "string", format: "email" },
+  hostname: { type: "string", format: "hostname" },
+  nat64: { type: "number", format: "int64", minimum: 0 },
+  seconds: { type: "number", format: "int64" },
+  utcMillis: { type: "number", format: "int64" },
+  mime: { type: "string" },
+}
+
 export const toSchemaOrRef = (
   schema: SchemaOrRef,
 ): OpenAPIV3_1.ReferenceObject | OpenAPIV3.SchemaObject => {
-  if (typeof schema === "object" && "type" in schema) {
-    switch (schema.type) {
-      case "runtime-library": {
-        switch (schema.name) {
-          case "httpURL":
-            return { type: "string", format: "uri" }
-          case "nat32":
-            return { type: "number", format: "int32", minimum: 0 }
-          case "email":
-            return { type: "string", format: "email" }
-          case "hostname":
-            return { type: "string", format: "hostname" }
-
-          case "nat64":
-            return { type: "number", format: "int64", minimum: 0 }
-
-          case "seconds":
-            return { type: "number", format: "int64" }
-
-          case "utcMillis":
-            return { type: "number", format: "int64" }
-
-          case "mime":
-            return { type: "string" }
-
-          default:
-            throw new Error(`Unknown runtime library type ${schema.name}`)
-        }
-      }
-
-      case "newtype": {
-        return toSchemaOrRef(schema.schema)
-      }
-
-      case "string": {
-        return {
-          ...schema,
-          pattern: schema.pattern?.toString(),
-          enum: schema.enum ? [...schema.enum] : undefined,
-        }
-      }
-
-      case "number":
-        return schema
-
-      case "object":
-        return toObj(schema)
-
-      case "unknown":
-      case "external":
-        return { nullable: true }
-
-      case "array":
-        return {
-          type: "array",
-          items: toSchemaOrRef(schema.items),
-        }
-
-      default:
-        throw new Error(schema.type)
-    }
-  } else {
+  if (!isSchema(schema)) {
     return { $ref: `#/components/schemas/${String(schema)}` }
+  }
+
+  switch (schema.type) {
+    case "runtime-library": {
+      return runtimeTypes[schema.name]
+    }
+
+    case "newtype": {
+      return toSchemaOrRef(schema.schema)
+    }
+
+    case "string": {
+      return {
+        ...schema,
+        pattern: schema.pattern?.toString(),
+        enum: schema.enum ? [...schema.enum] : undefined,
+      }
+    }
+
+    case "number":
+      return schema
+
+    case "object":
+      return toObj(schema)
+
+    case "unknown":
+    case "external":
+      return { nullable: true }
+
+    case "array":
+      return {
+        type: "array",
+        items: toSchemaOrRef(schema.items),
+      }
+
+    default:
+      throw new Error(schema.type)
   }
 }
 
@@ -187,7 +176,7 @@ const toOperation = (op: CoreOp): OpenAPIV3.OperationObject => {
 }
 
 const pathItem = (
-  what: Record<CoreMethod, CoreOp>,
+  what: Partial<Record<CoreMethod, CoreOp>>,
 ): OpenAPIV3_1.PathItemObject =>
   Object.fromEntries(
     Object.entries(what).flatMap(([k, op]) =>

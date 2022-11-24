@@ -1,6 +1,6 @@
 import arg from "arg"
 
-import { genPythonTypes, genVertxKotlinClient } from "@responsible/generator"
+import { genPythonTypes, genVertxKotlinClient } from "../../generator/src/index"
 
 const generators = {
   "kotlin-vertx": genVertxKotlinClient,
@@ -19,7 +19,6 @@ const args = arg({
 const g = args["--generator"]
 
 if (!args._.length) throw new Error("no input files")
-
 if (!g) throw new Error("No generator specified")
 if (!(g in generators)) throw new Error(`Unknown generator ${g}`)
 
