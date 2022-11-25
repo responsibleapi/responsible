@@ -1,29 +1,35 @@
+import OpenApiValidator from "openapi-schema-validator"
 import { toOpenApi } from "../../openapi/to-open-api"
 import yanicJSON from "../../../tryout/yanic.json"
 import { describe, expect, test } from "vitest"
-import { isOptional } from "../../core/schema"
+import { OpenAPIV3 } from "openapi-types"
 import { readFile } from "fs/promises"
 import { kdlToCore } from "./kdl"
 import { parse } from "kdljs"
 
+const clean = <T>(t: T): T => JSON.parse(JSON.stringify(t))
+
+const validate = (x: OpenAPIV3.Document): void => {
+  const errors = new OpenApiValidator({ version: 3 }).validate(clean(x)).errors
+  console.error(JSON.stringify(errors, null, 2))
+  return expect(errors).toEqual([])
+}
+
 describe.concurrent("kdl", () => {
   test("to core", async () => {
-    const core = kdlToCore(
-      parse(await readFile("tryout/listenbox.kdl", "utf8")).output,
+    validate(
+      toOpenApi(
+        kdlToCore(parse(await readFile("tryout/listenbox.kdl", "utf8")).output),
+      ),
     )
-    expect(core.info.title).toEqual("Listenbox")
-
-    const es = core.refs["ErrorStruct"]
-    if (es.type !== "object") throw new Error(JSON.stringify(es))
-    expect(isOptional(es.fields["message"])).toBeTruthy()
   })
 
-  const clean = (t: unknown): unknown => JSON.parse(JSON.stringify(t))
-
   test("yanic", async () => {
-    const { output } = parse(await readFile("tryout/yanic.kdl", "utf8"))
-
-    expect(clean(toOpenApi(kdlToCore(output)))).toEqual(yanicJSON)
+    const openapi = toOpenApi(
+      kdlToCore(parse(await readFile("tryout/yanic.kdl", "utf8")).output),
+    )
+    expect(clean(openapi)).toEqual(yanicJSON)
+    validate(openapi)
   })
 
   test("path param in scope", async () => {

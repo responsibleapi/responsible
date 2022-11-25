@@ -1,4 +1,4 @@
-import { OpenAPIV3, OpenAPIV3_1 } from "openapi-types"
+import { OpenAPIV3 } from "openapi-types"
 
 import {
   CoreMethod,
@@ -12,17 +12,18 @@ import {
   StatusCodeStr,
 } from "../core/core"
 import {
+  isKey,
   isOptional,
-  isSchema,
   Optional,
   OptionalBag,
   optionalGet,
   RStruct,
   RuntimeType,
+  schemaGet,
   SchemaOrRef,
 } from "../core/schema"
 
-const toObj = (schema: RStruct): OpenAPIV3.SchemaObject => {
+const toObj = (refs: CoreTypeRefs, schema: RStruct): OpenAPIV3.SchemaObject => {
   const required = Object.entries(schema.fields).flatMap(([k, v]) =>
     isOptional(v) ? [] : [k],
   )
@@ -34,7 +35,7 @@ const toObj = (schema: RStruct): OpenAPIV3.SchemaObject => {
     properties: Object.fromEntries(
       Object.entries(schema.fields).map(([name, s]) => [
         name,
-        toSchemaOrRef(optionalGet(s)),
+        toSchemaOrRef(refs, optionalGet(s)),
       ]),
     ),
     required,
@@ -53,9 +54,10 @@ const runtimeTypes: Record<RuntimeType, Readonly<OpenAPIV3.SchemaObject>> = {
 }
 
 export const toSchemaOrRef = (
+  refs: CoreTypeRefs,
   schema: SchemaOrRef,
-): OpenAPIV3_1.ReferenceObject | OpenAPIV3.SchemaObject => {
-  if (!isSchema(schema)) {
+): OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject => {
+  if (isKey(refs, schema)) {
     return { $ref: `#/components/schemas/${String(schema)}` }
   }
 
@@ -65,13 +67,14 @@ export const toSchemaOrRef = (
     }
 
     case "newtype": {
-      return toSchemaOrRef(schema.schema)
+      return toSchemaOrRef(refs, schema.schema)
     }
 
     case "string": {
       return {
         ...schema,
         enum: schema.enum ? [...schema.enum] : undefined,
+        additionalProperties: undefined,
       }
     }
 
@@ -80,7 +83,18 @@ export const toSchemaOrRef = (
       return schema
 
     case "object":
-      return toObj(schema)
+      return toObj(refs, schema)
+
+    case "dict": {
+      if (schemaGet(refs, schema.k).type !== "string") {
+        throw new Error("dict keys must be strings")
+      }
+
+      return {
+        type: "object",
+        additionalProperties: toSchemaOrRef(refs, schema.v),
+      }
+    }
 
     case "unknown":
       return { nullable: true }
@@ -91,84 +105,100 @@ export const toSchemaOrRef = (
     case "array":
       return {
         type: "array",
-        items: toSchemaOrRef(schema.items),
+        items: toSchemaOrRef(refs, schema.items),
       }
 
     default:
-      throw new Error(schema.type)
+      throw new Error(JSON.stringify(schema))
   }
 }
 
 const refsToOpenAPI = (
   refs: CoreTypeRefs,
-): Record<string, OpenAPIV3.SchemaObject> =>
-  Object.fromEntries(Object.keys(refs).map(k => [k, toSchemaOrRef(refs[k])]))
+): Record<string, OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject> =>
+  Object.fromEntries(
+    Object.keys(refs).map(k => [k, toSchemaOrRef(refs, refs[k])]),
+  )
 
 export type ParamWhere = "header" | "query" | "path" | "cookie"
 
 export const toParam = (
+  refs: CoreTypeRefs,
   name: string,
   v: SchemaOrRef | Optional,
   where: ParamWhere,
-): OpenAPIV3_1.ParameterObject => ({
+): OpenAPIV3.ParameterObject => ({
   in: where,
   name,
   required: isOptional(v) ? undefined : true,
-  schema: toSchemaOrRef(optionalGet(v)),
+  schema: toSchemaOrRef(refs, optionalGet(v)),
 })
 
 const toParams = (
+  refs: CoreTypeRefs,
   where: ParamWhere,
   what: OptionalBag | undefined,
-): ReadonlyArray<OpenAPIV3_1.ParameterObject> =>
-  Object.entries(what ?? {}).map(([k, v]) => toParam(k, v, where))
+): ReadonlyArray<OpenAPIV3.ParameterObject> =>
+  Object.entries(what ?? {}).map(([k, v]) => toParam(refs, k, v, where))
 
-const toContent = (b: CoreMimes): Record<string, OpenAPIV3.MediaTypeObject> =>
+const toContent = (
+  refs: CoreTypeRefs,
+  b: CoreMimes,
+): Record<string, OpenAPIV3.MediaTypeObject> =>
   Object.fromEntries(
     Object.entries(b).map(
-      ([mime, s]) => [mime, { schema: toSchemaOrRef(s) }] as const,
+      ([mime, s]) => [mime, { schema: toSchemaOrRef(refs, s) }] as const,
     ),
   )
 
 const toResponse = (
+  refs: CoreTypeRefs,
   status: StatusCodeStr,
   r: CoreStatus,
-): OpenAPIV3_1.ResponseObject => ({
+): OpenAPIV3.ResponseObject => ({
   description: String(status),
   headers: Object.fromEntries(
     Object.entries(r.headers ?? {}).map(([hk, hv]) => [
       hk,
       {
         required: isOptional(hv) ? undefined : true,
-        schema: toSchemaOrRef(optionalGet(hv)),
+        schema: toSchemaOrRef(refs, optionalGet(hv)),
       },
     ]),
   ),
-  content: r.body ? toContent(r.body) : undefined,
+  content: r.body ? toContent(refs, r.body) : undefined,
 })
 
-const codesToResponses = (res: CoreRes): OpenAPIV3_1.ResponsesObject =>
+const codesToResponses = (
+  refs: CoreTypeRefs,
+  res: CoreRes,
+): OpenAPIV3.ResponsesObject =>
   Object.fromEntries(
     Object.entries(res).map(([k, v]) => [
       String(k),
-      toResponse(k as StatusCodeStr, v),
+      toResponse(refs, k as StatusCodeStr, v),
     ]),
   )
 
 export const compareParams = (
-  a: OpenAPIV3_1.ParameterObject,
-  b: OpenAPIV3_1.ParameterObject,
+  a: OpenAPIV3.ParameterObject,
+  b: OpenAPIV3.ParameterObject,
 ): number => a.in.localeCompare(b.in) || a.name.localeCompare(b.name)
 
-const toOperation = (op: CoreOp): OpenAPIV3.OperationObject => {
-  const parameters = toParams("header", op.req?.headers)
-    .concat(toParams("query", op.req?.query))
-    .concat(toParams("path", op.req?.pathParams))
-    .concat(toParams("cookie", op.req?.cookies))
+const toOperation = (
+  refs: CoreTypeRefs,
+  op: CoreOp,
+): OpenAPIV3.OperationObject => {
+  const parameters = [
+    ...toParams(refs, "header", op.req?.headers),
+    ...toParams(refs, "query", op.req?.query),
+    ...toParams(refs, "path", op.req?.pathParams),
+    ...toParams(refs, "cookie", op.req?.cookies),
+  ]
 
   parameters.sort(compareParams)
 
-  const content = op.req?.body ? toContent(op.req.body) : undefined
+  const content = op.req?.body ? toContent(refs, op.req.body) : undefined
   const requestBody =
     content && Object.keys(content).length
       ? { required: true, content }
@@ -178,35 +208,38 @@ const toOperation = (op: CoreOp): OpenAPIV3.OperationObject => {
     operationId: op.name,
     parameters,
     requestBody,
-    responses: codesToResponses(op.res),
+    responses: codesToResponses(refs, op.res),
     description: op.description,
   }
 }
 
 const pathItem = (
+  refs: CoreTypeRefs,
   what: Partial<Record<CoreMethod, CoreOp>>,
-): OpenAPIV3_1.PathItemObject =>
+): OpenAPIV3.PathItemObject =>
   Object.fromEntries(
     Object.entries(what).flatMap(([k, op]) =>
-      op ? [[toMethod(k as CoreMethod), toOperation(op)]] : [],
+      op ? [[toMethod(k as CoreMethod), toOperation(refs, op)]] : [],
     ),
   )
 
-const toMethod = (m: CoreMethod): OpenAPIV3_1.HttpMethods =>
-  m.toLowerCase() as OpenAPIV3_1.HttpMethods
+const toMethod = (m: CoreMethod): OpenAPIV3.HttpMethods =>
+  m.toLowerCase() as OpenAPIV3.HttpMethods
 
-const toPaths = (paths: CorePaths): OpenAPIV3_1.PathsObject =>
-  Object.fromEntries(Object.entries(paths).map(([k, v]) => [k, pathItem(v)]))
+const toPaths = (refs: CoreTypeRefs, paths: CorePaths): OpenAPIV3.PathsObject =>
+  Object.fromEntries(
+    Object.entries(paths).map(([k, v]) => [k, pathItem(refs, v)]),
+  )
 
 export const toOpenApi = ({
   info,
   refs,
   paths,
   servers,
-}: CoreService): OpenAPIV3_1.Document => ({
-  openapi: "3.1.0",
+}: CoreService): OpenAPIV3.Document => ({
+  openapi: "3.0.1",
   info,
   components: { schemas: refsToOpenAPI(refs) },
-  paths: toPaths(paths),
+  paths: toPaths(refs, paths),
   servers: servers ? [...servers] : undefined,
 })

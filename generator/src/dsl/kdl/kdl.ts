@@ -17,7 +17,9 @@ import {
   Mime,
   Optional,
   OptionalBag,
+  RArr,
   RequiredBag,
+  RNum,
   RSchema,
   RString,
   RStruct,
@@ -93,15 +95,31 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
     case "struct":
       return toStruct(node)
 
-    case "string":
-      return { type: "string", ...node.properties }
+    case "dateTime": {
+      return <RString>{
+        ...node.properties,
+        type: "string",
+        format: "date-time",
+      }
+    }
+
+    case "string": {
+      const length = node.properties.length
+      return <RString>{
+        minLength: length,
+        maxLength: length,
+        ...node.properties,
+        length: undefined,
+        type: "string",
+      }
+    }
 
     case "boolean":
-      return { type: "boolean", ...node.properties }
+      return { ...node.properties, type: "boolean" }
 
     case "int32":
     case "int64":
-      return { type: "number", format: typName, ...node.properties }
+      return <RNum>{ ...node.properties, type: "number", format: typName }
 
     case "dict": {
       if (
@@ -109,6 +127,7 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
         typeof node.values[2] === "string"
       ) {
         return {
+          ...node.properties,
           type: "dict",
           k: strToSchema(node.values[1]),
           v: strToSchema(node.values[2]),
@@ -120,12 +139,14 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
 
     case "array": {
       if (typeof node.values[1] === "string") {
-        return {
+        return <RArr>{
+          ...node.properties,
           type: "array",
           items: strToSchema(node.values[1]),
         }
       } else if (node.children.length === 1) {
-        return {
+        return <RArr>{
+          ...node.properties,
           type: "array",
           items: nodeToSchemaOrRef(node.children[0]),
         }

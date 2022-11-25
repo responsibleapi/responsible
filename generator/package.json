@@ -6,11 +6,12 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "kdljs": "^0.1.5",
-    "openapi-types": "^12.0.0"
+    "kdljs": "^0.1.5"
   },
   "devDependencies": {
-    "pkg": "^5.8.0"
+    "openapi-schema-validator": "^12.0.2",
+    "pkg": "^5.8.0",
+    "openapi-types": "^12.0.0"
   },
   "scripts": {
     "watch-test": "vitest",

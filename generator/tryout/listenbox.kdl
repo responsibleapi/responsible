@@ -7,8 +7,8 @@ info {
 }
 
 servers {
-    url "http://localhost:3000"
     url "https://listenbox.app"
+    url "http://localhost:3000"
 }
 
 newType "FeedID" "string" length=11
