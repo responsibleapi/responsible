@@ -1,6 +1,5 @@
 import OpenApiValidator from "openapi-schema-validator"
 import { toOpenApi } from "../../openapi/to-open-api"
-import yanicJSON from "../../../tryout/yanic.json"
 import { describe, expect, test } from "vitest"
 import { OpenAPIV3 } from "openapi-types"
 import { readFile } from "fs/promises"
@@ -27,7 +26,9 @@ describe.concurrent("kdl", () => {
     const openapi = toOpenApi(
       kdlToCore(parse(await readFile("tryout/yanic.kdl", "utf8")).output),
     )
-    expect(clean(openapi)).toEqual(yanicJSON)
+    expect(clean(openapi)).toEqual(
+      JSON.parse(await readFile("tryout/yanic.json", "utf8")),
+    )
     validate(openapi)
   })
 })

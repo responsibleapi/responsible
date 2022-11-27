@@ -88,8 +88,6 @@ export const mergePaths = (...arr: ReadonlyArray<TypedPath>): TypedPath => {
   let path: URLPath | "" = ""
 
   for (const tp of arr) {
-    if (path === "[object Object]") throw new Error(JSON.stringify(arr))
-
     path = `${path}${tp.path}`
     Object.assign(types, tp.types)
   }
