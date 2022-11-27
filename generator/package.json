@@ -10,8 +10,8 @@
   },
   "devDependencies": {
     "openapi-schema-validator": "^12.0.2",
-    "pkg": "^5.8.0",
-    "openapi-types": "^12.0.0"
+    "openapi-types": "^12.0.0",
+    "pkg": "^5.8.0"
   },
   "scripts": {
     "watch-test": "vitest",

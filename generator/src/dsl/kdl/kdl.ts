@@ -9,6 +9,7 @@ import {
   CoreService,
   CoreStatus,
   CoreTypeRefs,
+  isURLPath,
   ServiceInfo,
   StatusCodeStr,
   URLPath,
@@ -25,6 +26,7 @@ import {
   RStruct,
   SchemaOrRef,
 } from "../../core/schema"
+import { mergePaths, parsePath, TypedPath } from "./path"
 import { kdljs } from "kdljs"
 
 const stringValue = (node: kdljs.Node, idx: number): string => {
@@ -172,6 +174,11 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
 
 const nodeToSchemaOrRef = (node: kdljs.Node): SchemaOrRef =>
   nodeToSchema(node) ?? typeName(node)
+
+export const toRequiredBag = (types: Record<string, string>): RequiredBag =>
+  Object.fromEntries(
+    Object.entries(types).map(([k, v]) => [k, nodeToSchemaOrRef(mkNode(v))]),
+  )
 
 const optionalSchema = (node: kdljs.Node): SchemaOrRef | Optional => {
   const schema = nodeToSchemaOrRef(node)
@@ -496,7 +503,7 @@ const toEnum = (node: kdljs.Node): RString => ({
 })
 
 interface TopLevel {
-  version: string
+  syntaxVersion?: string
   info: ServiceInfo
   servers?: ReadonlyArray<CoreServer>
 }
@@ -504,19 +511,21 @@ interface TopLevel {
 type Handlers = Partial<Record<string, (node: kdljs.Node) => void>>
 
 const topLevel = (doc: kdljs.Document): Readonly<TopLevel> => {
-  const ret: Partial<TopLevel> = {}
+  let syntaxVersion: string | undefined
+  let info: ServiceInfo | undefined
+  let servers: CoreServer[] | undefined
 
   const map: Handlers = {
     responsible({ properties }) {
-      ret.version = properties.syntax as string
+      syntaxVersion = properties.syntax as string
     },
 
     info(node) {
-      ret.info = toInfo(node)
+      info = toInfo(node)
     },
 
     servers({ children }) {
-      ret.servers = children.map(s => {
+      servers = children.map(s => {
         const url = s.values[0]
         if (s.name === "url" && typeof url === "string") {
           return { url }
@@ -531,9 +540,7 @@ const topLevel = (doc: kdljs.Document): Readonly<TopLevel> => {
     map[node.name]?.(node)
   }
 
-  if (!ret?.info?.title) throw new Error(JSON.stringify(doc))
-
-  return ret as TopLevel
+  return { syntaxVersion, info: info ?? { title: "", version: "" }, servers }
 }
 
 interface FishedScope {
@@ -564,20 +571,6 @@ const parseCoreReq = (scope: ScopeReq, n: kdljs.Node): CoreReq => {
       case "header": {
         const name = stringValue(c, 0).toLowerCase()
         headers[name] = optionalSchema(c)
-        break
-      }
-
-      case "pathParam": {
-        const name = stringValue(c, 0)
-        pathParams[name] = nodeToSchemaOrRef(c)
-        break
-      }
-
-      case "pathParams": {
-        for (const pathParam of c.children) {
-          const name = pathParam.name
-          pathParams[name] = nodeToSchemaOrRef(pathParam)
-        }
         break
       }
 
@@ -614,13 +607,18 @@ const parseCoreReq = (scope: ScopeReq, n: kdljs.Node): CoreReq => {
 export const capitalize = <T extends string>(s: T): Capitalize<T> | "" =>
   (s.length ? `${s[0].toUpperCase()}${s.slice(1)}` : s) as Capitalize<T>
 
-const EMPTY_NODE: Readonly<kdljs.Node> = {
-  name: "",
+const mkNode = (
+  name: string,
+  children?: kdljs.Node[],
+): Readonly<kdljs.Node> => ({
+  name,
   values: [],
   properties: {},
   tags: { name: "", values: [], properties: {} },
-  children: [],
-}
+  children: children ?? [],
+})
+
+const EMPTY_NODE = mkNode("")
 
 const parseOps = (
   scope: Scope,
@@ -685,7 +683,7 @@ const enterScope = (
     path,
     parentScope,
   }: {
-    path: `/${string}` | ""
+    path: TypedPath
     parentScope: Readonly<Scope>
   },
 ): FishedScope => {
@@ -731,13 +729,32 @@ const enterScope = (
       case "POST":
       case "PUT":
       case "GET": {
-        const thePath: URLPath = node.values.length
-          ? (`${path}${stringValue(node, 0)}` as URLPath)
-          : (path as URLPath)
+        const newPath: URLPath | "" = node.values.length
+          ? (stringValue(node, 0) as URLPath)
+          : ""
 
-        const xxx: Partial<Record<CoreMethod, CoreOp>> = paths[thePath] ?? {}
-        Object.assign(xxx, parseOps(scope, node))
-        paths[thePath] = xxx
+        const thePath =
+          path.path || newPath ? mergePaths(path, parsePath(newPath)) : path
+
+        if (!isURLPath(thePath.path)) {
+          throw new Error(JSON.stringify(node) + "\n" + JSON.stringify(thePath))
+        }
+
+        const methods: Partial<Record<CoreMethod, CoreOp>> =
+          paths[thePath.path] ?? {}
+
+        scope = {
+          ...scope,
+          req: {
+            ...scope.req,
+            pathParams: {
+              ...scope.req.pathParams,
+              ...toRequiredBag(thePath.types),
+            },
+          },
+        }
+        Object.assign(methods, parseOps(scope, node))
+        paths[thePath.path] = methods
 
         break
       }
@@ -747,32 +764,11 @@ const enterScope = (
         break
       }
 
-      case "pathParam": {
-        scope = mergeScopes(scope, {
-          req: {
-            pathParams: {
-              [stringValue(node, 0)]: nodeToSchemaOrRef(node),
-            },
-            headers: {},
-            query: {},
-            cookies: {},
-          },
-          res: {
-            headers: {},
-            cookies: {},
-            codes: {},
-          },
-        })
-        break
-      }
-
       default: {
-        if (!node.name.startsWith("/")) {
-          throw new Error(JSON.stringify(node))
-        }
+        if (!isURLPath(node.name)) throw new Error(JSON.stringify(node))
 
         const entered = enterScope(node, {
-          path: `${path}${node.name}` as `/${string}`,
+          path: mergePaths(path, parsePath(node.name)),
           parentScope: scope,
         })
         Object.assign(refs, entered.refs)
@@ -791,19 +787,10 @@ const enterScope = (
 export const kdlToCore = (doc: kdljs.Document): CoreService => {
   const { info, servers } = topLevel(doc)
 
-  const { refs, paths } = enterScope(
-    {
-      name: "",
-      children: doc,
-      values: [],
-      tags: { name: "", values: [], properties: {} },
-      properties: {},
-    },
-    {
-      path: "",
-      parentScope: emptyScope(),
-    },
-  )
+  const { refs, paths } = enterScope(mkNode("", doc), {
+    path: { path: "", types: {} },
+    parentScope: emptyScope(),
+  })
 
   return { info, servers, refs, paths }
 }

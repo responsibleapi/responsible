@@ -62,6 +62,8 @@ export interface CoreOp {
 
 export type URLPath = `/${string}`
 
+export const isURLPath = (x: string): x is URLPath => x.startsWith("/")
+
 export type CorePaths = Record<URLPath, Partial<Record<CoreMethod, CoreOp>>>
 
 export interface CoreServer {

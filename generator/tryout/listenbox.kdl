@@ -244,11 +244,10 @@ struct "LoginReq" {
         }
     }
 
-    GET "/show/:show_id" {
+    GET "/show/:show_id(ShowID)" {
         name "getShow"
 
         req {
-            pathParam "show_id" "ShowID"
             (?)header "authorization" "string" minLength=1
         }
 
@@ -259,11 +258,10 @@ struct "LoginReq" {
         }
     }
 
-    GET "/show/:show_id/items" {
+    GET "/show/:show_id(ShowID)/items" {
         name "getItems"
 
         req {
-            pathParam "show_id" "ShowID"
             query {
                 (?)before "dateTime"
                 (?)limit "int32" minimum=1
@@ -391,8 +389,7 @@ struct "LoginReq" {
             }
         }
 
-        "/later/:item_id" {
-            pathParam "item_id" "ItemID"
+        "/later/:item_id(ItemID)" {
 
             POST {
                 name "addLater"
@@ -411,11 +408,10 @@ struct "LoginReq" {
             }
         }
 
-        DELETE "/feed/:show_id" {
+    // TODO change to /show/:show_id
+        DELETE "/feed/:show_id(ShowID)" {
             name "deleteFeed"
-            req {
-                pathParam "show_id" "ShowID"
-            }
+
             res {
                 "200" "unknown"
             }
@@ -436,11 +432,10 @@ struct "LoginReq" {
             }
         }
 
-        PUT "/show/:show_id" {
+        PUT "/show/:show_id(ShowID)" {
             name "editShow"
 
             req {
-                pathParam "show_id" "ShowID"
                 body "EditShowReq"
             }
 
@@ -451,11 +446,10 @@ struct "LoginReq" {
             }
         }
 
-        GET "/show/:show_id/downloads" {
+        GET "/show/:show_id(ShowID)/downloads" {
             name "getDownloads"
 
             req {
-                pathParam "show_id" "ShowID"
                 query {
                     (?)timezone "string" minLength=1
                 }
@@ -502,13 +496,9 @@ struct "LoginReq" {
     }
 }
 
-GET "/f/:show_id" head=true {
+GET "/f/:show_id(ShowID)" head=true {
     name "audioRSS"
 
-    req {
-        pathParam "show_id" "ShowID"
-    }
-
     res {
         "302" {
             header "Location" "httpURL"
@@ -518,13 +508,9 @@ GET "/f/:show_id" head=true {
     }
 }
 
-GET "/v/:show_id" head=true {
+GET "/v/:show_id(ShowID)" head=true {
     name "videoRSS"
 
-    req {
-        pathParam "show_id" "ShowID"
-    }
-
     res {
         "302" {
             header "Location" "httpURL"
@@ -534,18 +520,13 @@ GET "/v/:show_id" head=true {
     }
 }
 
-GET "/rss/:show_id/:type.rss" head=true {
-    name "rss"
+enum "AudioVideo" {
+    audio
+    video
+}
 
-    req {
-        pathParams {
-            show_id "ShowID"
-            type "enum" {
-                audio
-                video
-            }
-        }
-    }
+GET "/rss/:show_id(ShowID)/:type(AudioVideo).rss" head=true {
+    name "rss"
 
     res {
         "200" {
