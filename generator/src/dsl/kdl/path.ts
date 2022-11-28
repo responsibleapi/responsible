@@ -19,7 +19,8 @@ const parseSegment = (
       case ":": {
         if (name) {
           types[name] = "string"
-          segment += `:${name}`
+          segment += `{${name}}`
+          addSegment = false
         }
         name = ""
         type = undefined
@@ -39,11 +40,11 @@ const parseSegment = (
         }
 
         types[name] = type
-        segment += `:${name}`
+        segment += `{${name}}`
+        addSegment = false
 
         name = undefined
         type = undefined
-        addSegment = false
         break
       }
 
@@ -51,7 +52,7 @@ const parseSegment = (
       case "/": {
         if (name) {
           types[name] = "string"
-          segment += `:${name}`
+          segment += `{${name}}`
         }
         name = undefined
         type = undefined

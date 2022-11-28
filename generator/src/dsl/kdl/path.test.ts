@@ -5,31 +5,31 @@ describe.concurrent("path", () => {
   test("parse", () => {
     const ps: Record<`/${string}`, TypedPath> = {
       "/later/:item_id(ItemID)": {
-        path: "/later/:item_id",
+        path: "/later/{item_id}",
         types: { item_id: "ItemID" },
       },
       "/show/:show_id(ShowID)/items": {
-        path: "/show/:show_id/items",
+        path: "/show/{show_id}/items",
         types: { show_id: "ShowID" },
       },
       "/feed/:show_id(ShowID)": {
-        path: "/feed/:show_id",
+        path: "/feed/{show_id}",
         types: { show_id: "ShowID" },
       },
       "/show/:show_id(ShowID)": {
-        path: "/show/:show_id",
+        path: "/show/{show_id}",
         types: { show_id: "ShowID" },
       },
       "/show/:show_id(ShowID)/downloads": {
-        path: "/show/:show_id/downloads",
+        path: "/show/{show_id}/downloads",
         types: { show_id: "ShowID" },
       },
       "/rss/:show_id(ShowID)/:type(AudioVideo).rss": {
-        path: "/rss/:show_id/:type.rss",
+        path: "/rss/{show_id}/{type}.rss",
         types: { show_id: "ShowID", type: "AudioVideo" },
       },
       "/rss/:show_id/:type.rss": {
-        path: "/rss/:show_id/:type.rss",
+        path: "/rss/{show_id}/{type}.rss",
         types: { show_id: "string", type: "string" },
       },
       "/": {
