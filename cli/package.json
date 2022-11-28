@@ -1,12 +1,20 @@
 {
-  "name": "@responsible/cli",
+  "name": "responsible",
   "version": "0.0.1",
   "license": "MIT",
+  "bin": "dist/index.js",
   "devDependencies": {
     "pkg": "^5.8.0"
   },
   "scripts": {
-    "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node18 --minify && pkg dist/index.js -o dist/index -t node18",
+    "build": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node18 --minify && pkg package.json",
     "start": "node dist/index.js ../generator/tryout/listenbox.kdl"
+  },
+  "pkg": {
+    "targets": [
+      "node18-macos-arm64",
+      "node18-macos-x64"
+    ],
+    "outputPath": "release/"
   }
 }
