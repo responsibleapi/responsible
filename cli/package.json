@@ -1,6 +1,6 @@
 {
   "name": "responsible",
-  "version": "0.0.1",
+  "version": "0.1.3",
   "license": "MIT",
   "bin": "dist/index.js",
   "dependencies": {
@@ -12,7 +12,7 @@
   "scripts": {
     "esb": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node18 --minify",
     "build": "yarn esb && pkg package.json",
-    "start": "yarn esb && node dist/index.js"
+    "start": "yarn esb && node dist/index.js --help"
   },
   "pkg": {
     "targets": [

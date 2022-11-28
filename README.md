@@ -2,19 +2,19 @@
 
 OpenAPI toolkit
 
+## Responsible in 15 minutes
+
 ## Why
 
 ### Custom DSL
 
-
 - OpenAPI DSL is extremely verbose and hard to read. It's also hard to maintain. This library provides a custom DSL that
-is much more readable and maintainable.
+  is much more readable and maintainable.
 
-## Tutorial
+## CLI
 
-- `touch api.js`
-- copy this:
-  ```js
-  module.exports = service({ foo: "bar" }, {})
-  ```
-- `responsible api.js`
+```shell
+brew tap responsibleapi/responsible
+brew install responsible
+responsible 
+```
