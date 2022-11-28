@@ -9,7 +9,7 @@ const die = (s: string): never => {
   return process.exit(1)
 }
 
-void (async () => {
+const main = async () => {
   const file = process.argv[process.argv.length - 1]
   if (!file.endsWith(".kdl")) {
     return die(`expected .kdl file, got ${file}`)
@@ -22,4 +22,6 @@ void (async () => {
   }
 
   console.log(JSON.stringify(toOpenApi(kdlToCore(doc.output)), null, 2))
-})()
+}
+
+void main()
