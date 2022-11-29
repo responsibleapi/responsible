@@ -30,15 +30,14 @@ const toObj = (refs: CoreTypeRefs, schema: RStruct): OpenAPIV3.SchemaObject => {
 
   required.sort()
 
+  const entries = Object.entries(schema.fields).map(
+    ([name, s]) => [name, toSchemaOrRef(refs, optionalGet(s))] as const,
+  )
+
   return {
     type: "object",
-    properties: Object.fromEntries(
-      Object.entries(schema.fields).map(([name, s]) => [
-        name,
-        toSchemaOrRef(refs, optionalGet(s)),
-      ]),
-    ),
-    required,
+    properties: entries.length ? Object.fromEntries(entries) : undefined,
+    required: required.length ? required : undefined,
   }
 }
 
@@ -64,10 +63,6 @@ export const toSchemaOrRef = (
   switch (schema.type) {
     case "runtime-library": {
       return runtimeTypes[schema.name]
-    }
-
-    case "newtype": {
-      return toSchemaOrRef(refs, schema.schema)
     }
 
     case "string": {

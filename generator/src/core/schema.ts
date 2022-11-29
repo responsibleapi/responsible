@@ -105,6 +105,5 @@ export type RSchema =
   | RStruct
   | { type: "union"; oneOf: RSchema[] }
   | { type: "dict"; k: SchemaOrRef; v: SchemaOrRef }
-  | { type: "newtype"; schema: RSchema }
   | { type: "external" }
   | { type: "runtime-library"; name: RuntimeType }

@@ -6,8 +6,12 @@
   },
   "components": {
     "schemas": {
-      "YtDlInfo": {},
-      "YtDlOpts": {},
+      "YtDlInfo": {
+        "type": "object"
+      },
+      "YtDlOpts": {
+        "type": "object"
+      },
       "InfoReq": {
         "type": "object",
         "properties": {

@@ -717,10 +717,10 @@ const enterScope = (
         break
       }
 
-      case "newType": {
+      case "type": {
         const schema = nodeToSchema(node)
         if (!schema) throw new Error(JSON.stringify(node))
-        refs[stringValue(node, 0)] = { type: "newtype", schema }
+        refs[stringValue(node, 0)] = schema
         break
       }
 

@@ -1,0 +1,99 @@
+info {
+    title "youtube"
+    version "3"
+}
+
+servers {
+    url "https://www.googleapis.com" basePath="/youtube/v3"
+}
+
+scope {
+    req {
+        security {
+            apiKey {
+                type "apiKey"
+                name "key"
+                in "query"
+            }
+        }
+    }
+    res {
+        mime "application/json"
+
+        "401" "unknown"
+    }
+}
+
+// youtube video id
+type "VideoID" "string" pattern="^[a-zA-Z0-9_-]{11}$"
+
+// youtube playlust id
+type "PlaylistID" "string" pattern="^[a-zA-Z0-9_-]{34}$"
+
+type "VideoIDs" "array" "VideoID"
+
+enum "Part" {
+    id
+    contentDetails
+    snippet
+    statistics
+}
+
+type "Parts" "array" "Part"
+
+type "Videos" "struct"
+type "PlaylistItems" "struct"
+type "Playlists" "struct"
+type "Channels" "struct"
+
+GET "/videos" {
+    req {
+        query {
+            id "VideoIDs"
+            maxResults "int32" default=50
+            part "Parts"
+        }
+    }
+    res {
+        "200" "Videos"
+    }
+}
+
+GET "/playlistItems" {
+    req {
+        query {
+            playlistId "PlaylistID"
+            (?)pageToken "string"
+            maxResults "int32" default=50
+            part "Parts"
+        }
+    }
+    res {
+        "200" "PlaylistItems"
+    }
+}
+
+GET "/playlists" {
+    req {
+        query {
+            id "PlaylistID"
+            part "Parts"
+        }
+    }
+    res {
+        "200" "Playlists"
+    }
+}
+
+GET "/channels" {
+    req {
+        query {
+            id "string"
+            part "Parts"
+            (?)forUsername "string" minLength=1
+        }
+    }
+    res {
+        "200" "Channels"
+    }
+}

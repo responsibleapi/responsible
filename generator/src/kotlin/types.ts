@@ -63,9 +63,6 @@ const schemaKotlinName = (
     case "union": {
       throw new Error('Not implemented yet: "union" case')
     }
-    case "newtype": {
-      throw new Error('Not implemented yet: "newtype" case')
-    }
     case "external": {
       throw new Error('Not implemented yet: "external" case')
     }
@@ -185,13 +182,6 @@ const declareType = (
 ): string => {
   const ref = refs[name]
   switch (ref.type) {
-    case "newtype": {
-      const tpe = kotlinTypeName(refs, path, ref.schema)
-      if (!tpe) throw new Error(JSON.stringify(ref))
-
-      return `@JvmInline value class ${name}(val value: ${tpe})\n`
-    }
-
     case "external":
       return ""
 

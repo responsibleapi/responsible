@@ -11,13 +11,10 @@ servers {
     url "http://localhost:3000"
 }
 
-newType "FeedID" "string" length=11
-
-newType "ItemID" "string" length=11
-
-newType "ShowID" "string" minLength=11 maxLength=12
-
-newType "StripeCheckoutID" "string" minLength=1
+type "FeedID" "string" length=11
+type "ItemID" "string" length=11
+type "ShowID" "string" minLength=11 maxLength=12
+type "StripeCheckoutID" "string" minLength=1
 
 struct "SubmitReq" {
     url "httpURL"
@@ -177,6 +174,14 @@ struct "LoginReq" {
     host "hostname"
 }
 
+GET "/api/health" {
+    name "health"
+
+    res {
+        "200" "unknown"
+    }
+}
+
 "/japi" {
 
     scope {
@@ -274,6 +279,20 @@ struct "LoginReq" {
         }
     }
 
+    POST "/cdn_log" {
+        name "logCDN"
+
+        req "struct" {
+            url "httpURL"
+            headers "dict" "string" "string"
+            timestamp "utcMillis"
+        }
+
+        res {
+            "201" "unknown"
+        }
+    }
+
     POST "/unsubscribe" {
         name "unsubscribe"
         description "Unsubscribe the email from product updates"
@@ -284,6 +303,28 @@ struct "LoginReq" {
 
         res {
             "200" "unknown"
+        }
+    }
+
+    GET "/show/:show_id(ShowID)/episode_downloads/" {
+        name "episodeDownloads"
+
+        res {
+            "200" "array" {
+                struct {
+                    title "string"
+                    url "httpURL"
+                    downloads "nat32"
+                }
+            }
+        }
+    }
+
+    GET "/user/:email(email)/shows" {
+        name "showsByEmail"
+
+        res {
+            "200" "array" "ShowID"
         }
     }
 

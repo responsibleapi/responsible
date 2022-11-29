@@ -12,7 +12,7 @@
   "scripts": {
     "esb": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node18 --minify",
     "build": "yarn esb && pkg package.json",
-    "start": "yarn esb && node dist/index.js --help"
+    "start": "yarn esb && node dist/index.js ../generator/tryout/listenbox.kdl"
   },
   "pkg": {
     "targets": [
