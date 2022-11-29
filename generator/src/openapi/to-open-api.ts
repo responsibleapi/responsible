@@ -42,7 +42,11 @@ const toObj = (refs: CoreTypeRefs, schema: RStruct): OpenAPIV3.SchemaObject => {
 }
 
 const runtimeTypes: Record<RuntimeType, Readonly<OpenAPIV3.SchemaObject>> = {
-  httpURL: { type: "string", format: "uri" },
+  httpURL: {
+    type: "string",
+    format: "uri",
+    pattern: "^https?:\\/\\/\\S+$",
+  },
   nat32: { type: "number", format: "int32", minimum: 0 },
   email: { type: "string", format: "email" },
   hostname: { type: "string", format: "hostname" },

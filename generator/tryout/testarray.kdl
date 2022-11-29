@@ -1,0 +1,15 @@
+type "ShowID" "string"
+
+scope {
+    res {
+        mime "application/json"
+    }
+}
+
+GET "/user/:email(email)/shows" {
+    name "showsByEmail"
+
+    res {
+        "200" "array" "ShowID"
+    }
+}

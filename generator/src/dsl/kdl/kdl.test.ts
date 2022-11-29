@@ -31,4 +31,51 @@ describe.concurrent("kdl", () => {
     )
     validate(openapi)
   })
+
+  test("array", async () => {
+    const openapi = toOpenApi(
+      kdlToCore(parse(await readFile("tryout/testarray.kdl", "utf8")).output),
+    )
+    expect(clean(openapi)).toEqual(<OpenAPIV3.Document>{
+      openapi: "3.0.1",
+      info: {
+        title: "",
+        version: "",
+      },
+      components: {
+        schemas: {
+          ShowID: { type: "string" },
+        },
+      },
+      paths: {
+        "/user/{email}/shows": {
+          get: {
+            operationId: "showsByEmail",
+            parameters: [
+              {
+                in: "path",
+                name: "email",
+                required: true,
+                schema: { type: "string", format: "email" },
+              },
+            ],
+            responses: {
+              "200": {
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/ShowID" },
+                    },
+                  },
+                },
+                description: "200",
+                headers: {},
+              },
+            },
+          },
+        },
+      },
+    })
+  })
 })

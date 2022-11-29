@@ -516,6 +516,8 @@ GET "/api/health" {
 "/oauth/google" {
 
     GET "/" {
+        name "googleSlash"
+
         res {
             "302" {
                 header "location" "httpURL"
@@ -524,6 +526,8 @@ GET "/api/health" {
     }
 
     GET "/callback" {
+        name "googleCallback"
+
         req {
             query "code" "string" minLength=1
         }
@@ -572,12 +576,62 @@ GET "/rss/:show_id(ShowID)/:type(AudioVideo).rss" head=true {
     res {
         "200" {
             headers {
-                "content-length" "int32" minimum=1
-                "etag" "string" minLength=1
+                "Content-Length" "int32" minimum=1
+                "ETag" "string" minLength=1
             }
             body "application/rss+xml" "string" minLength=1
         }
 
         "404" "unknown"
+    }
+}
+
+type "NonEmptyString" "string" minLength=1
+
+//TODO support range=true
+//GET "/a/:item_id(ItemID).:ext(NonEmptyString)" range=true {
+//    name "getAudio"
+//
+//    req {
+//        (?)header "CF-Connecting-IP" "string" minLength=1
+//    }
+//
+//    res {
+//        "200" {
+//            header "Cache-Control" "string" minLength=1
+//            header "Content-Length" "int32" minimum=1
+//            body "audio/*" "binary"
+//        }
+//        "404" "unknown"
+//    }
+//}
+
+GET "/w/:item_id(ItemID).:ext(NonEmptyString)" head=true {
+    name "getVideo"
+
+    req {
+        (?)header "CF-Connecting-IP" "string" minLength=1
+    }
+
+    res {
+        "302" {
+            header "Location" "httpURL"
+            header "Cache-Control" "string" minLength=1
+        }
+        "404" "unknown"
+    }
+}
+
+POST "/stripe/hooks" {
+    name "stripeWebhook"
+
+    req {
+        header "Stripe-Signature" "string" minLength=1
+        body "application/json" "string" minLength=1
+    }
+
+    res {
+        "200" "unknown"
+        "400" "unknown"
     }
 }

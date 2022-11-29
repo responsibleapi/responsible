@@ -78,10 +78,17 @@ const toStruct = (node: kdljs.Node): RStruct => ({
 const typeName = (n: kdljs.Node): string => {
   if (!n.values.length) return n.name
 
-  const v = n.values[n.values.length - 1]
-  if (typeof v !== "string") throw new Error(JSON.stringify(n))
+  if (n.values.length >= 3 && n.values[n.values.length - 3] === "dict") {
+    return "dict"
+  }
 
-  return v
+  if (n.values.length >= 2 && n.values[n.values.length - 2] === "array") {
+    return "array"
+  }
+
+  const last = n.values[n.values.length - 1]
+  if (typeof last !== "string") throw new Error(JSON.stringify(n))
+  return last
 }
 
 const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
@@ -140,11 +147,12 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
     }
 
     case "array": {
-      if (typeof node.values[1] === "string") {
+      const last = node.values[node.values.length - 1]
+      if (typeof last === "string" && last !== "array") {
         return <RArr>{
           ...node.properties,
           type: "array",
-          items: strToSchema(node.values[1]),
+          items: strToSchema(last),
         }
       } else if (node.children.length === 1) {
         return <RArr>{
@@ -492,7 +500,9 @@ const parseScope = (n: kdljs.Node): Readonly<Scope> => {
     }
   }
 
-  if (!req || !res) throw new Error(JSON.stringify(n))
+  const e = emptyScope()
+  req ??= e.req
+  res ??= e.res
 
   return { req, res }
 }
@@ -624,7 +634,6 @@ const parseOps = (
   scope: Scope,
   node: kdljs.Node,
 ): Partial<Record<CoreMethod, CoreOp>> => {
-  const head = node.properties.head === true
   const method = node.name as CoreMethod
 
   let name: string | undefined
@@ -665,7 +674,44 @@ const parseOps = (
   const op: CoreOp = { req, name, description, res }
   const ret: Partial<Record<CoreMethod, CoreOp>> = { [method]: op }
 
-  if (method === "GET" && head) {
+  if (node.properties.range) {
+    throw new Error("TODO ranges are not implemented")
+    node.properties.head = true
+
+    /**
+     * TODO
+     * https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
+     *
+     * multipart/byteranges; boundary=
+     *
+     * If-Range
+     * Content-Range
+     *
+     * 206 Partial Content
+     * 416 Range Not Satisfiable
+     */
+    if (method !== "GET") throw new Error(JSON.stringify(node))
+
+    const reqH: OptionalBag = op.req.headers ?? {}
+    reqH["range"] = {
+      kind: "optional",
+      schema: { type: "string", minLength: 1 },
+    }
+    op.req.headers = reqH
+
+    for (const status in op.res) {
+      const v = op.res[status as StatusCodeStr]
+      if (!v) continue
+
+      const h: OptionalBag = v.headers ?? {}
+      h["accept-ranges"] = <RString>{ type: "string", enum: ["bytes"] }
+      v.headers = h
+    }
+  }
+
+  if (node.properties.head) {
+    if (method !== "GET") throw new Error(JSON.stringify(node))
+
     op.name = name ? `get${capitalize(name)}` : undefined
 
     ret.HEAD = {
@@ -733,8 +779,7 @@ const enterScope = (
           ? (stringValue(node, 0) as URLPath)
           : ""
 
-        const thePath =
-          path.path || newPath ? mergePaths(path, parsePath(newPath)) : path
+        const thePath = mergePaths(path, parsePath(newPath))
 
         if (!isURLPath(thePath.path)) {
           throw new Error(JSON.stringify(node) + "\n" + JSON.stringify(thePath))
@@ -743,7 +788,7 @@ const enterScope = (
         const methods: Partial<Record<CoreMethod, CoreOp>> =
           paths[thePath.path] ?? {}
 
-        scope = {
+        const tempScope = {
           ...scope,
           req: {
             ...scope.req,
@@ -753,7 +798,7 @@ const enterScope = (
             },
           },
         }
-        Object.assign(methods, parseOps(scope, node))
+        Object.assign(methods, parseOps(tempScope, node))
         paths[thePath.path] = methods
 
         break
