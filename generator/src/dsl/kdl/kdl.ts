@@ -84,7 +84,7 @@ const typeName = (n: kdljs.Node): string => {
  * application/json; charset=utf-8
  * application/xml+rss
  */
-const regexForMimeType = "\\w+/.+"
+const regexForMimeType = "^\\w+/.+$"
 
 const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
   const typName = typeName(node)
@@ -174,13 +174,27 @@ const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
       return { type: "string", pattern: regexForMimeType }
 
     case "httpURL":
+      return { type: "string", format: "uri", pattern: "^https?:\\/\\/\\S+$" }
+
     case "nat32":
+      return { type: "integer", format: "int32", minimum: 0 }
+
     case "nat64":
+      return { type: "integer", format: "int64", minimum: 0 }
+
     case "email":
+      return { type: "string", format: "email" }
+
     case "hostname":
+      return { type: "string", format: "hostname" }
+
     case "seconds":
+      // TODO maybe format=seconds?
+      return { type: "integer", format: "int64" }
+
     case "utcMillis":
-      return { type: "runtime-library", name: typName }
+      // TODO maybe format=millis?
+      return { type: "integer", format: "int64" }
 
     default:
       return undefined
