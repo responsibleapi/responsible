@@ -17,7 +17,8 @@
         "properties": {
           "url": {
             "type": "string",
-            "format": "uri"
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
           },
           "opts": {
             "$ref": "#/components/schemas/YtDlOpts"

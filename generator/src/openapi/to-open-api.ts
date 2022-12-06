@@ -1,5 +1,3 @@
-import { OpenAPIV3 } from "openapi-types"
-
 import {
   CoreMethod,
   CoreMimes,
@@ -22,6 +20,7 @@ import {
   schemaGet,
   SchemaOrRef,
 } from "../core/schema"
+import { OpenAPIV3 } from "openapi-types"
 
 const toObj = (refs: CoreTypeRefs, schema: RStruct): OpenAPIV3.SchemaObject => {
   const required = Object.entries(schema.fields).flatMap(([k, v]) =>
@@ -47,12 +46,12 @@ const runtimeTypes: Record<RuntimeType, Readonly<OpenAPIV3.SchemaObject>> = {
     format: "uri",
     pattern: "^https?:\\/\\/\\S+$",
   },
-  nat32: { type: "number", format: "int32", minimum: 0 },
+  nat32: { type: "integer", format: "int32", minimum: 0 },
   email: { type: "string", format: "email" },
   hostname: { type: "string", format: "hostname" },
-  nat64: { type: "number", format: "int64", minimum: 0 },
-  seconds: { type: "number", format: "int64" },
-  utcMillis: { type: "number", format: "int64" },
+  nat64: { type: "integer", format: "int64", minimum: 0 },
+  seconds: { type: "integer", format: "int64" },
+  utcMillis: { type: "integer", format: "int64" },
   mime: { type: "string" },
 }
 
@@ -78,6 +77,7 @@ export const toSchemaOrRef = (
     }
 
     case "number":
+    case "integer":
     case "boolean":
       return schema
 

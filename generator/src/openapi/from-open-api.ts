@@ -1,4 +1,4 @@
-import { OpenAPIV3, OpenAPIV3_1 } from "openapi-types"
+import { OpenAPIV3 } from "openapi-types"
 
 import {
   CoreMethod,
@@ -28,7 +28,7 @@ const toObject = ({
   properties,
   required,
   additionalProperties,
-}: OpenAPIV3_1.NonArraySchemaObject): RSchema => {
+}: OpenAPIV3.NonArraySchemaObject): RSchema => {
   const reqSet = new Set(required ?? [])
 
   if (typeof additionalProperties === "object") {
@@ -50,7 +50,7 @@ const toObject = ({
   }
 }
 
-const toSchema = (schema: OpenAPIV3_1.SchemaObject): RSchema => {
+const toSchema = (schema: OpenAPIV3.SchemaObject): RSchema => {
   switch (schema.type) {
     case undefined:
       return { type: "unknown" }
@@ -60,7 +60,6 @@ const toSchema = (schema: OpenAPIV3_1.SchemaObject): RSchema => {
         ...schema,
         type: "string",
         format: schema.format as StringFormat,
-        pattern: schema.pattern ? new RegExp(schema.pattern) : undefined,
       }
 
     case "number":
@@ -78,7 +77,7 @@ const toSchema = (schema: OpenAPIV3_1.SchemaObject): RSchema => {
 }
 
 const toRefs = (
-  schemas: Record<string, OpenAPIV3_1.SchemaObject>,
+  schemas: Record<string, OpenAPIV3.SchemaObject>,
 ): CoreTypeRefs =>
   Object.fromEntries(Object.entries(schemas).map(([k, v]) => [k, toSchema(v)]))
 
@@ -87,11 +86,11 @@ type SchemaRef = `#/components/schemas/${string}`
 export const schemaName = (ref: SchemaRef): string =>
   ref.substring(ref.lastIndexOf("schemas/") + 8)
 
-const toProp = ({ $ref }: OpenAPIV3_1.ReferenceObject): string =>
+const toProp = ({ $ref }: OpenAPIV3.ReferenceObject): string =>
   schemaName($ref as SchemaRef)
 
 const schemaOfRef = (
-  schema?: OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject,
+  schema?: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
 ): SchemaOrRef => {
   if (!schema) throw new Error("schema")
 
@@ -99,7 +98,7 @@ const schemaOfRef = (
 }
 
 const optional = (schema: SchemaOrRef): Optional => ({
-  type: "optional",
+  kind: "optional",
   schema,
 })
 
@@ -115,7 +114,7 @@ const fromPathParam = ({ schema }: OpenAPIV3.ParameterObject): SchemaOrRef =>
 
 const toOptionalBag = (
   where: ParamWhere,
-  op: OpenAPIV3_1.OperationObject,
+  op: OpenAPIV3.OperationObject,
 ): OptionalBag =>
   Object.fromEntries(
     op.parameters?.flatMap(p =>
@@ -125,7 +124,7 @@ const toOptionalBag = (
 
 export const toRequiredBag = (
   where: "path",
-  op: OpenAPIV3_1.OperationObject,
+  op: OpenAPIV3.OperationObject,
 ): RequiredBag =>
   Object.fromEntries(
     op.parameters?.flatMap(p =>
@@ -144,7 +143,7 @@ const toResp = (r: OpenAPIV3.ResponseObject): CoreStatus => ({
   ),
 })
 
-const toOp = (op: OpenAPIV3_1.OperationObject): CoreOp => ({
+const toOp = (op: OpenAPIV3.OperationObject): CoreOp => ({
   name: op.operationId,
   req: {
     pathParams: toRequiredBag("path", op),
@@ -167,24 +166,22 @@ const toMethod = (k: OpenAPIV3.HttpMethods): CoreMethod =>
 const isMethod = (k: unknown): k is OpenAPIV3.HttpMethods =>
   typeof k === "string" && METHODS.has(k)
 
-const toOps = (item: OpenAPIV3_1.PathItemObject): Record<CoreMethod, CoreOp> =>
+const toOps = (item: OpenAPIV3.PathItemObject): Record<CoreMethod, CoreOp> =>
   Object.fromEntries(
     Object.entries(item).flatMap(([k, v]) =>
-      isMethod(k)
-        ? [[toMethod(k), toOp(v as OpenAPIV3_1.OperationObject)]]
-        : [],
+      isMethod(k) ? [[toMethod(k), toOp(v as OpenAPIV3.OperationObject)]] : [],
     ),
   ) as Record<CoreMethod, CoreOp>
 
-const toPaths = (paths: OpenAPIV3_1.PathsObject): CorePaths =>
+const toPaths = (paths: OpenAPIV3.PathsObject): CorePaths =>
   Object.fromEntries(
     Object.entries(paths).map(([k, v]) => [
       k,
-      toOps(v as OpenAPIV3_1.PathItemObject),
+      toOps(v as OpenAPIV3.PathItemObject),
     ]),
   )
 
-export const fromOpenApi = (d: OpenAPIV3_1.Document): CoreService => ({
+export const fromOpenApi = (d: OpenAPIV3.Document): CoreService => ({
   info: d.info as ServiceInfo,
   refs: toRefs(d.components?.schemas ?? {}),
   paths: toPaths(d.paths ?? {}),

@@ -49,27 +49,18 @@ struct "RecentResp" {
     plan "Plan"
 }
 
-enum "ValidationExceptionErrorType" {
-    "NO_MATCH"
-    "NOT_FOUND"
-    "UNEXPECTED_ARRAY"
-    "UNEXPECTED_SINGLE_STRING"
-    "FILE_NOT_FOUND"
-    "WRONG_CONTENT_TYPE"
-    "EMPTY_VALUE"
-    "UNEXPECTED_ARRAY_SIZE"
-    "DESERIALIZATION_ERROR"
-    "OBJECT_FIELD_NOT_FOUND"
-    "JSON_NOT_PARSABLE"
-    "JSON_INVALID"
-    "XML_INVALID"
-}
-
 struct "ErrorStruct" {
-    type "ValidationExceptionErrorType"
-    name "string"
-    value "string"
+    errorType "enum" {
+        PARSING_ERROR
+        VALIDATION_ERROR
+        MISSING_MATCHING_BODY_PROCESSOR
+    }
     (?)message "string"
+
+    (?)keyword "string"
+    (?)input "unknown"
+    (?)schema "struct"
+    (?)inputScope "string"
 }
 
 struct "ITunesCategory" {
@@ -174,7 +165,7 @@ struct "LoginReq" {
     host "hostname"
 }
 
-GET "/api/health" {
+GET "/api/health" head=true {
     name "health"
 
     res {
@@ -188,12 +179,19 @@ GET "/api/health" {
         req {
             mime "application/json"
         }
+
         res {
-            mime "application/json"
+        // matches codes then adds contents
+            "200..299" {
+                mime "application/json"
+                header "Content-Length" "int32" minimum=1
+            }
 
-            header "Content-Length" "int32" minimum=1
-
-            "400" "ErrorStruct"
+        // adds a code
+            "400" {
+                header "Content-Length" "int32" minimum=1
+                body "application/json" "ErrorStruct"
+            }
         }
     }
 
@@ -241,7 +239,7 @@ GET "/api/health" {
         res {
             "200" "struct" {
                 showID "ShowID"
-                plan "Plan"
+                (?)plan "Plan"
             }
 
             "401" "unknown"
@@ -515,7 +513,7 @@ GET "/api/health" {
 
 "/oauth/google" {
 
-    GET "/" {
+    GET {
         name "googleSlash"
 
         res {
@@ -578,10 +576,18 @@ GET "/rss/:show_id(ShowID)/:type(AudioVideo).rss" head=true {
             headers {
                 "Content-Length" "int32" minimum=1
                 "ETag" "string" minLength=1
+                (?)"Last-Modified" "string" minLength=1
+            // TODO const
+                "Cache-Control" "string" minLength=1
+                "CDN-Cache-Control" "string" minLength=1
             }
             body "application/rss+xml" "string" minLength=1
         }
-
+        "302" {
+            header "Location" "httpURL"
+        }
+        "400" "unknown"
+        "403" "unknown"
         "404" "unknown"
     }
 }
@@ -607,7 +613,7 @@ type "NonEmptyString" "string" minLength=1
 //}
 
 GET "/w/:item_id(ItemID).:ext(NonEmptyString)" head=true {
-    name "getVideo"
+    name "video"
 
     req {
         (?)header "CF-Connecting-IP" "string" minLength=1

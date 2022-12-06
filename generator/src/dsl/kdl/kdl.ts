@@ -20,7 +20,7 @@ import {
   OptionalBag,
   RArr,
   RequiredBag,
-  RNum,
+  RInt,
   RSchema,
   RString,
   RStruct,
@@ -128,7 +128,7 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
 
     case "int32":
     case "int64":
-      return <RNum>{ ...node.properties, type: "number", format: typName }
+      return <RInt>{ ...node.properties, type: "integer", format: typName }
 
     case "dict": {
       if (

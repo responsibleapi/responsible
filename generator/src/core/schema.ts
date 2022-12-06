@@ -69,11 +69,20 @@ export interface RStruct {
   fields: OptionalBag
 }
 
-export type NumFormat = "int32" | "int64" | "float" | "double"
+export type NumFormat = "float" | "double"
 
 export interface RNum {
   type: "number"
   format?: NumFormat
+  minimum?: number
+  maximum?: number
+  range?: Range
+  enum?: Array<number>
+}
+
+export interface RInt {
+  type: "integer"
+  format?: "int32" | "int64"
   minimum?: number
   maximum?: number
   range?: Range
@@ -99,6 +108,7 @@ export type RuntimeType =
 export type RSchema =
   | RString
   | RNum
+  | RInt
   | { type: "boolean" }
   | { type: "unknown" }
   | { type: "array"; items: SchemaOrRef }

@@ -10,9 +10,9 @@
     "pkg": "^5.8.0"
   },
   "scripts": {
-    "esb": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node18 --minify",
+    "esb": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node18 --minify --sourcemap",
     "build": "yarn esb && pkg package.json",
-    "start": "yarn esb && node dist/index.js ../generator/tryout/listenbox.kdl"
+    "start": "yarn esb && node --enable-source-maps dist/index.js ../generator/tryout/listenbox.kdl | pbcopy"
   },
   "pkg": {
     "targets": [

@@ -1,5 +1,5 @@
-import { OpenAPIV3, OpenAPIV3_1 } from "openapi-types"
 import { compareParams } from "../to-open-api"
+import { OpenAPIV3 } from "openapi-types"
 import fc from "fast-check"
 
 const oneOf = <T>(arr: ReadonlyArray<T>): fc.Arbitrary<T> =>
@@ -8,7 +8,7 @@ const oneOf = <T>(arr: ReadonlyArray<T>): fc.Arbitrary<T> =>
 const optional = <T>(a: fc.Arbitrary<T>): fc.Arbitrary<T | undefined> =>
   fc.option(a, { nil: undefined })
 
-const arbStr = (): fc.Arbitrary<OpenAPIV3_1.NonArraySchemaObject> =>
+const arbStr = (): fc.Arbitrary<OpenAPIV3.NonArraySchemaObject> =>
   fc.record({
     type: fc.constant("string"),
     format: optional(
@@ -31,7 +31,7 @@ const arbStr = (): fc.Arbitrary<OpenAPIV3_1.NonArraySchemaObject> =>
     enum: optional(distinctArray(fc.string())),
   })
 
-const arbNum = (): fc.Arbitrary<OpenAPIV3_1.NonArraySchemaObject> =>
+const arbNum = (): fc.Arbitrary<OpenAPIV3.NonArraySchemaObject> =>
   fc.record({
     type: fc.constant("number"),
     format: optional(oneOf(["int32", "int64", "float", "double"])),
@@ -40,16 +40,16 @@ const arbNum = (): fc.Arbitrary<OpenAPIV3_1.NonArraySchemaObject> =>
   })
 
 const arbArr = (
-  items: fc.Arbitrary<OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject>,
-): fc.Arbitrary<OpenAPIV3_1.ArraySchemaObject> =>
+  items: fc.Arbitrary<OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject>,
+): fc.Arbitrary<OpenAPIV3.ArraySchemaObject> =>
   fc.record({
     type: fc.constant("array"),
     items,
   })
 
 const arbRef = (
-  schemas: Record<string, OpenAPIV3_1.SchemaObject>,
-): fc.Arbitrary<OpenAPIV3_1.ReferenceObject> =>
+  schemas: Record<string, OpenAPIV3.SchemaObject>,
+): fc.Arbitrary<OpenAPIV3.ReferenceObject> =>
   fc.record({
     $ref: oneOf(Object.keys(schemas)).map(
       k => `#/components/schemas/${k}` as const,
@@ -57,9 +57,9 @@ const arbRef = (
   })
 
 const schemaOrRef = (
-  schemas: Record<string, OpenAPIV3_1.SchemaObject>,
-  items: fc.Arbitrary<OpenAPIV3_1.SchemaObject>,
-): fc.Arbitrary<OpenAPIV3_1.ReferenceObject | OpenAPIV3.SchemaObject> =>
+  schemas: Record<string, OpenAPIV3.SchemaObject>,
+  items: fc.Arbitrary<OpenAPIV3.SchemaObject>,
+): fc.Arbitrary<OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject> =>
   // @ts-ignore foo bar baz
   Object.keys(schemas).length ? fc.oneof(items, arbRef(schemas)) : items
 
@@ -71,8 +71,8 @@ const distinctArray = <T>(arb: fc.Arbitrary<T>): fc.Arbitrary<Array<T>> =>
   })
 
 const arbStruct = (
-  items: fc.Arbitrary<OpenAPIV3_1.SchemaObject | OpenAPIV3_1.ReferenceObject>,
-): fc.Arbitrary<OpenAPIV3_1.SchemaObject> =>
+  items: fc.Arbitrary<OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject>,
+): fc.Arbitrary<OpenAPIV3.SchemaObject> =>
   fc.dictionary(nonEmptyStr(), items, { minKeys: 1 }).chain(props => {
     const propsKs = Object.keys(props)
     return fc.record({
@@ -88,9 +88,9 @@ const arbUnknown = (): fc.Arbitrary<OpenAPIV3.NonArraySchemaObject> =>
   fc.constant({ nullable: true })
 
 const arbSchema = (
-  schemas: Record<string, OpenAPIV3_1.SchemaObject>,
-): fc.Arbitrary<OpenAPIV3_1.SchemaObject> =>
-  fc.letrec<{ schema: OpenAPIV3_1.SchemaObject }>(tie => ({
+  schemas: Record<string, OpenAPIV3.SchemaObject>,
+): fc.Arbitrary<OpenAPIV3.SchemaObject> =>
+  fc.letrec<{ schema: OpenAPIV3.SchemaObject }>(tie => ({
     schema: fc.oneof(
       arbUnknown(),
       arbStr(),
@@ -103,12 +103,12 @@ const arbSchema = (
 const arbPath = () =>
   fc.array(fc.webSegment()).map(a => `/${a.join("/")}` as const)
 
-const arbMethod = (): fc.Arbitrary<OpenAPIV3_1.HttpMethods> =>
+const arbMethod = (): fc.Arbitrary<OpenAPIV3.HttpMethods> =>
   oneOf(Object.values(OpenAPIV3.HttpMethods))
 
 const arbOptParam = (
-  schemas: Record<string, OpenAPIV3_1.SchemaObject>,
-): fc.Arbitrary<OpenAPIV3_1.ParameterObject> =>
+  schemas: Record<string, OpenAPIV3.SchemaObject>,
+): fc.Arbitrary<OpenAPIV3.ParameterObject> =>
   fc.record({
     name: nonEmptyStr(),
     in: oneOf(["header", "query", "cookie"]),
@@ -117,8 +117,8 @@ const arbOptParam = (
   })
 
 const arbPathParam = (
-  schemas: Record<string, OpenAPIV3_1.SchemaObject>,
-): fc.Arbitrary<OpenAPIV3_1.ParameterObject> =>
+  schemas: Record<string, OpenAPIV3.SchemaObject>,
+): fc.Arbitrary<OpenAPIV3.ParameterObject> =>
   fc.record({
     name: nonEmptyStr(),
     in: fc.constant("path"),
@@ -127,8 +127,8 @@ const arbPathParam = (
   })
 
 const arbHeader = (
-  schemas: Record<string, OpenAPIV3_1.SchemaObject>,
-): fc.Arbitrary<OpenAPIV3_1.HeaderObject> =>
+  schemas: Record<string, OpenAPIV3.SchemaObject>,
+): fc.Arbitrary<OpenAPIV3.HeaderObject> =>
   fc.record({
     required: oneOf([true, undefined]),
     schema: schemaOrRef(schemas, arbSchema(schemas)),
@@ -138,8 +138,8 @@ const nonEmptyStr = (): fc.Arbitrary<string> => fc.string({ minLength: 1 })
 
 const arbResponse = (
   status: number,
-  schemas: Record<string, OpenAPIV3_1.SchemaObject>,
-): fc.Arbitrary<OpenAPIV3_1.ResponseObject> =>
+  schemas: Record<string, OpenAPIV3.SchemaObject>,
+): fc.Arbitrary<OpenAPIV3.ResponseObject> =>
   fc.record({
     description: fc.constant(String(status)),
     headers: fc.dictionary(nonEmptyStr(), arbHeader(schemas)),
@@ -150,8 +150,8 @@ const arbResponse = (
   })
 
 const arbOp = (
-  schemas: Record<string, OpenAPIV3_1.SchemaObject>,
-): fc.Arbitrary<OpenAPIV3_1.OperationObject> =>
+  schemas: Record<string, OpenAPIV3.SchemaObject>,
+): fc.Arbitrary<OpenAPIV3.OperationObject> =>
   fc.record({
     operationId: optional(nonEmptyStr()),
     parameters: fc
@@ -173,9 +173,9 @@ const arbOp = (
       ),
   })
 
-export const arbOpenApiDoc = (): fc.Arbitrary<OpenAPIV3_1.Document> =>
+export const arbOpenApiDoc = (): fc.Arbitrary<OpenAPIV3.Document> =>
   fc.dictionary(nonEmptyStr(), arbSchema({})).chain(schemas =>
-    fc.record<OpenAPIV3_1.Document>({
+    fc.record<OpenAPIV3.Document>({
       openapi: fc.constant("3.1.0"),
       info: fc.record({
         title: nonEmptyStr(),
