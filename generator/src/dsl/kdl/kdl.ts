@@ -14,19 +14,9 @@ import {
   StatusCodeStr,
   URLPath,
 } from "../../core/core"
-import {
-  Mime,
-  Optional,
-  OptionalBag,
-  RArr,
-  RequiredBag,
-  RInt,
-  RSchema,
-  RString,
-  RStruct,
-  SchemaOrRef,
-} from "../../core/schema"
+import { Mime, OptionalBag, RequiredBag, RString } from "../../core/schema"
 import { mergePaths, parsePath, TypedPath } from "./path"
+import { OpenAPIV3 } from "openapi-types"
 import { kdljs } from "kdljs"
 
 const stringValue = (node: kdljs.Node, idx: number): string => {
@@ -50,29 +40,27 @@ const toJSObj = <T>(n: kdljs.Node, keys?: Set<keyof T>): T =>
 const toInfo = (node: kdljs.Node): ServiceInfo =>
   toJSObj(node, new Set(["title", "version", "termsOfService"]))
 
-const strToSchema = (name: string): SchemaOrRef =>
-  nodeToSchemaOrRef({
-    name,
-    values: [],
-    properties: {},
-    children: [],
-    tags: { name: "", values: [], properties: {} },
-  })
+const toNode = (name: string) => ({
+  name,
+  values: [],
+  properties: {},
+  children: [],
+  tags: { name: "", values: [], properties: {} },
+})
+
+const strToSchema = (
+  name: string,
+): OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject =>
+  nodeToSchemaOrRef(toNode(name))
 
 const TAG_OPTIONAL = "?"
 
-const toStruct = (node: kdljs.Node): RStruct => ({
+const toStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
   type: "object",
-  fields: Object.fromEntries(
-    node.children.map(c => {
-      const schema = nodeToSchemaOrRef(c)
-
-      return [
-        c.name,
-        c.tags.name === TAG_OPTIONAL ? { kind: "optional", schema } : schema,
-      ]
-    }),
+  properties: Object.fromEntries(
+    node.children.map(x => [x.name, nodeToSchemaOrRef(x)]),
   ),
+  required: node.children.flatMap(x => (isOptional(x) ? [x.name] : [])),
 })
 
 const typeName = (n: kdljs.Node): string => {
@@ -91,12 +79,19 @@ const typeName = (n: kdljs.Node): string => {
   return last
 }
 
-const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
+/**
+ * application/json
+ * application/json; charset=utf-8
+ * application/xml+rss
+ */
+const regexForMimeType = "\\w+/.+"
+
+const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
   const typName = typeName(node)
 
   switch (typName) {
     case "unknown":
-      return { type: "unknown" }
+      return { nullable: true }
 
     case "enum":
       return toEnum(node)
@@ -105,7 +100,7 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
       return toStruct(node)
 
     case "dateTime": {
-      return <RString>{
+      return <OpenAPIV3.NonArraySchemaObject>{
         ...node.properties,
         type: "string",
         format: "date-time",
@@ -113,33 +108,43 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
     }
 
     case "string": {
-      const length = node.properties.length
-      return <RString>{
+      const length = parseInt(String(node.properties.length)) || undefined
+
+      return <OpenAPIV3.NonArraySchemaObject>{
         minLength: length,
         maxLength: length,
         ...node.properties,
-        length: undefined,
         type: "string",
       }
     }
 
     case "boolean":
-      return { ...node.properties, type: "boolean" }
+      return <OpenAPIV3.NonArraySchemaObject>{
+        ...node.properties,
+        type: "boolean",
+      }
 
     case "int32":
     case "int64":
-      return <RInt>{ ...node.properties, type: "integer", format: typName }
+      return <OpenAPIV3.NonArraySchemaObject>{
+        ...node.properties,
+        type: "integer",
+        format: typName,
+      }
 
     case "dict": {
       if (
         typeof node.values[1] === "string" &&
         typeof node.values[2] === "string"
       ) {
-        return {
+        if (typeName(toNode(node.values[1])) !== "string") {
+          throw new Error("only string keys are supported")
+        }
+
+        return <OpenAPIV3.NonArraySchemaObject>{
           ...node.properties,
-          type: "dict",
-          k: strToSchema(node.values[1]),
-          v: strToSchema(node.values[2]),
+          type: "object",
+          additionalProperties: strToSchema(node.values[2]),
         }
       } else {
         throw new Error(JSON.stringify(node))
@@ -149,13 +154,13 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
     case "array": {
       const last = node.values[node.values.length - 1]
       if (typeof last === "string" && last !== "array") {
-        return <RArr>{
+        return <OpenAPIV3.ArraySchemaObject>{
           ...node.properties,
           type: "array",
           items: strToSchema(last),
         }
       } else if (node.children.length === 1) {
-        return <RArr>{
+        return <OpenAPIV3.ArraySchemaObject>{
           ...node.properties,
           type: "array",
           items: nodeToSchemaOrRef(node.children[0]),
@@ -166,6 +171,8 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
     }
 
     case "mime":
+      return { type: "string", pattern: regexForMimeType }
+
     case "httpURL":
     case "nat32":
     case "nat64":
@@ -180,18 +187,22 @@ const nodeToSchema = (node: kdljs.Node): RSchema | undefined => {
   }
 }
 
-const nodeToSchemaOrRef = (node: kdljs.Node): SchemaOrRef =>
-  nodeToSchema(node) ?? typeName(node)
+const nodeToSchemaOrRef = (
+  node: kdljs.Node,
+): OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject =>
+  nodeToSchema(node) ?? { $ref: typeName(node) }
 
 export const toRequiredBag = (types: Record<string, string>): RequiredBag =>
   Object.fromEntries(
     Object.entries(types).map(([k, v]) => [k, nodeToSchemaOrRef(mkNode(v))]),
   )
 
-const optionalSchema = (node: kdljs.Node): SchemaOrRef | Optional => {
-  const schema = nodeToSchemaOrRef(node)
-  return node.tags.name === TAG_OPTIONAL ? { kind: "optional", schema } : schema
-}
+const isOptional = (node: kdljs.Node): boolean =>
+  node.tags.name === TAG_OPTIONAL
+
+const isSchema = (
+  x: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
+): x is OpenAPIV3.SchemaObject => !("$ref" in x)
 
 interface ScopeRes {
   mime?: Mime
@@ -344,7 +355,7 @@ const parseCoreRes = (scope: ScopeRes, res: kdljs.Node): CoreRes => {
 const parseCoreBody = (
   scope: { mime?: Mime },
   n: kdljs.Node,
-): [Mime, SchemaOrRef] => {
+): [Mime, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject] => {
   const orRef = nodeToSchemaOrRef(n)
 
   const mime: Mime | undefined =
@@ -371,7 +382,9 @@ const parseCoreStatus = (
 
   const headers: OptionalBag = {}
   const cookies: OptionalBag = {}
-  const body: Array<[Mime, SchemaOrRef]> = []
+  const body: Array<
+    [Mime, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject]
+  > = []
 
   for (const statusChild of statusNode.children) {
     switch (statusChild.name) {
@@ -507,7 +520,7 @@ const parseScope = (n: kdljs.Node): Readonly<Scope> => {
   return { req, res }
 }
 
-const toEnum = (node: kdljs.Node): RString => ({
+const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
   type: "string",
   enum: node.children.map(x => x.name),
 })
@@ -574,7 +587,9 @@ const parseCoreReq = (scope: ScopeReq, n: kdljs.Node): CoreReq => {
   const headers: OptionalBag = {}
   const pathParams: RequiredBag = {}
   const query: OptionalBag = {}
-  const body: Array<[Mime, SchemaOrRef]> = []
+  const body: Array<
+    [Mime, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject]
+  > = []
 
   for (const c of n.children) {
     switch (c.name) {
@@ -676,37 +691,6 @@ const parseOps = (
 
   if (node.properties.range) {
     throw new Error("TODO ranges are not implemented")
-    node.properties.head = true
-
-    /**
-     * TODO
-     * https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
-     *
-     * multipart/byteranges; boundary=
-     *
-     * If-Range
-     * Content-Range
-     *
-     * 206 Partial Content
-     * 416 Range Not Satisfiable
-     */
-    if (method !== "GET") throw new Error(JSON.stringify(node))
-
-    const reqH: OptionalBag = op.req.headers ?? {}
-    reqH["range"] = {
-      kind: "optional",
-      schema: { type: "string", minLength: 1 },
-    }
-    op.req.headers = reqH
-
-    for (const status in op.res) {
-      const v = op.res[status as StatusCodeStr]
-      if (!v) continue
-
-      const h: OptionalBag = v.headers ?? {}
-      h["accept-ranges"] = <RString>{ type: "string", enum: ["bytes"] }
-      v.headers = h
-    }
   }
 
   if (node.properties.head) {
@@ -721,6 +705,41 @@ const parseOps = (
   }
 
   return ret
+}
+
+const TODOrangeSupport = (node: kdljs.Node): void => {
+  node.properties.head = true
+  const method = node.name as CoreMethod
+
+  /**
+   * TODO
+   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
+   *
+   * multipart/byteranges; boundary=
+   *
+   * If-Range
+   * Content-Range
+   *
+   * 206 Partial Content
+   * 416 Range Not Satisfiable
+   */
+  if (method !== "GET") throw new Error(JSON.stringify(node))
+
+  const reqH: OptionalBag = op.req.headers ?? {}
+  reqH["range"] = {
+    kind: "optional",
+    schema: { type: "string", minLength: 1 },
+  }
+  op.req.headers = reqH
+
+  for (const status in op.res) {
+    const v = op.res[status as StatusCodeStr]
+    if (!v) continue
+
+    const h: OptionalBag = v.headers ?? {}
+    h["accept-ranges"] = <RString>{ type: "string", enum: ["bytes"] }
+    v.headers = h
+  }
 }
 
 const enterScope = (
