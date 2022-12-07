@@ -1180,9 +1180,9 @@
     "@lezer/highlight" "^1.0.0"
 
 "@codemirror/view@^6.0.0", "@codemirror/view@^6.6.0":
-  version "6.6.0"
-  resolved "https://registry.yarnpkg.com/@codemirror/view/-/view-6.6.0.tgz#d89a24912ae2f4b9d7bd430c7804c25c5e32838c"
-  integrity sha512-40VaFVZI3rkyjO5GHFAbNwaW+YgZexjKyx5gxLU2DvfuXAEZX0kW0apOXb0SBRLnKIQJ+U/n2nPfxgBVFHERrg==
+  version "6.7.0"
+  resolved "https://registry.yarnpkg.com/@codemirror/view/-/view-6.7.0.tgz#37a9ffafcaab2a1aa90bb17a83e35fd9a7ef9efb"
+  integrity sha512-sI3CngHQlguxAquc2oZ4sMFDgTJiCnKkRcFmw5apqcnNLvQfQtEDIlYvCVl1adJ6UV7ZUV9wOdqkeJ8kz2+5gg==
   dependencies:
     "@codemirror/state" "^6.1.4"
     style-mod "^4.0.0"
@@ -1997,10 +1997,10 @@
     "@typescript-eslint/types" "5.45.1"
     eslint-visitor-keys "^3.3.0"
 
-"@uiw/codemirror-extensions-basic-setup@4.17.1":
-  version "4.17.1"
-  resolved "https://registry.yarnpkg.com/@uiw/codemirror-extensions-basic-setup/-/codemirror-extensions-basic-setup-4.17.1.tgz#22f084ac33f930545c4e54b8b151f74c4fd2cdf3"
-  integrity sha512-lFH3gFPcpKDckaioYL2KonTYeeoP7gGtaDtDai7DV5UVEyuVPlkGukKCmHz6u0ol/Krs/RTbF4ylt8cDlBT1uA==
+"@uiw/codemirror-extensions-basic-setup@4.19.1":
+  version "4.19.1"
+  resolved "https://registry.yarnpkg.com/@uiw/codemirror-extensions-basic-setup/-/codemirror-extensions-basic-setup-4.19.1.tgz#c7d64a6550b05480009a147e69f7f8c0d196d066"
+  integrity sha512-IqNuCj0qBYUYUP3q6SiudyT7jlVJMbKGkXevHXCkYy0obXAD/mcc5WIZSgRxXnBhSWg4nm7t1gDWqMER8JYV2Q==
   dependencies:
     "@codemirror/autocomplete" "^6.0.0"
     "@codemirror/commands" "^6.0.0"
@@ -2011,15 +2011,15 @@
     "@codemirror/view" "^6.0.0"
 
 "@uiw/react-codemirror@^4.15.1":
-  version "4.17.1"
-  resolved "https://registry.yarnpkg.com/@uiw/react-codemirror/-/react-codemirror-4.17.1.tgz#1051a31923c997f6567d2021fce12238304bfd50"
-  integrity sha512-ah7wFhvVW/uKbQR5D12AqDK51XGZaZI1WYO9/sraZzq32TGphL5BU3vcQd1P0YEZR6YLc23+KWNi2DCQ+EEAbA==
+  version "4.19.1"
+  resolved "https://registry.yarnpkg.com/@uiw/react-codemirror/-/react-codemirror-4.19.1.tgz#47837014e2b6ee158889cd31f25d5edaaccbb17e"
+  integrity sha512-5lvmYxaTCby2FckwtTtNbNffE6ZWq72qAgkyY/zzO6w5vU7jFiF1Q4pNdbgKcroIY6RArTHN/b1MwnT9BsEQpg==
   dependencies:
     "@babel/runtime" "^7.18.6"
     "@codemirror/commands" "^6.1.0"
     "@codemirror/state" "^6.1.1"
     "@codemirror/theme-one-dark" "^6.0.0"
-    "@uiw/codemirror-extensions-basic-setup" "4.17.1"
+    "@uiw/codemirror-extensions-basic-setup" "4.19.1"
     codemirror "^6.0.0"
 
 "@web3-storage/multipart-parser@^1.0.0":
@@ -3090,6 +3090,11 @@ deep-is@^0.1.3, deep-is@~0.1.3:
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/deep-is/-/deep-is-0.1.4.tgz#a6f2dce612fadd2ef1f519b73551f17e85199831"
   integrity sha512-oIPzksmTg4/MriiaYGO+okXDT7ztn/w3Eptv/+gSIdMdKsJo0u4CfYNFJPy+4SKMuCqGw2wxnA+URMg3t8a/bQ==
+
+deepmerge-ts@^4.2.2:
+  version "4.2.2"
+  resolved "https://registry.yarnpkg.com/deepmerge-ts/-/deepmerge-ts-4.2.2.tgz#582bf34a37592dc8274b137617b539f871aaf11a"
+  integrity sha512-Ka3Kb21tiWjvQvS9U+1Dx+aqFAHsdTnMdYptLTmC2VAmDFMugWMY1e15aTODstipmCun8iNuqeSfcx6rsUUk0Q==
 
 defaults@^1.0.3:
   version "1.0.4"
@@ -8820,9 +8825,9 @@ vite@^3.0.0:
     fsevents "~2.3.2"
 
 vitest@^0.25.0:
-  version "0.25.4"
-  resolved "https://registry.yarnpkg.com/vitest/-/vitest-0.25.4.tgz#11134b4c9199ed64bd5cc2945d98435381c50ef9"
-  integrity sha512-v/qoSEYPrf8qa1CbKIKYK+1GGmPPEJyXFbkuD6jhh080cfNBsuUDAdMu6hV2h9Uv34EMiUrVETL/wB+EHxFtbA==
+  version "0.25.5"
+  resolved "https://registry.yarnpkg.com/vitest/-/vitest-0.25.5.tgz#efb8bf0dc0438af11346cb8ecde47cd5ad830934"
+  integrity sha512-lFKSTZV+AjuL44/yNC0aDPKTiasYSqOQ97Gg2G4P2LnjyzQ21ZUs4rQOscHK3lrSnVuir3+1QavHzbDgH4tWQA==
   dependencies:
     "@types/chai" "^4.3.3"
     "@types/chai-subset" "^1.3.3"
@@ -8932,9 +8937,9 @@ word-wrap@^1.2.3, word-wrap@~1.2.3:
   integrity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
 
 wrangler@^2.2.1:
-  version "2.6.0"
-  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-2.6.0.tgz#7b4124228cb565ef6c32f070027b44c2e4cc55f8"
-  integrity sha512-ktAH4lwOfl3cjNzgURiT9Au3ZOB5wMibbCJZ6cWSavhC4ctrsEc6FTi19h3cYHjNhDFCipj9UUuKPG/eeYWlzw==
+  version "2.6.1"
+  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-2.6.1.tgz#e80d667044501165cad760058a67af67a932d54f"
+  integrity sha512-v0Kh8KQC33xP82pGXZ+67pJMQIx0CHI+gF2nLIcdZbrB0wAQLQ6lsQYS9UpuTupQg4+RetHToDwk+lzRM0J0cQ==
   dependencies:
     "@cloudflare/kv-asset-handler" "^0.2.0"
     "@esbuild-plugins/node-globals-polyfill" "^0.1.1"

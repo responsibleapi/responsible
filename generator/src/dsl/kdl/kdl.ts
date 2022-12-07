@@ -1,23 +1,27 @@
-import {
-  CoreMethod,
-  CoreMimes,
-  CoreOp,
-  CorePaths,
-  CoreReq,
-  CoreRes,
-  CoreServer,
-  CoreService,
-  CoreStatus,
-  CoreTypeRefs,
-  isURLPath,
-  ServiceInfo,
-  StatusCodeStr,
-  URLPath,
-} from "../../core/core"
-import { Mime, OptionalBag, RequiredBag, RString } from "../../core/schema"
 import { mergePaths, parsePath, TypedPath } from "./path"
 import { OpenAPIV3 } from "openapi-types"
 import { kdljs } from "kdljs"
+
+export type Mime = `${string}/${string}`
+
+export const isMime = (x: unknown): x is Mime =>
+  typeof x === "string" && x.length > 2 && x.includes("/")
+
+type StatusCode1 = "1" | "2" | "3" | "4" | "5"
+type DigitStr = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
+export type StatusCodeStr = `${StatusCode1}${DigitStr}${DigitStr}`
+
+export const toStatusCode = (code: number): StatusCodeStr => {
+  if (code >= 100 && code <= 599) {
+    return String(code) as StatusCodeStr
+  } else {
+    throw new Error(`Invalid status code: ${code}`)
+  }
+}
+
+type CoreMethod = "GET" | "HEAD" | "DELETE" | "POST" | "PUT" | "PATCH"
+
+type SchemaOrRef = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 
 const stringValue = (node: kdljs.Node, idx: number): string => {
   const v = node.values[idx]
@@ -37,10 +41,13 @@ const toJSObj = <T>(n: kdljs.Node, keys?: Set<keyof T>): T =>
     }),
   ) as T
 
-const toInfo = (node: kdljs.Node): ServiceInfo =>
-  toJSObj(node, new Set(["title", "version", "termsOfService"]))
+const toInfo = (node: kdljs.Node): OpenAPIV3.InfoObject =>
+  toJSObj(
+    node,
+    new Set(["title", "version", "termsOfService", "description", "license"]),
+  )
 
-const toNode = (name: string) => ({
+const toNode = (name: string): kdljs.Node => ({
   name,
   values: [],
   properties: {},
@@ -48,9 +55,7 @@ const toNode = (name: string) => ({
   tags: { name: "", values: [], properties: {} },
 })
 
-const strToSchema = (
-  name: string,
-): OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject =>
+const strToSchema = (name: string): SchemaOrRef =>
   nodeToSchemaOrRef(toNode(name))
 
 const TAG_OPTIONAL = "?"
@@ -79,13 +84,6 @@ const typeName = (n: kdljs.Node): string => {
   return last
 }
 
-/**
- * application/json
- * application/json; charset=utf-8
- * application/xml+rss
- */
-const regexForMimeType = "^\\w+/.+$"
-
 const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
   const typName = typeName(node)
 
@@ -108,9 +106,10 @@ const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
     }
 
     case "string": {
-      const length = parseInt(String(node.properties.length)) || undefined
+      const parsed = parseInt(String(node.properties.length))
+      const length = isNaN(parsed) ? undefined : parsed
 
-      return <OpenAPIV3.NonArraySchemaObject>{
+      return {
         minLength: length,
         maxLength: length,
         ...node.properties,
@@ -119,18 +118,11 @@ const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
     }
 
     case "boolean":
-      return <OpenAPIV3.NonArraySchemaObject>{
-        ...node.properties,
-        type: "boolean",
-      }
+      return { ...node.properties, type: "boolean" }
 
     case "int32":
     case "int64":
-      return <OpenAPIV3.NonArraySchemaObject>{
-        ...node.properties,
-        type: "integer",
-        format: typName,
-      }
+      return { ...node.properties, type: "integer", format: typName }
 
     case "dict": {
       if (
@@ -141,7 +133,7 @@ const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
           throw new Error("only string keys are supported")
         }
 
-        return <OpenAPIV3.NonArraySchemaObject>{
+        return {
           ...node.properties,
           type: "object",
           additionalProperties: strToSchema(node.values[2]),
@@ -170,17 +162,30 @@ const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
       }
     }
 
+    case "binary":
+      return { type: "string", format: "binary" }
+
     case "mime":
-      return { type: "string", pattern: regexForMimeType }
+      return { type: "string", pattern: "^[a-z]+/.+$" }
 
     case "httpURL":
       return { type: "string", format: "uri", pattern: "^https?:\\/\\/\\S+$" }
 
     case "nat32":
-      return { type: "integer", format: "int32", minimum: 0 }
+      return {
+        type: "integer",
+        format: "int32",
+        minimum: 0,
+        ...node.properties,
+      }
 
     case "nat64":
-      return { type: "integer", format: "int64", minimum: 0 }
+      return {
+        type: "integer",
+        format: "int64",
+        minimum: 0,
+        ...node.properties,
+      }
 
     case "email":
       return { type: "string", format: "email" }
@@ -201,38 +206,35 @@ const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
   }
 }
 
-const nodeToSchemaOrRef = (
-  node: kdljs.Node,
-): OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject =>
-  nodeToSchema(node) ?? { $ref: typeName(node) }
+const nodeToSchemaOrRef = (n: kdljs.Node): SchemaOrRef =>
+  nodeToSchema(n) ?? { $ref: `#/components/schemas/${typeName(n)}` }
 
-export const toRequiredBag = (types: Record<string, string>): RequiredBag =>
-  Object.fromEntries(
-    Object.entries(types).map(([k, v]) => [k, nodeToSchemaOrRef(mkNode(v))]),
-  )
+// export const toRequiredBag = (types: Record<string, string>): RequiredBag =>
+//   Object.fromEntries(
+//     Object.entries(types).map(([k, v]) => [k, nodeToSchemaOrRef(mkNode(v))]),
+//   )
 
 const isOptional = (node: kdljs.Node): boolean =>
   node.tags.name === TAG_OPTIONAL
 
-const isSchema = (
-  x: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
-): x is OpenAPIV3.SchemaObject => !("$ref" in x)
+const isRef = (x: unknown): x is OpenAPIV3.ReferenceObject =>
+  !!x && typeof x === "object" && "$ref" in x
 
-interface ScopeRes {
+const isSchema = (x: SchemaOrRef): x is OpenAPIV3.SchemaObject => !isRef(x)
+
+type ScopeResK = "*" | StatusCodeStr | `${string}..${string}`
+
+interface ScopeResV {
   mime?: Mime
-
-  headers: OptionalBag
-  cookies: OptionalBag
-
-  codes: CoreRes
+  headers: Array<[string, OpenAPIV3.HeaderObject]>
+  bodies: Array<[Mime | "*", SchemaOrRef]>
 }
+
+type ScopeRes = Partial<Record<ScopeResK, ScopeResV>>
 
 interface ScopeReq {
   mime?: Mime
-  headers: OptionalBag
-  cookies: OptionalBag
-  query: OptionalBag
-  pathParams: RequiredBag
+  parameters: Array<OpenAPIV3.ParameterObject>
   // security: {}
 }
 
@@ -243,87 +245,82 @@ interface Scope {
 }
 
 const emptyScope = (): Scope => ({
-  req: {
-    headers: {},
-    cookies: {},
-    query: {},
-    pathParams: {},
-  },
-  res: {
-    headers: {},
-    codes: {},
-    cookies: {},
-  },
+  req: { parameters: [] },
+  res: {},
 })
 
-const mergeScopes = (
-  ...arr: ReadonlyArray<Scope | undefined>
-): Readonly<Scope> => {
-  const ret: Scope = emptyScope()
+const mergeScopeResVs = (arr: ScopeResV[]): ScopeResV => ({
+  mime: arr.reduce((acc, x) => x.mime ?? acc, undefined as Mime | undefined),
+  headers: arr.flatMap(x => x.headers),
+  bodies: arr.flatMap(x => x.bodies),
+})
 
-  for (const opts of arr) {
-    if (!opts) continue
+const unq = <T extends string | number>(
+  arr: ReadonlyArray<T>,
+): ReadonlyArray<T> => [...new Set(arr)]
 
-    ret.req.mime = opts.req.mime ?? ret.req.mime
-    Object.assign(ret.req.headers, opts.req.headers)
-    Object.assign(ret.req.cookies, opts.req.cookies)
-    Object.assign(ret.req.query, opts.req.query)
-    Object.assign(ret.req.pathParams, opts.req.pathParams)
+const mergeScopeReses = (arr: ScopeRes[]): ScopeRes =>
+  Object.fromEntries(
+    unq(arr.flatMap(x => Object.keys(x) as ScopeResK[])).map(k => [
+      k,
+      mergeScopeResVs(
+        arr.flatMap(x => {
+          const scopeResV = x[k]
+          return scopeResV ? [scopeResV] : []
+        }),
+      ),
+    ]),
+  )
 
-    ret.res.mime = opts.res.mime ?? ret.res.mime
-    Object.assign(ret.res.headers, opts.res.headers)
-    Object.assign(ret.res.codes, opts.res.codes)
-  }
+const mergeScopeReqs = (arr: ScopeReq[]): ScopeReq => ({
+  mime: arr.reduce((acc: Mime | undefined, x) => x.mime ?? acc, undefined),
+  parameters: arr.flatMap(x => x.parameters),
+})
 
-  return ret
-}
+const mergeScopes = (arr: ReadonlyArray<Scope>): Readonly<Scope> => ({
+  req: mergeScopeReqs(arr.flatMap(x => (x.req ? [x.req] : []))),
+  res: mergeScopeReses(arr.flatMap(x => (x.res ? [x.res] : []))),
+})
 
-const parseScopeStatus = (resChild: kdljs.Node): CoreStatus => {
+const parseScopeStatus = (resChild: kdljs.Node): ScopeResV => {
   if (resChild.values.length) {
-    const mime: Mime = (
-      resChild.values.length === 1 ? "*" : stringValue(resChild, 0)
-    ) as Mime
+    const mime =
+      resChild.values.length === 1 ? "*" : (stringValue(resChild, 0) as Mime)
 
-    return { body: { [mime]: nodeToSchemaOrRef(resChild) } }
+    return {
+      bodies: [[mime, nodeToSchemaOrRef(resChild)]],
+      headers: [],
+    }
   }
 
   if (!resChild.children.length) throw new Error(JSON.stringify(resChild))
 
-  const headers: OptionalBag = {}
-  const cookies: OptionalBag = {}
-  const body: CoreMimes = {}
+  const headers = Array<[string, OpenAPIV3.HeaderObject]>()
+  const bodies = Array<[Mime | "*", SchemaOrRef]>()
 
   for (const statusChild of resChild.children) {
     switch (statusChild.name) {
       case "header": {
-        const name = stringValue(statusChild, 0).toLowerCase()
-        headers[name] = optionalSchema(statusChild)
+        headers.push([stringValue(statusChild, 0), parseHeader(statusChild)])
         break
       }
 
       case "headers": {
         for (const header of statusChild.children) {
-          const name = header.name.toLowerCase()
-          headers[name] = optionalSchema(header)
+          headers.push([header.name, parseHeader(header)])
         }
-        break
-      }
-
-      case "cookie": {
-        const name = stringValue(statusChild, 0)
-        cookies[name] = optionalSchema(statusChild)
         break
       }
 
       case "body": {
         const orRef = nodeToSchemaOrRef(statusChild)
 
-        const mime: Mime =
+        const mime =
           statusChild.values.length === 2
             ? (stringValue(statusChild, 0) as Mime)
-            : ("*" as Mime)
+            : "*"
 
-        body[mime] = orRef
+        bodies.push([mime, orRef])
         break
       }
 
@@ -332,15 +329,75 @@ const parseScopeStatus = (resChild: kdljs.Node): CoreStatus => {
     }
   }
 
-  return { headers, cookies, body }
+  return { headers, bodies }
 }
 
-const parseCoreRes = (scope: ScopeRes, res: kdljs.Node): CoreRes => {
-  const ret: CoreRes = {}
+const toResponse = (
+  status: StatusCodeStr,
+  s: ScopeResV,
+): OpenAPIV3.ResponseObject => {
+  return {
+    description: status,
+    headers: Object.fromEntries(s.headers.map(([k, v]) => [k, v])),
+    content: Object.fromEntries(
+      s.bodies.map(([mime, schema]) => [
+        mime,
+        <OpenAPIV3.MediaTypeObject>{ schema },
+      ]),
+    ),
+  }
+}
 
-  for (const status in scope.codes) {
+/**
+ * 0. add statuses from the scope
+ * 1. parse the responses
+ * 2. apply scope to the responses
+ */
+const parseCoreRes = (
+  scope: ScopeRes,
+  res: kdljs.Node,
+): OpenAPIV3.ResponsesObject => {
+  const ret: OpenAPIV3.ResponsesObject = {}
+
+  // 0. add statuses from the scope
+  for (const status of Object.keys(scope).filter(x => parseInt(x))) {
+    const k = status as StatusCodeStr
+    const v = scope[k]
+    if (!v) continue
+
+    ret[status] = toResponse(k, v)
+  }
+
+  // 1. add empty responses for operation statuses
+  for (const c of res.children) {
+    if (!parseInt(c.name)) throw new Error(JSON.stringify(c))
+
+    ret[c.name] = { description: c.name }
+  }
+
+  // 2. apply scope to the responses
+  const star = scope["*"]
+  if (star) {
+    for (const k in ret) {
+      const r = ret[k]
+      if (isRef(r)) continue
+
+      for (const [name, h] of star.headers) {
+        r.headers[name] = h
+      }
+    }
+  }
+
+  // 3. add real responses for the operation
+  for (const c of res.children) {
+    if (!parseInt(c.name)) throw new Error(JSON.stringify(c))
+
+    ret[c.name] = { description: c.name }
+  }
+
+  for (const status in scope) {
     const scs = status as StatusCodeStr
-    const coreStatus = scope.codes[scs]
+    const coreStatus = scope[scs]
     if (!coreStatus) continue
 
     ret[scs] = {
@@ -372,8 +429,7 @@ const parseCoreBody = (
 ): [Mime, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject] => {
   const orRef = nodeToSchemaOrRef(n)
 
-  const mime: Mime | undefined =
-    n.values.length === 2 ? (stringValue(n, 0) as Mime) : scope.mime
+  const mime = n.values.length === 2 ? (stringValue(n, 0) as Mime) : scope.mime
 
   if (!mime) throw new Error(JSON.stringify(n))
 
@@ -383,7 +439,7 @@ const parseCoreBody = (
 const parseCoreStatus = (
   scope: ScopeRes,
   statusNode: kdljs.Node,
-): CoreStatus => {
+): OpenAPIV3.ResponseObject => {
   const scopeStatus = scope.codes[statusNode.name as StatusCodeStr]
 
   if (statusNode.values.length) {
@@ -440,34 +496,43 @@ const parseCoreStatus = (
 }
 
 const parseScopeRes = (scopeChild: kdljs.Node): ScopeRes => {
-  const res: ScopeRes = emptyScope().res
+  const star = <ScopeResV>{ headers: [], bodies: [] }
+  const res: ScopeRes = { ["*"]: star }
 
   for (const resChild of scopeChild.children) {
     switch (resChild.name) {
       case "mime": {
-        res.mime = stringValue(resChild, 0) as Mime
+        star.mime = stringValue(resChild, 0) as Mime
         break
       }
 
       case "header": {
-        const name = stringValue(resChild, 0).toLowerCase()
-        res.headers[name] = optionalSchema(resChild)
+        star.headers.push(parseParam(resChild.name, resChild))
         break
       }
 
       case "headers": {
         for (const header of resChild.children) {
-          const name = header.name.toLowerCase()
-          res.headers[name] = optionalSchema(header)
+          star.headers.push(parseParam("header", header))
         }
         break
       }
 
       default: {
         if (parseInt(resChild.name)) {
-          res.codes[resChild.name as StatusCodeStr] = parseScopeStatus(resChild)
+          res[resChild.name as StatusCodeStr] = parseScopeStatus(resChild)
         } else {
-          throw new Error(JSON.stringify(resChild))
+          const split = resChild.name.split("..")
+          if (split.length !== 2) {
+            throw new Error(JSON.stringify(resChild))
+          }
+
+          const [start, end] = split.map(parseInt)
+          if (!(start && end)) {
+            throw new Error(JSON.stringify(resChild))
+          }
+
+          res[`${start}..${end}`] = parseScopeStatus(resChild)
         }
         break
       }
@@ -540,23 +605,17 @@ const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
 })
 
 interface TopLevel {
-  syntaxVersion?: string
-  info: ServiceInfo
-  servers?: ReadonlyArray<CoreServer>
+  info: OpenAPIV3.InfoObject
+  servers?: ReadonlyArray<OpenAPIV3.ServerObject>
 }
 
 type Handlers = Partial<Record<string, (node: kdljs.Node) => void>>
 
 const topLevel = (doc: kdljs.Document): Readonly<TopLevel> => {
-  let syntaxVersion: string | undefined
-  let info: ServiceInfo | undefined
-  let servers: CoreServer[] | undefined
+  let info: OpenAPIV3.InfoObject | undefined
+  let servers: OpenAPIV3.ServerObject[] | undefined
 
   const map: Handlers = {
-    responsible({ properties }) {
-      syntaxVersion = properties.syntax as string
-    },
-
     info(node) {
       info = toInfo(node)
     },
@@ -577,15 +636,42 @@ const topLevel = (doc: kdljs.Document): Readonly<TopLevel> => {
     map[node.name]?.(node)
   }
 
-  return { syntaxVersion, info: info ?? { title: "", version: "" }, servers }
+  return { info: info ?? { title: "", version: "" }, servers }
 }
 
-interface FishedScope {
-  refs: CoreTypeRefs
-  paths: CorePaths
+type ParamIn = "header" | "cookie" | "path" | "query"
+
+const paramName = (paramIn: ParamIn, s: string): string => {
+  switch (paramIn) {
+    case "query":
+    case "cookie":
+      return s
+
+    case "path":
+    case "header":
+      return s.toLowerCase()
+  }
 }
 
-const parseCoreReq = (scope: ScopeReq, n: kdljs.Node): CoreReq => {
+const parseParam = (
+  paramIn: ParamIn,
+  n: kdljs.Node,
+): OpenAPIV3.ParameterObject => ({
+  name: paramName(paramIn, stringValue(n, 0)),
+  in: paramIn,
+  required: paramIn === "path" ? true : isOptional(n),
+  schema: nodeToSchemaOrRef(n),
+})
+
+const parseHeader = (n: kdljs.Node): OpenAPIV3.HeaderObject => ({
+  required: isOptional(n),
+  schema: nodeToSchemaOrRef(n),
+})
+
+const parseCoreReq = (
+  scope: ScopeReq,
+  n: kdljs.Node,
+): OpenAPIV3.OperationObject => {
   if (n.values.length) {
     if (!scope.mime) throw new Error(JSON.stringify(n))
 
@@ -604,22 +690,21 @@ const parseCoreReq = (scope: ScopeReq, n: kdljs.Node): CoreReq => {
   const body: Array<
     [Mime, OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject]
   > = []
+  const parameters: Array<OpenAPIV3.ParameterObject> = []
 
   for (const c of n.children) {
     switch (c.name) {
       case "header": {
-        const name = stringValue(c, 0).toLowerCase()
-        headers[name] = optionalSchema(c)
+        parameters.push(parseParam(c.name, c))
         break
       }
 
       case "query": {
         if (c.values.length) {
-          const name = stringValue(c, 0)
-          query[name] = optionalSchema(c)
+          parameters.push(parseParam(c.name, c))
         } else {
           for (const q of c.children) {
-            query[q.name] = optionalSchema(q)
+            parameters.push(parseParam(c.name, q))
           }
         }
         break
@@ -721,22 +806,24 @@ const parseOps = (
   return ret
 }
 
-const TODOrangeSupport = (node: kdljs.Node): void => {
+/**
+ * TODO
+ * https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
+ *
+ * multipart/byteranges; boundary=
+ *
+ * If-Range
+ * Content-Range
+ *
+ * 206 Partial Content
+ * 416 Range Not Satisfiable
+ */
+const rangeSupport = (node: kdljs.Node): void => {
+  throw new Error("TODO")
+
   node.properties.head = true
   const method = node.name as CoreMethod
 
-  /**
-   * TODO
-   * https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
-   *
-   * multipart/byteranges; boundary=
-   *
-   * If-Range
-   * Content-Range
-   *
-   * 206 Partial Content
-   * 416 Range Not Satisfiable
-   */
   if (method !== "GET") throw new Error(JSON.stringify(node))
 
   const reqH: OptionalBag = op.req.headers ?? {}
@@ -766,7 +853,7 @@ const enterScope = (
     parentScope: Readonly<Scope>
   },
 ): FishedScope => {
-  const refs: CoreTypeRefs = {}
+  const refs: Record<string, OpenAPIV3.SchemaObject> = {}
   const paths: CorePaths = {}
 
   let scope: Scope = parentScope
@@ -780,11 +867,6 @@ const enterScope = (
       case "servers":
         // top level
         break
-
-      case "external": {
-        refs[typeName(node)] = { type: "external" }
-        break
-      }
 
       case "struct": {
         refs[typeName(node)] = toStruct(node)
@@ -862,7 +944,7 @@ const enterScope = (
 /**
  * TODO return errors
  */
-export const kdlToCore = (doc: kdljs.Document): CoreService => {
+export const kdlToCore = (doc: kdljs.Document): OpenAPIV3.Document => {
   const { info, servers } = topLevel(doc)
 
   const { refs, paths } = enterScope(mkNode("", doc), {

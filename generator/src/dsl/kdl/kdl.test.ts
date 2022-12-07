@@ -69,7 +69,6 @@ test.concurrent("array", async () => {
                 },
               },
               description: "200",
-              headers: {},
             },
           },
         },

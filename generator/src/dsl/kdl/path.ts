@@ -74,6 +74,22 @@ const parseSegment = (
   return [segment, types]
 }
 
+/**
+ * use String.indexOf in a loop
+ */
+const parseSegment2 = (
+  s: string,
+): [segment: string, types: Record<string, string>] => {
+  let state: "string" | "name" | "type" = "string"
+  let i = 0
+  while (i < s.length) {
+    // lookahead for the name, if any
+    const nameStart = s.indexOf(":", i)
+    if (nameStart !== -1) {
+    }
+  }
+}
+
 export interface TypedPath {
   path: URLPath | ""
   types: Record<string, string>

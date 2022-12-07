@@ -8,7 +8,7 @@ info {
 
 servers {
     url "https://listenbox.app"
-    url "http://localhost:3000"
+    url "http://localhost:8080"
 }
 
 type "FeedID" "string" length=11
@@ -181,13 +181,13 @@ GET "/api/health" head=true {
         }
 
         res {
-        // matches codes then adds contents
+        // added to matching operations
             "200..299" {
-                mime "application/json"
                 header "Content-Length" "int32" minimum=1
+                mime "application/json"
             }
 
-        // adds a code
+        // added to every operation
             "400" {
                 header "Content-Length" "int32" minimum=1
                 body "application/json" "ErrorStruct"

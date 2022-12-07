@@ -6,6 +6,7 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "dependencies": {
+    "deepmerge-ts": "^4.2.2",
     "kdljs": "^0.1.5"
   },
   "devDependencies": {
