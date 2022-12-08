@@ -1,4 +1,4 @@
-import { URLPath } from "../../core/core"
+type URLPath = `/${string}`
 
 const parseSegment = (
   input: string,
@@ -80,14 +80,7 @@ const parseSegment = (
 const parseSegment2 = (
   s: string,
 ): [segment: string, types: Record<string, string>] => {
-  let state: "string" | "name" | "type" = "string"
-  let i = 0
-  while (i < s.length) {
-    // lookahead for the name, if any
-    const nameStart = s.indexOf(":", i)
-    if (nameStart !== -1) {
-    }
-  }
+  throw new Error("implement")
 }
 
 export interface TypedPath {
