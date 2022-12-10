@@ -340,6 +340,7 @@ scope {
                         cookie "token" "string" minLength=1
                     }
                 }
+            // TODO remove once security is implemented
                 header "authorization" "string" minLength=1
             }
 
@@ -598,23 +599,23 @@ GET "/rss/:show_id(ShowID)/:type(AudioVideo).rss" head=true {
 
 type "NonEmptyString" "string" minLength=1
 
-//TODO support range=true
-//GET "/a/:item_id(ItemID).:ext(NonEmptyString)" range=true {
-//    name "getAudio"
-//
-//    req {
-//        (?)header "CF-Connecting-IP" "string" minLength=1
-//    }
-//
-//    res {
-//        "200" {
-//            header "Cache-Control" "string" minLength=1
-//            header "Content-Length" "int32" minimum=1
-//            body "audio/*" "binary"
-//        }
-//        "404" "unknown"
-//    }
-//}
+// TODO support range=true
+GET "/a/:item_id(ItemID).:ext(NonEmptyString)" head=true {
+    name "audio"
+
+    req {
+        (?)header "CF-Connecting-IP" "string" minLength=1
+    }
+
+    res {
+        "200" {
+            header "Cache-Control" "string" minLength=1
+            header "Content-Length" "int32" minimum=1
+            body "audio/*" "binary"
+        }
+        "404" "unknown"
+    }
+}
 
 GET "/w/:item_id(ItemID).:ext(NonEmptyString)" head=true {
     name "video"

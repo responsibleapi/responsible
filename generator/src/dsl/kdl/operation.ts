@@ -96,6 +96,12 @@ export const parseOps = (
     ret.head = {
       ...op,
       operationId: operationId ? `head${capitalize(operationId)}` : undefined,
+      responses: Object.fromEntries(
+        Object.entries(op.responses).map(([k, v]) => [
+          k,
+          delUndef({ ...v, content: undefined }),
+        ]),
+      ),
     }
   }
 
