@@ -5,6 +5,7 @@
     "@typescript-eslint/eslint-plugin": "^5.30.5",
     "@typescript-eslint/parser": "^5.30.5",
     "eslint": "^8.25.0",
+    "eslint-plugin-ban": "^1.6.0",
     "fast-check": "^3.1.0",
     "prettier": "^2.7.1",
     "prettier-plugin-sort-imports": "^1.7.0",

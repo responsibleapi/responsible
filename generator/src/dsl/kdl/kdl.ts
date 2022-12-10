@@ -1,6 +1,15 @@
-import { isOptional, parseSchemaOrRef, SchemaOrRef } from "./schema"
-import { mergePaths, parsePath, TypedPath } from "./path"
+import {
+  isOptional,
+  parseSchemaOrRef,
+  toEnum,
+  toStruct,
+  typeName,
+} from "./schema"
+import { isURLPath, mergePaths, parsePath, TypedPath, URLPath } from "./path"
+import { myDeepmerge } from "./typescript"
 import { OpenAPIV3 } from "openapi-types"
+import { parseOps } from "./operation"
+import { parseScope } from "./scope"
 import { kdljs } from "kdljs"
 
 export type Mime = `${string}/${string}`
@@ -12,15 +21,21 @@ type StatusCode1 = "1" | "2" | "3" | "4" | "5"
 type DigitStr = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9"
 export type StatusCodeStr = `${StatusCode1}${DigitStr}${DigitStr}`
 
+const isStatusCode = (code: number): boolean =>
+  Number.isInteger(code) && code >= 100 && code <= 599
+
+export const isStatusCodeStr = (x: unknown): x is StatusCodeStr =>
+  typeof x === "string" && isStatusCode(Number(x))
+
 export const toStatusCode = (code: number): StatusCodeStr => {
-  if (code >= 100 && code <= 599) {
+  if (isStatusCode(code)) {
     return String(code) as StatusCodeStr
   } else {
     throw new Error(`Invalid status code: ${code}`)
   }
 }
 
-type CoreMethod = "GET" | "HEAD" | "DELETE" | "POST" | "PUT" | "PATCH"
+export type CoreMethod = "GET" | "HEAD" | "DELETE" | "POST" | "PUT" | "PATCH"
 
 export const getString = (node: kdljs.Node, idx: number): string => {
   const v = node.values[idx]
@@ -46,109 +61,12 @@ const toInfo = (node: kdljs.Node): OpenAPIV3.InfoObject =>
     new Set(["title", "version", "termsOfService", "description", "license"]),
   )
 
-const isRef = (x: unknown): x is OpenAPIV3.ReferenceObject =>
+export const isRef = (x: unknown): x is OpenAPIV3.ReferenceObject =>
   !!x && typeof x === "object" && "$ref" in x
-
-const isSchema = (x: SchemaOrRef): x is OpenAPIV3.SchemaObject => !isRef(x)
-
-const unq = <T extends string | number>(
-  arr: ReadonlyArray<T>,
-): ReadonlyArray<T> => [...new Set(arr)]
-
-const toResponse = (
-  status: StatusCodeStr,
-  s: ScopeResV,
-): OpenAPIV3.ResponseObject => {
-  return {
-    description: status,
-    headers: Object.fromEntries(s.headers.map(([k, v]) => [k, v])),
-    content: Object.fromEntries(
-      s.bodies.map(([mime, schema]) => [
-        mime,
-        <OpenAPIV3.MediaTypeObject>{ schema },
-      ]),
-    ),
-  }
-}
-
-/**
- * 0. add statuses from the scope
- * 1. parse the responses
- * 2. apply scope to the responses
- */
-const parseCoreRes = (
-  scope: ScopeRes,
-  res: kdljs.Node,
-): OpenAPIV3.ResponsesObject => {
-  const ret: OpenAPIV3.ResponsesObject = {}
-
-  // 0. add statuses from the scope
-  for (const status of Object.keys(scope).filter(x => parseInt(x))) {
-    const k = status as StatusCodeStr
-    const v = scope[k]
-    if (!v) continue
-
-    ret[status] = toResponse(k, v)
-  }
-
-  // 1. add empty responses for operation statuses
-  for (const c of res.children) {
-    if (!parseInt(c.name)) throw new Error(JSON.stringify(c))
-
-    ret[c.name] = { description: c.name }
-  }
-
-  // 2. apply scope to the responses
-  const star = scope["*"]
-  if (star) {
-    for (const k in ret) {
-      const r = ret[k]
-      if (isRef(r)) continue
-
-      for (const [name, h] of star.headers) {
-        r.headers[name] = h
-      }
-    }
-  }
-
-  // 3. add real responses for the operation
-  for (const c of res.children) {
-    if (!parseInt(c.name)) throw new Error(JSON.stringify(c))
-
-    ret[c.name] = { description: c.name }
-  }
-
-  for (const status in scope) {
-    const scs = status as StatusCodeStr
-    const coreStatus = scope[scs]
-    if (!coreStatus) continue
-
-    ret[scs] = {
-      headers: scope.headers,
-      cookies: scope.cookies,
-      ...coreStatus,
-      body: Object.fromEntries(
-        Object.entries(coreStatus.body).map(([k, v]) => {
-          if (!scope.mime) throw new Error(JSON.stringify(scope))
-
-          return k === "*" ? [scope.mime, v] : [k as Mime, v]
-        }),
-      ),
-    }
-  }
-
-  for (const c of res.children) {
-    if (!parseInt(c.name)) throw new Error(JSON.stringify(c))
-
-    ret[c.name as StatusCodeStr] = parseCoreStatus(scope, c)
-  }
-
-  return ret
-}
 
 interface TopLevel {
   info: OpenAPIV3.InfoObject
-  servers?: ReadonlyArray<OpenAPIV3.ServerObject>
+  servers?: Array<OpenAPIV3.ServerObject>
 }
 
 type Handlers = Partial<Record<string, (node: kdljs.Node) => void>>
@@ -206,7 +124,7 @@ export const parseParam = (
 })
 
 export const parseHeader = (n: kdljs.Node): OpenAPIV3.HeaderObject => ({
-  required: isOptional(n),
+  required: !isOptional(n),
   schema: parseSchemaOrRef(n),
 })
 
@@ -224,9 +142,6 @@ const mkNode = (
   children: children ?? [],
 })
 
-const EMPTY_NODE = mkNode("")
-
-
 /**
  * TODO
  * https://developer.mozilla.org/en-US/docs/Web/HTTP/Range_requests
@@ -239,29 +154,47 @@ const EMPTY_NODE = mkNode("")
  * 206 Partial Content
  * 416 Range Not Satisfiable
  */
-const rangeSupport = (node: kdljs.Node): void => {
-  throw new Error("TODO")
+// const rangeSupport = (node: kdljs.Node): void => {
+//   throw new Error("TODO")
+//
+//   node.properties.head = true
+//   const method = node.name as CoreMethod
+//
+//   if (method !== "GET") throw new Error(JSON.stringify(node))
+//
+//   const reqH: OptionalBag = op.req.headers ?? {}
+//   reqH["range"] = {
+//     kind: "optional",
+//     schema: { type: "string", minLength: 1 },
+//   }
+//   op.req.headers = reqH
+//
+//   for (const status in op.res) {
+//     const v = op.res[status as StatusCodeStr]
+//     if (!v) continue
+//
+//     const h: OptionalBag = v.headers ?? {}
+//     h["accept-ranges"] = <RString>{ type: "string", enum: ["bytes"] }
+//     v.headers = h
+//   }
+// }
 
-  node.properties.head = true
-  const method = node.name as CoreMethod
+const pathParams = (
+  types: Record<string, string>,
+): Array<OpenAPIV3.ParameterObject> =>
+  Object.entries(types).map(([name, type]) => ({
+    name,
+    in: "path",
+    required: true,
+    schema: parseSchemaOrRef(mkNode(type)),
+  }))
 
-  if (method !== "GET") throw new Error(JSON.stringify(node))
+type Refs = Record<string, OpenAPIV3.SchemaObject>
+type Paths = OpenAPIV3.PathsObject
 
-  const reqH: OptionalBag = op.req.headers ?? {}
-  reqH["range"] = {
-    kind: "optional",
-    schema: { type: "string", minLength: 1 },
-  }
-  op.req.headers = reqH
-
-  for (const status in op.res) {
-    const v = op.res[status as StatusCodeStr]
-    if (!v) continue
-
-    const h: OptionalBag = v.headers ?? {}
-    h["accept-ranges"] = <RString>{ type: "string", enum: ["bytes"] }
-    v.headers = h
-  }
+interface FishedScope {
+  schemas: Refs
+  paths: Paths
 }
 
 const enterScope = (
@@ -271,13 +204,13 @@ const enterScope = (
     parentScope,
   }: {
     path: TypedPath
-    parentScope: Readonly<Scope>
+    parentScope: Readonly<Partial<OpenAPIV3.OperationObject>>
   },
 ): FishedScope => {
-  const refs: Record<string, OpenAPIV3.SchemaObject> = {}
-  const paths: CorePaths = {}
+  const schemas: Record<string, OpenAPIV3.SchemaObject> = {}
+  const paths: OpenAPIV3.PathsObject = {}
 
-  let scope: Scope = parentScope
+  let scope: Partial<OpenAPIV3.OperationObject> = parentScope
 
   // TODO fish for 'scope' first
 
@@ -290,19 +223,20 @@ const enterScope = (
         break
 
       case "struct": {
-        refs[typeName(node)] = toStruct(node)
+        schemas[typeName(node)] = toStruct(node)
         break
       }
 
       case "enum": {
-        refs[typeName(node)] = toEnum(node)
+        schemas[typeName(node)] = toEnum(node)
         break
       }
 
       case "type": {
-        const schema = nodeToSchema(node)
-        if (!schema) throw new Error(JSON.stringify(node))
-        refs[getString(node, 0)] = schema
+        const schema = parseSchemaOrRef(node)
+        if (isRef(schema)) throw new Error(JSON.stringify(node))
+
+        schemas[getString(node, 0)] = schema
         break
       }
 
@@ -321,19 +255,10 @@ const enterScope = (
           throw new Error(JSON.stringify(node) + "\n" + JSON.stringify(thePath))
         }
 
-        const methods: Partial<Record<CoreMethod, CoreOp>> =
-          paths[thePath.path] ?? {}
-
-        const tempScope = {
-          ...scope,
-          req: {
-            ...scope.req,
-            pathParams: {
-              ...scope.req.pathParams,
-              ...toRequiredBag(thePath.types),
-            },
-          },
-        }
+        const methods: OpenAPIV3.PathItemObject = paths[thePath.path] ?? {}
+        const tempScope = myDeepmerge(scope, {
+          parameters: pathParams(thePath.types),
+        })
         Object.assign(methods, parseOps(tempScope, node))
         paths[thePath.path] = methods
 
@@ -341,7 +266,7 @@ const enterScope = (
       }
 
       case "scope": {
-        scope = mergeScopes(scope, parseScope(node))
+        scope = myDeepmerge(scope, parseScope(node))
         break
       }
 
@@ -352,26 +277,32 @@ const enterScope = (
           path: mergePaths(path, parsePath(node.name)),
           parentScope: scope,
         })
-        Object.assign(refs, entered.refs)
+        Object.assign(schemas, entered.schemas)
         Object.assign(paths, entered.paths)
         break
       }
     }
   }
 
-  return { refs, paths }
+  return { schemas, paths }
 }
 
 /**
  * TODO return errors
  */
-export const kdlToCore = (doc: kdljs.Document): OpenAPIV3.Document => {
+export const parseOpenAPI = (doc: kdljs.Document): OpenAPIV3.Document => {
   const { info, servers } = topLevel(doc)
 
-  const { refs, paths } = enterScope(mkNode("", doc), {
+  const { schemas, paths } = enterScope(mkNode("", doc), {
     path: { path: "", types: {} },
-    parentScope: emptyScope(),
+    parentScope: {},
   })
 
-  return { info, servers, refs, paths }
+  return {
+    openapi: "3.0.1",
+    info,
+    servers,
+    components: { schemas },
+    paths,
+  }
 }

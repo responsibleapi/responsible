@@ -1,4 +1,7 @@
-type URLPath = `/${string}`
+export type URLPath = `/${string}`
+
+export const isURLPath = (s: string): s is URLPath =>
+  s.startsWith("/") && !s.includes(" ")
 
 const parseSegment = (
   input: string,

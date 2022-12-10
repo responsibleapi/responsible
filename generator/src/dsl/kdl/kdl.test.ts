@@ -1,29 +1,30 @@
 import OpenApiValidator from "openapi-schema-validator"
-import { toOpenApi } from "../../openapi/to-open-api"
 import { OpenAPIV3 } from "openapi-types"
 import { readFile } from "fs/promises"
 import { expect, test } from "vitest"
-import { kdlToCore } from "./kdl"
+import { parseOpenAPI } from "./kdl"
 import { parse } from "kdljs"
 
 const clean = <T>(t: T): T => JSON.parse(JSON.stringify(t))
 
-const validate = (x: OpenAPIV3.Document): void =>
-  expect(
-    new OpenApiValidator({ version: 3 }).validate(clean(x)).errors,
-  ).toEqual([])
+const validate = (x: OpenAPIV3.Document): void => {
+  const { errors } = new OpenApiValidator({ version: 3 }).validate(clean(x))
 
-test.concurrent("to core", async () => {
+  return expect(
+    errors,
+    JSON.stringify(x, null, 2) + JSON.stringify(errors, null, 2),
+  ).toEqual([])
+}
+
+test.concurrent("listenbox.kdl to OpenAPI", async () => {
   validate(
-    toOpenApi(
-      kdlToCore(parse(await readFile("tryout/listenbox.kdl", "utf8")).output),
-    ),
+    parseOpenAPI(parse(await readFile("tryout/listenbox.kdl", "utf8")).output),
   )
 })
 
 test.concurrent("yanic", async () => {
-  const openapi = toOpenApi(
-    kdlToCore(parse(await readFile("tryout/yanic.kdl", "utf8")).output),
+  const openapi = parseOpenAPI(
+    parse(await readFile("tryout/yanic.kdl", "utf8")).output,
   )
   expect(clean(openapi)).toEqual(
     JSON.parse(await readFile("tryout/yanic.json", "utf8")),
@@ -32,9 +33,10 @@ test.concurrent("yanic", async () => {
 })
 
 test.concurrent("array", async () => {
-  const openapi = toOpenApi(
-    kdlToCore(parse(await readFile("tryout/testarray.kdl", "utf8")).output),
+  const openapi = parseOpenAPI(
+    parse(await readFile("tryout/testarray.kdl", "utf8")).output,
   )
+
   expect(clean(openapi)).toEqual(<OpenAPIV3.Document>{
     openapi: "3.0.1",
     info: {

@@ -8,20 +8,22 @@ const TAG_OPTIONAL = "?"
 export const isOptional = (node: kdljs.Node): boolean =>
   node.tags.name === TAG_OPTIONAL
 
-const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
+export const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
   type: "string",
   enum: node.children.map(x => x.name),
 })
 
-const toStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
+export const toStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
   type: "object",
-  properties: Object.fromEntries(
-    node.children.map(x => [x.name, parseSchemaOrRef(x)]),
-  ),
-  required: node.children.flatMap(x => (isOptional(x) ? [x.name] : [])),
+  properties: node.children.length
+    ? Object.fromEntries(node.children.map(x => [x.name, parseSchemaOrRef(x)]))
+    : undefined,
+  required: node.children.length
+    ? node.children.flatMap(x => (isOptional(x) ? [] : [x.name]))
+    : undefined,
 })
 
-const typeName = (n: kdljs.Node): string => {
+export const typeName = (n: kdljs.Node): string => {
   if (!n.values.length) return n.name
 
   if (n.values.length >= 3 && n.values[n.values.length - 3] === "dict") {
@@ -49,7 +51,9 @@ const toNode = (name: string): kdljs.Node => ({
 const strToSchema = (name: string): SchemaOrRef =>
   parseSchemaOrRef(toNode(name))
 
-const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
+const nodeToSchema = (
+  node: kdljs.Node,
+): OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject => {
   const typName = typeName(node)
 
   switch (typName) {
@@ -63,7 +67,7 @@ const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
       return toStruct(node)
 
     case "dateTime": {
-      return <OpenAPIV3.NonArraySchemaObject>{
+      return {
         ...node.properties,
         type: "string",
         format: "date-time",
@@ -71,13 +75,15 @@ const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
     }
 
     case "string": {
-      const parsed = parseInt(String(node.properties.length))
+      const parsed = +String(node.properties.length)
       const length = isNaN(parsed) ? undefined : parsed
 
       return {
         minLength: length,
         maxLength: length,
         ...node.properties,
+        // @ts-ignore well...
+        length: undefined,
         type: "string",
       }
     }
@@ -111,13 +117,13 @@ const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
     case "array": {
       const last = node.values[node.values.length - 1]
       if (typeof last === "string" && last !== "array") {
-        return <OpenAPIV3.ArraySchemaObject>{
+        return {
           ...node.properties,
           type: "array",
           items: strToSchema(last),
         }
       } else if (node.children.length === 1) {
-        return <OpenAPIV3.ArraySchemaObject>{
+        return {
           ...node.properties,
           type: "array",
           items: parseSchemaOrRef(node.children[0]),
@@ -167,9 +173,8 @@ const nodeToSchema = (node: kdljs.Node): OpenAPIV3.SchemaObject | undefined => {
       return { type: "integer", format: "int64" }
 
     default:
-      return undefined
+      return { $ref: `#/components/schemas/${typName}` }
   }
 }
 
-export const parseSchemaOrRef = (n: kdljs.Node): SchemaOrRef =>
-  nodeToSchema(n) ?? { $ref: `#/components/schemas/${typeName(n)}` }
+export const parseSchemaOrRef = (n: kdljs.Node): SchemaOrRef => nodeToSchema(n)

@@ -1,7 +1,7 @@
 module.exports = {
   root: true,
   env: { node: true },
-  plugins: ["@typescript-eslint"],
+  plugins: ["@typescript-eslint", "ban"],
   parser: "@typescript-eslint/parser",
   parserOptions: { project: "./tsconfig.base.json" },
   extends: [
@@ -15,6 +15,13 @@ module.exports = {
     eqeqeq: "error",
     "no-throw-literal": "error",
     "no-console": "error",
+    "ban/ban": [
+      "error",
+      {
+        name: "parseInt",
+        message: "Prefer Number constructor",
+      },
+    ],
 
     "no-shadow": "off",
     "@typescript-eslint/no-shadow": "error",
