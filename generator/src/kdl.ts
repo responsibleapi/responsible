@@ -1,5 +1,5 @@
 import {
-  isOptional,
+  isRequired,
   parseSchemaOrRef,
   toEnum,
   toStruct,
@@ -8,6 +8,7 @@ import {
 import { isURLPath, mergePaths, parsePath, TypedPath, URLPath } from "./path"
 import { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"
+import { delUndef } from "./typescript"
 import { parseOps } from "./operation"
 import { parseScope } from "./scope"
 import { kdljs } from "kdljs"
@@ -119,12 +120,12 @@ export const parseParam = (
 ): OpenAPIV3.ParameterObject => ({
   name: paramName(paramIn, getString(n, 0)),
   in: paramIn,
-  required: paramIn === "path" ? true : !isOptional(n),
+  required: paramIn === "path" ? true : isRequired(n),
   schema: parseSchemaOrRef(n),
 })
 
 export const parseHeader = (n: kdljs.Node): OpenAPIV3.HeaderObject => ({
-  required: !isOptional(n),
+  required: isRequired(n),
   schema: parseSchemaOrRef(n),
 })
 
@@ -299,11 +300,11 @@ export const parseOpenAPI = (doc: kdljs.Document): OpenAPIV3.Document => {
     parentScope: {},
   })
 
-  return {
+  return delUndef({
     openapi: "3.0.1",
     info,
     servers,
     components: { schemas },
     paths,
-  }
+  })
 }

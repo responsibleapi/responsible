@@ -5,8 +5,8 @@ export type SchemaOrRef = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 
 const TAG_OPTIONAL = "?"
 
-export const isOptional = (node: kdljs.Node): boolean =>
-  node.tags.name === TAG_OPTIONAL
+export const isRequired = (node: kdljs.Node): boolean =>
+  node.tags.name !== TAG_OPTIONAL
 
 export const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
   type: "string",
@@ -19,7 +19,7 @@ export const toStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
     ? Object.fromEntries(node.children.map(x => [x.name, parseSchemaOrRef(x)]))
     : undefined,
   required: node.children.length
-    ? node.children.flatMap(x => (isOptional(x) ? [] : [x.name]))
+    ? node.children.flatMap(x => (isRequired(x) ? [x.name] : []))
     : undefined,
 })
 
@@ -51,7 +51,7 @@ const toNode = (name: string): kdljs.Node => ({
 const strToSchema = (name: string): SchemaOrRef =>
   parseSchemaOrRef(toNode(name))
 
-const nodeToSchema = (
+export const parseSchemaOrRef = (
   node: kdljs.Node,
 ): OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject => {
   const typName = typeName(node)
@@ -176,5 +176,3 @@ const nodeToSchema = (
       return { $ref: `#/components/schemas/${typName}` }
   }
 }
-
-export const parseSchemaOrRef = (n: kdljs.Node): SchemaOrRef => nodeToSchema(n)

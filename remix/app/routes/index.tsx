@@ -1,10 +1,9 @@
-import { toOpenApi } from "../../../generator/src/openapi/to-open-api"
-import type { CoreService } from "../../../generator/src/core/core"
-import { kdlToCore } from "@responsible/generator/src/kdl"
 import React, { useEffect, useMemo, useState } from "react"
+import { parseOpenAPI } from "../../../generator/src/kdl"
 import { jsonLanguage } from "@codemirror/lang-json"
 import CodeMirror from "@uiw/react-codemirror"
 import { exampleKDL } from "../examplekdl"
+import { OpenAPIV3 } from "openapi-types"
 import { parse } from "kdljs"
 
 const LOCAL_STORAGE_KEY = "kdl"
@@ -22,16 +21,16 @@ export default function Index(): JSX.Element {
 
   useSaveLocalStorage(LOCAL_STORAGE_KEY, kdl)
 
-  const core: CoreService = useMemo(() => {
+  const core: OpenAPIV3.Document = useMemo(() => {
     try {
-      return kdlToCore(parse(kdl).output ?? [])
+      return parseOpenAPI(parse(kdl).output ?? [])
     } catch (e) {
-      return { info: { title: "", version: "" }, refs: {}, paths: {} }
+      return { openapi: "3.0.1", info: { title: "", version: "" }, paths: {} }
     }
   }, [kdl])
 
   const result: string = useMemo(
-    () => JSON.stringify(toOpenApi(core), null, 2) + "\n",
+    () => JSON.stringify(core, null, 2) + "\n",
     [core],
   )
 
