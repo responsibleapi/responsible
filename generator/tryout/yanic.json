@@ -24,7 +24,7 @@
             "$ref": "#/components/schemas/YtDlOpts"
           }
         },
-        "required": ["opts", "url"]
+        "required": ["url", "opts"]
       },
       "DownloadReq": {
         "type": "object",
@@ -61,9 +61,9 @@
               "content-length": {
                 "required": true,
                 "schema": {
+                  "minimum": 1,
                   "type": "integer",
-                  "format": "int32",
-                  "minimum": 1
+                  "format": "int32"
                 }
               }
             },
@@ -77,42 +77,42 @@
           },
           "400": {
             "description": "400",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              }
+            },
             "headers": {
               "content-length": {
                 "required": true,
                 "schema": {
+                  "minimum": 1,
                   "type": "integer",
-                  "format": "int32",
-                  "minimum": 1
-                }
-              }
-            },
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "minLength": 1
+                  "format": "int32"
                 }
               }
             }
           },
           "422": {
             "description": "422",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              }
+            },
             "headers": {
               "content-length": {
                 "required": true,
                 "schema": {
+                  "minimum": 1,
                   "type": "integer",
-                  "format": "int32",
-                  "minimum": 1
-                }
-              }
-            },
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "minLength": 1
+                  "format": "int32"
                 }
               }
             }
@@ -140,58 +140,51 @@
               "content-length": {
                 "required": true,
                 "schema": {
+                  "minimum": 1,
                   "type": "integer",
-                  "format": "int32",
-                  "minimum": 1
-                }
-              }
-            },
-            "content": {
-              "application/json": {
-                "schema": {
-                  "nullable": true
+                  "format": "int32"
                 }
               }
             }
           },
           "400": {
             "description": "400",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              }
+            },
             "headers": {
               "content-length": {
                 "required": true,
                 "schema": {
+                  "minimum": 1,
                   "type": "integer",
-                  "format": "int32",
-                  "minimum": 1
-                }
-              }
-            },
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "minLength": 1
+                  "format": "int32"
                 }
               }
             }
           },
           "422": {
             "description": "422",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              }
+            },
             "headers": {
               "content-length": {
                 "required": true,
                 "schema": {
+                  "minimum": 1,
                   "type": "integer",
-                  "format": "int32",
-                  "minimum": 1
-                }
-              }
-            },
-            "content": {
-              "text/plain": {
-                "schema": {
-                  "type": "string",
-                  "minLength": 1
+                  "format": "int32"
                 }
               }
             }

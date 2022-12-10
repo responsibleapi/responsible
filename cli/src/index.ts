@@ -1,5 +1,4 @@
-import { toOpenApi } from "../../generator/src/openapi/to-open-api"
-import { kdlToCore } from "../../generator/src/dsl/kdl/kdl"
+import { parseOpenAPI } from "../../generator/src/dsl/kdl/kdl"
 import { version } from "../package.json"
 import { readFile } from "fs/promises"
 import { parse } from "kdljs"
@@ -41,7 +40,7 @@ Options:
     return die(`kdl parse errors: ${JSON.stringify(doc.errors, null, 2)}`)
   }
 
-  console.log(JSON.stringify(toOpenApi(kdlToCore(doc.output)), null, 2))
+  console.log(JSON.stringify(parseOpenAPI(doc.output), null, 2))
 }
 
 void main()

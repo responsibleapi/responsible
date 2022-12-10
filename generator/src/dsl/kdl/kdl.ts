@@ -6,8 +6,8 @@ import {
   typeName,
 } from "./schema"
 import { isURLPath, mergePaths, parsePath, TypedPath, URLPath } from "./path"
-import { myDeepmerge } from "./typescript"
 import { OpenAPIV3 } from "openapi-types"
+import { deepmerge } from "deepmerge-ts"
 import { parseOps } from "./operation"
 import { parseScope } from "./scope"
 import { kdljs } from "kdljs"
@@ -131,7 +131,7 @@ export const parseHeader = (n: kdljs.Node): OpenAPIV3.HeaderObject => ({
 export const capitalize = <T extends string>(s: T): Capitalize<T> | "" =>
   (s.length ? `${s[0].toUpperCase()}${s.slice(1)}` : s) as Capitalize<T>
 
-const mkNode = (
+export const mkNode = (
   name: string,
   children?: kdljs.Node[],
 ): Readonly<kdljs.Node> => ({
@@ -256,17 +256,18 @@ const enterScope = (
         }
 
         const methods: OpenAPIV3.PathItemObject = paths[thePath.path] ?? {}
-        const tempScope = myDeepmerge(scope, {
+        const tempScope = deepmerge(scope, {
           parameters: pathParams(thePath.types),
         })
-        Object.assign(methods, parseOps(tempScope, node))
+        const ops = parseOps(tempScope, node)
+        Object.assign(methods, ops)
         paths[thePath.path] = methods
 
         break
       }
 
       case "scope": {
-        scope = myDeepmerge(scope, parseScope(node))
+        scope = deepmerge(scope, parseScope(node))
         break
       }
 

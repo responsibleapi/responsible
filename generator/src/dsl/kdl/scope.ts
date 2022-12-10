@@ -1,7 +1,8 @@
 import { parseScopeRes, ScopeResponses } from "./response"
-import { myDeepmerge } from "./typescript"
 import { OpenAPIV3 } from "openapi-types"
 import { parseScopeReq } from "./request"
+import { deepmerge } from "deepmerge-ts"
+import { delUndef } from "./typescript"
 import { kdljs } from "kdljs"
 import { Mime } from "./kdl"
 
@@ -19,9 +20,6 @@ export const parseScope = (
     switch (c.name) {
       case "req": {
         req = parseScopeReq(c)
-        if (req.requestBody) {
-          throw new Error(JSON.stringify(c, null, 2))
-        }
         break
       }
 
@@ -35,7 +33,9 @@ export const parseScope = (
     }
   }
 
-  return myDeepmerge(req, {
-    responses: (res as OpenAPIV3.ResponsesObject) ?? {},
-  })
+  return delUndef(
+    deepmerge(req, {
+      responses: res as OpenAPIV3.ResponsesObject,
+    }),
+  )
 }

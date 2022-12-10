@@ -1743,9 +1743,9 @@
   integrity sha512-HnYpAE1Y6kRyKM/XkEuiRQhTHvkzMBurTHnpFLYLBGPIylZNPs9jJcuOOYWxPLJCSEtmZT0Y8rHDokKN7rRTig==
 
 "@types/better-sqlite3@^7.6.0":
-  version "7.6.2"
-  resolved "https://registry.yarnpkg.com/@types/better-sqlite3/-/better-sqlite3-7.6.2.tgz#6ffa6379df60f30beb79d997102ff43412cde55c"
-  integrity sha512-RgmaapusqTq6IMAr4McMyAsC6RshYTCjXCnzwVV59WctUxC8bNPyUfT9t5F81lKcU41lLurhjqjoMHfauzfqGg==
+  version "7.6.3"
+  resolved "https://registry.yarnpkg.com/@types/better-sqlite3/-/better-sqlite3-7.6.3.tgz#117c3c182e300799b84d1b7e1781c27d8d536505"
+  integrity sha512-YS64N9SNDT/NAvou3QNdzAu3E2om/W/0dhORimtPGLef+zSK5l1vDzfsWb4xgXOgfhtOI5ZDTRxnvRPb22AIVQ==
   dependencies:
     "@types/node" "*"
 
@@ -1862,9 +1862,9 @@
   integrity sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==
 
 "@types/node@*":
-  version "18.11.11"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.11.tgz#1d455ac0211549a8409d3cdb371cd55cc971e8dc"
-  integrity sha512-KJ021B1nlQUBLopzZmPBVuGU9un7WJd/W4ya7Ih02B4Uwky5Nja0yGYav2EfYIk0RR2Q9oVhf60S2XR1BCWJ2g==
+  version "18.11.12"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-18.11.12.tgz#89e7f8aa8c88abf432f9bd594888144d7dba10aa"
+  integrity sha512-FgD3NtTAKvyMmD44T07zz2fEf+OKwutgBCEVM8GcvMGVGaDktiLNTDvPwC/LUe3PinMW+X6CuLOF2Ui1mAlSXg==
 
 "@types/prop-types@*":
   version "15.7.5"
@@ -1997,10 +1997,10 @@
     "@typescript-eslint/types" "5.46.0"
     eslint-visitor-keys "^3.3.0"
 
-"@uiw/codemirror-extensions-basic-setup@4.19.1":
-  version "4.19.1"
-  resolved "https://registry.yarnpkg.com/@uiw/codemirror-extensions-basic-setup/-/codemirror-extensions-basic-setup-4.19.1.tgz#c7d64a6550b05480009a147e69f7f8c0d196d066"
-  integrity sha512-IqNuCj0qBYUYUP3q6SiudyT7jlVJMbKGkXevHXCkYy0obXAD/mcc5WIZSgRxXnBhSWg4nm7t1gDWqMER8JYV2Q==
+"@uiw/codemirror-extensions-basic-setup@4.19.2":
+  version "4.19.2"
+  resolved "https://registry.yarnpkg.com/@uiw/codemirror-extensions-basic-setup/-/codemirror-extensions-basic-setup-4.19.2.tgz#25c21eb35e138e4452632dd5ebd4c3868c417f0d"
+  integrity sha512-pTS8hOGVOk7soAj7LNtjzz6dWknHHYFkcxUOyK2sBU3c7Xlvqw/q7SzohQl+pHmr7buMYj3QA2Qyho7t95qpTA==
   dependencies:
     "@codemirror/autocomplete" "^6.0.0"
     "@codemirror/commands" "^6.0.0"
@@ -2011,15 +2011,15 @@
     "@codemirror/view" "^6.0.0"
 
 "@uiw/react-codemirror@^4.15.1":
-  version "4.19.1"
-  resolved "https://registry.yarnpkg.com/@uiw/react-codemirror/-/react-codemirror-4.19.1.tgz#47837014e2b6ee158889cd31f25d5edaaccbb17e"
-  integrity sha512-5lvmYxaTCby2FckwtTtNbNffE6ZWq72qAgkyY/zzO6w5vU7jFiF1Q4pNdbgKcroIY6RArTHN/b1MwnT9BsEQpg==
+  version "4.19.2"
+  resolved "https://registry.yarnpkg.com/@uiw/react-codemirror/-/react-codemirror-4.19.2.tgz#1ff6a0fbf4a74edbdb540c74863bf5ff2dfac32b"
+  integrity sha512-8jK7TlmjYeV27A5iZPLUkzJgWVj6VVfM/is8elH09LkHNemIss5V6KiTdwK+kO00DM32/gIB8OfiLzx7ZwT+ng==
   dependencies:
     "@babel/runtime" "^7.18.6"
     "@codemirror/commands" "^6.1.0"
     "@codemirror/state" "^6.1.1"
     "@codemirror/theme-one-dark" "^6.0.0"
-    "@uiw/codemirror-extensions-basic-setup" "4.19.1"
+    "@uiw/codemirror-extensions-basic-setup" "4.19.2"
     codemirror "^6.0.0"
 
 "@web3-storage/multipart-parser@^1.0.0":
@@ -6739,19 +6739,19 @@ open@^8.4.0:
     is-wsl "^2.2.0"
 
 openapi-schema-validator@^12.0.2:
-  version "12.0.2"
-  resolved "https://registry.yarnpkg.com/openapi-schema-validator/-/openapi-schema-validator-12.0.2.tgz#84486717e442bafd36047300125123b96208b472"
-  integrity sha512-Y/EyQisaLDL/jX6XAVf/jlaKuJYE+JDVMrrdh5iDyp7ZA78Qe+3BNFD+7VoNfzHgcNvD0BQCYQS8smof6SzJdQ==
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/openapi-schema-validator/-/openapi-schema-validator-12.1.0.tgz#8ab5c7fd57189551126589426e5d71d8190eb80f"
+  integrity sha512-gr9mZCHu5QmADePYNhizaSAsB0HdY/DespPue10NQID1jB+56Jf+dfnJcnMOVKsG4ZAedVY5oyLFGI1Gk0wm7w==
   dependencies:
     ajv "^8.1.0"
     ajv-formats "^2.0.2"
     lodash.merge "^4.6.1"
-    openapi-types "^12.0.2"
+    openapi-types "^12.1.0"
 
-openapi-types@^12.0.0, openapi-types@^12.0.2:
-  version "12.0.2"
-  resolved "https://registry.yarnpkg.com/openapi-types/-/openapi-types-12.0.2.tgz#b752ab0a463c594fd7e3142e0e5983a9645503f6"
-  integrity sha512-GuTo7FyZjOIWVhIhQSWJVaws6A82sWIGyQogxxYBYKZ0NBdyP2CYSIgOwFfSB+UVoPExk/YzFpyYitHS8KVZtA==
+openapi-types@^12.0.0, openapi-types@^12.1.0:
+  version "12.1.0"
+  resolved "https://registry.yarnpkg.com/openapi-types/-/openapi-types-12.1.0.tgz#bd01acc937b73c9f6db2ac2031bf0231e21ebff0"
+  integrity sha512-XpeCy01X6L5EpP+6Hc3jWN7rMZJ+/k1lwki/kTmWzbVhdPie3jd5O2ZtedEx8Yp58icJ0osVldLMrTB/zslQXA==
 
 optionator@^0.8.1:
   version "0.8.3"
@@ -8952,9 +8952,9 @@ word-wrap@^1.2.3, word-wrap@~1.2.3:
   integrity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
 
 wrangler@^2.2.1:
-  version "2.6.1"
-  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-2.6.1.tgz#e80d667044501165cad760058a67af67a932d54f"
-  integrity sha512-v0Kh8KQC33xP82pGXZ+67pJMQIx0CHI+gF2nLIcdZbrB0wAQLQ6lsQYS9UpuTupQg4+RetHToDwk+lzRM0J0cQ==
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/wrangler/-/wrangler-2.6.2.tgz#70882b4008f8bd7bf9e0a66519df50bfe061be3c"
+  integrity sha512-+in4oEQXDs6+vE+1c6niBd3IrW1DMRTbauR6G0u3TpD6UaXOLwLdBxRLEbN3m82dN+WNm7l1MbFZrKc/TnWjhw==
   dependencies:
     "@cloudflare/kv-asset-handler" "^0.2.0"
     "@esbuild-plugins/node-globals-polyfill" "^0.1.1"

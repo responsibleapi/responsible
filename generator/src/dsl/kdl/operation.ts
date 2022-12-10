@@ -1,8 +1,9 @@
+import { capitalize, getString, isMime, Mime, mkNode } from "./kdl"
 import { parseCoreRes, ScopeResponses } from "./response"
-import { checkNonNull, myDeepmerge } from "./typescript"
-import { capitalize, getString, Mime } from "./kdl"
+import { checkNonNull, delUndef } from "./typescript"
 import { parseSchemaOrRef } from "./schema"
 import { OpenAPIV3 } from "openapi-types"
+import { deepmerge } from "deepmerge-ts"
 import { parseCoreReq } from "./request"
 import { kdljs } from "kdljs"
 
@@ -25,7 +26,7 @@ export const parseBody = (
   n: kdljs.Node,
 ): [Mime | "*", OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject] => {
   const schema = parseSchemaOrRef(n)
-  const mime = n.values.length === 2 ? (getString(n, 0) as Mime) : "*"
+  const mime = (n.values.find(x => isMime(x)) as Mime) ?? "*"
   return [mime, schema]
 }
 
@@ -72,11 +73,18 @@ export const parseOps = (
     throw new Error("TODO ranges are not implemented")
   }
 
-  const op: OpenAPIV3.OperationObject = myDeepmerge(req, {
-    operationId,
-    description,
-    responses: res ?? {},
-  })
+  const empty = mkNode("")
+  req ??= parseCoreReq(scope, empty)
+  res ??= parseCoreRes((scope.responses as ScopeResponses) ?? {}, empty)
+
+  const op: OpenAPIV3.OperationObject = deepmerge(
+    req,
+    delUndef({
+      operationId,
+      description,
+      responses: res,
+    }),
+  )
 
   const ret: OpenAPIV3.PathItemObject = { [method]: op }
 

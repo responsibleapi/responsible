@@ -1,22 +1,20 @@
 import { getString, Mime, parseHeader, StatusCodeStr } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
-import { parseSchemaOrRef, typeName } from "./schema"
-import { myDeepmerge } from "./typescript"
+import { delUndef, isEmpty } from "./typescript"
 import { OpenAPIV3 } from "openapi-types"
+import { deepmerge } from "deepmerge-ts"
+import { typeName } from "./schema"
 import { HasMime } from "./scope"
 import { kdljs } from "kdljs"
 
 const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
   if (n.values.length) {
-    const mime = n.values.length === 1 ? "*" : (getString(n, 0) as Mime)
+    const [mime, schema] = parseBody(n)
 
-    return {
+    return delUndef({
       description: n.name,
-      content:
-        typeName(n) === "unknown"
-          ? undefined
-          : { [mime]: { schema: parseSchemaOrRef(n) } },
-    }
+      content: typeName(n) === "unknown" ? undefined : { [mime]: { schema } },
+    })
   }
 
   if (!n.children.length) throw new Error(JSON.stringify(n))
@@ -73,7 +71,12 @@ const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
     }
   }
 
-  return { description: n.name, headers, content, mime }
+  return delUndef({
+    description: n.name,
+    headers: isEmpty(headers) ? undefined : headers,
+    content: isEmpty(content) ? undefined : content,
+    mime,
+  })
 }
 
 /**
@@ -151,12 +154,6 @@ type ScopeRes = OpenAPIV3.ResponseObject & HasMime
 
 export type ScopeResponses = Partial<Record<ScopeStatus, ScopeRes>>
 
-const throwKey = (o: Record<string, unknown>) => {
-  if (!Object.keys(o).every(Number)) {
-    throw new Error(JSON.stringify(o))
-  }
-}
-
 /**
  * 0. add statuses from the scope
  * 1. add empty responses for operation statuses
@@ -165,55 +162,47 @@ const throwKey = (o: Record<string, unknown>) => {
  */
 export const parseCoreRes = (
   scope: ScopeResponses,
-  res: kdljs.Node,
+  node: kdljs.Node,
 ): OpenAPIV3.ResponsesObject => {
   // get statuses from the scope
   const scopeStatuses = Object.fromEntries(
     Object.entries(scope).flatMap(([k, v]) => (v && Number(k) ? [[k, v]] : [])),
   )
-  throwKey(scopeStatuses)
 
   // get empty responses for operation statuses
   const emptyOpStatuses = Object.fromEntries(
-    res.children.map(c => {
+    node.children.map(c => {
       if (!Number(c.name)) throw new Error(JSON.stringify(c))
 
       return [c.name, {} as ScopeRes]
     }),
   )
-  throwKey(emptyOpStatuses)
 
   // apply scope to the responses
   const allMerged = Object.fromEntries(
-    Object.entries(myDeepmerge(scopeStatuses, emptyOpStatuses)).flatMap(
+    Object.entries(deepmerge(scopeStatuses, emptyOpStatuses)).flatMap(
       ([k, v]) => {
         if (!v) return []
+
         const status = Number(k)
         if (!status) throw new Error(k)
 
-        return [
-          [k, myDeepmerge(...matchingReses(scope, status), v) as ScopeRes],
-        ]
+        return [[k, deepmerge(...matchingReses(scope, status), v) as ScopeRes]]
       },
     ),
   )
-  throwKey(allMerged)
 
   // get real responses
   const real = Object.fromEntries(
-    res.children.map(c => {
+    node.children.map(c => {
       if (!Number(c.name)) throw new Error(JSON.stringify(c))
 
       return [c.name, parseStatus(c, true)]
     }),
   )
-  throwKey(real)
-
-  const all = myDeepmerge(allMerged, real)
-  throwKey(all)
 
   return Object.fromEntries(
-    Object.entries(all).flatMap(([k, v]) => {
+    Object.entries(deepmerge(allMerged, real)).flatMap(([k, v]) => {
       if (!v) return []
 
       const status = Number(k)
@@ -221,13 +210,13 @@ export const parseCoreRes = (
 
       const mime = matchingReses(scope, status).find(x => x.mime)?.mime
 
-      const copy: ScopeRes = {
+      const ret: ScopeRes = delUndef({
         ...v,
         content: replaceStars(v.content, mime),
         mime: undefined,
-      }
+      })
 
-      return [[k, copy]]
+      return [[k, ret]]
     }),
   )
 }
