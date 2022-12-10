@@ -16,7 +16,7 @@
   },
   "scripts": {
     "watch-test": "vitest",
-    "test": "vitest run",
+    "test": "vitest run src/",
     "lint": "eslint src/",
     "build:cjs": "tsc --declaration --module commonjs --outDir dist/",
     "build:esm": "tsc --module es2015 --outDir dist/esm/",

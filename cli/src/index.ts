@@ -1,4 +1,4 @@
-import { parseOpenAPI } from "../../generator/src/dsl/kdl/kdl"
+import { parseOpenAPI } from "@responsible/generator/src/kdl"
 import { version } from "../package.json"
 import { readFile } from "fs/promises"
 import { parse } from "kdljs"

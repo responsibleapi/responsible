@@ -10,10 +10,8 @@ const clean = <T>(t: T): T => JSON.parse(JSON.stringify(t))
 const validate = (x: OpenAPIV3.Document): void => {
   const { errors } = new OpenApiValidator({ version: 3 }).validate(clean(x))
 
-  return expect(
-    errors,
-    JSON.stringify(x, null, 2) + JSON.stringify(errors, null, 2),
-  ).toEqual([])
+  expect(errors, JSON.stringify(x, null, 2) + JSON.stringify(errors, null, 2))
+    .to.be.empty
 }
 
 test.concurrent("listenbox.kdl to OpenAPI", async () => {

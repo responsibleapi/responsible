@@ -1,6 +1,6 @@
 import { toOpenApi } from "../../../generator/src/openapi/to-open-api"
 import type { CoreService } from "../../../generator/src/core/core"
-import { kdlToCore } from "../../../generator/src/dsl/kdl/kdl"
+import { kdlToCore } from "@responsible/generator/src/kdl"
 import React, { useEffect, useMemo, useState } from "react"
 import { jsonLanguage } from "@codemirror/lang-json"
 import CodeMirror from "@uiw/react-codemirror"
