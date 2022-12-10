@@ -173,6 +173,16 @@ GET "/api/health" head=true {
     }
 }
 
+scope {
+    res {
+    // added to every operation
+        "400" {
+            header "Content-Length" "int32" minimum=1
+            body "application/json" "ErrorStruct"
+        }
+    }
+}
+
 "/japi" {
 
     scope {
@@ -183,14 +193,8 @@ GET "/api/health" head=true {
         res {
         // added to matching operations
             "200..299" {
-                header "Content-Length" "int32" minimum=1
                 mime "application/json"
-            }
-
-        // added to every operation
-            "400" {
                 header "Content-Length" "int32" minimum=1
-                body "application/json" "ErrorStruct"
             }
         }
     }
@@ -336,6 +340,7 @@ GET "/api/health" head=true {
                         cookie "token" "string" minLength=1
                     }
                 }
+                header "authorization" "string" minLength=1
             }
 
             res {
@@ -586,7 +591,6 @@ GET "/rss/:show_id(ShowID)/:type(AudioVideo).rss" head=true {
         "302" {
             header "Location" "httpURL"
         }
-        "400" "unknown"
         "403" "unknown"
         "404" "unknown"
     }
@@ -638,6 +642,5 @@ POST "/stripe/hooks" {
 
     res {
         "200" "unknown"
-        "400" "unknown"
     }
 }

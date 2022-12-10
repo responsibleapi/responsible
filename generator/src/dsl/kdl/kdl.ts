@@ -119,7 +119,7 @@ export const parseParam = (
 ): OpenAPIV3.ParameterObject => ({
   name: paramName(paramIn, getString(n, 0)),
   in: paramIn,
-  required: paramIn === "path" ? true : isOptional(n),
+  required: paramIn === "path" ? true : !isOptional(n),
   schema: parseSchemaOrRef(n),
 })
 

@@ -12,7 +12,7 @@
   "scripts": {
     "esb": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node18 --minify --sourcemap",
     "build": "yarn esb && pkg package.json",
-    "start": "yarn esb && node --enable-source-maps dist/index.js ../generator/tryout/yanic.kdl | pbcopy"
+    "start": "yarn esb && node --enable-source-maps dist/index.js ../generator/tryout/listenbox.kdl | pbcopy"
   },
   "pkg": {
     "targets": [
