@@ -8,6 +8,9 @@ const TAG_OPTIONAL = "?"
 export const isRequired = (node: kdljs.Node): boolean =>
   node.tags.name !== TAG_OPTIONAL
 
+export const isValueOptional = (node: kdljs.Node, idx: number): boolean =>
+  node.tags.values[idx] === TAG_OPTIONAL
+
 export const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
   type: "string",
   enum: node.children.map(x => x.name),

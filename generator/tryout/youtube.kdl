@@ -7,7 +7,7 @@ servers {
     url "https://www.googleapis.com/youtube/v3"
 }
 
-scope {
+* {
     req {
         security {
             apiKey {
@@ -17,6 +17,7 @@ scope {
             }
         }
     }
+
     res {
         mime "application/json"
 

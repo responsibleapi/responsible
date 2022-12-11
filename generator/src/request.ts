@@ -1,6 +1,6 @@
 import { getString, isRef, Mime, parseParam } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
-import { delUndef, isEmpty } from "./typescript"
+import { noUndef, isEmpty } from "./typescript"
 import { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"
 import { typeName } from "./schema"
@@ -13,7 +13,7 @@ export const parseScopeReq = (n: kdljs.Node): ScopeReq => {
   if (n.values.length) {
     const [mime, schema] = parseBody(n)
 
-    return delUndef({
+    return noUndef({
       requestBody:
         typeName(n) === "unknown"
           ? undefined
@@ -37,23 +37,25 @@ export const parseScopeReq = (n: kdljs.Node): ScopeReq => {
       }
 
       case "header": {
-        parameters.push(parseParam("header", c))
+        const name = getString(c, 0).toLowerCase()
+        parameters.push(parseParam("header", name, c))
         break
       }
 
       case "headers": {
         for (const header of c.children) {
-          parameters.push(parseParam("header", header))
+          const name = header.name.toLowerCase()
+          parameters.push(parseParam("header", name, header))
         }
         break
       }
 
       case "query": {
         if (c.values.length) {
-          parameters.push(parseParam(c.name, c))
+          parameters.push(parseParam(c.name, getString(c, 0), c))
         } else {
           for (const q of c.children) {
-            parameters.push(parseParam(c.name, q))
+            parameters.push(parseParam(c.name, q.name, q))
           }
         }
         break
@@ -77,7 +79,7 @@ export const parseScopeReq = (n: kdljs.Node): ScopeReq => {
     }
   }
 
-  return delUndef({
+  return noUndef({
     mime,
     parameters: parameters.length ? parameters : undefined,
     requestBody: isEmpty(content) ? undefined : { content },
@@ -88,12 +90,12 @@ const cleanup = (scope: ScopeReq): Partial<OpenAPIV3.OperationObject> => {
   const { requestBody } = scope
 
   if (isRef(requestBody)) {
-    return delUndef({ ...scope, mime: undefined, responses: undefined })
+    return noUndef({ ...scope, mime: undefined, responses: undefined })
   }
 
   const content = replaceStars(requestBody?.content, scope.mime)
 
-  return delUndef({
+  return noUndef({
     ...scope,
     requestBody: content
       ? { ...requestBody, content, required: true }

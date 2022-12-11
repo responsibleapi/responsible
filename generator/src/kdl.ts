@@ -1,6 +1,7 @@
 import {
   isRequired,
   parseSchemaOrRef,
+  SchemaOrRef,
   toEnum,
   toStruct,
   typeName,
@@ -8,7 +9,7 @@ import {
 import { isURLPath, mergePaths, parsePath, TypedPath, URLPath } from "./path"
 import { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"
-import { delUndef } from "./typescript"
+import { noUndef } from "./typescript"
 import { parseOps } from "./operation"
 import { parseScope } from "./scope"
 import { kdljs } from "kdljs"
@@ -100,25 +101,12 @@ const topLevel = (doc: kdljs.Document): Readonly<TopLevel> => {
   return { info: info ?? { title: "", version: "" }, servers }
 }
 
-type ParamIn = "header" | "cookie" | "path" | "query"
-
-const paramName = (paramIn: ParamIn, s: string): string => {
-  switch (paramIn) {
-    case "query":
-    case "cookie":
-      return s
-
-    case "path":
-    case "header":
-      return s.toLowerCase()
-  }
-}
-
 export const parseParam = (
-  paramIn: ParamIn,
+  paramIn: "header" | "cookie" | "path" | "query",
+  name: string,
   n: kdljs.Node,
 ): OpenAPIV3.ParameterObject => ({
-  name: paramName(paramIn, getString(n, 0)),
+  name,
   in: paramIn,
   required: paramIn === "path" ? true : isRequired(n),
   schema: parseSchemaOrRef(n),
@@ -198,6 +186,24 @@ interface FishedScope {
   paths: Paths
 }
 
+const enter = (
+  pth: string,
+  node: kdljs.Node,
+  path: TypedPath,
+  scope: Partial<OpenAPIV3.OperationObject>,
+  schemas: Record<string, SchemaOrRef>,
+  paths: OpenAPIV3.PathsObject,
+) => {
+  if (!isURLPath(pth)) throw new Error(JSON.stringify(node))
+
+  const entered = enterScope(node, {
+    path: mergePaths(path, parsePath(pth)),
+    parentScope: scope,
+  })
+  Object.assign(schemas, entered.schemas)
+  Object.assign(paths, entered.paths)
+}
+
 const enterScope = (
   doc: kdljs.Node,
   {
@@ -224,12 +230,18 @@ const enterScope = (
         break
 
       case "struct": {
-        schemas[typeName(node)] = toStruct(node)
+        const name = typeName(node)
+        if (schemas[name]) throw new Error(`type ${name} is already defined`)
+
+        schemas[name] = toStruct(node)
         break
       }
 
       case "enum": {
-        schemas[typeName(node)] = toEnum(node)
+        const name = typeName(node)
+        if (schemas[name]) throw new Error(`type ${name} is already defined`)
+
+        schemas[name] = toEnum(node)
         break
       }
 
@@ -237,7 +249,10 @@ const enterScope = (
         const schema = parseSchemaOrRef(node)
         if (isRef(schema)) throw new Error(JSON.stringify(node))
 
-        schemas[getString(node, 0)] = schema
+        const name = getString(node, 0)
+        if (schemas[name]) throw new Error(`type ${name} is already defined`)
+
+        schemas[name] = schema
         break
       }
 
@@ -267,21 +282,20 @@ const enterScope = (
         break
       }
 
-      case "scope": {
+      case "*": {
         scope = deepmerge(scope, parseScope(node))
         break
       }
 
-      default: {
-        if (!isURLPath(node.name)) throw new Error(JSON.stringify(node))
-
-        const entered = enterScope(node, {
-          path: mergePaths(path, parsePath(node.name)),
-          parentScope: scope,
-        })
-        Object.assign(schemas, entered.schemas)
-        Object.assign(paths, entered.paths)
+      case "scope": {
+        enter(getString(node, 0), node, path, scope, schemas, paths)
         break
+      }
+
+      default: {
+        throw new Error(
+          `${node.name} ${node.values.join(" ")} not supported in top level`,
+        )
       }
     }
   }
@@ -300,7 +314,7 @@ export const parseOpenAPI = (doc: kdljs.Document): OpenAPIV3.Document => {
     parentScope: {},
   })
 
-  return delUndef({
+  return noUndef({
     openapi: "3.0.1",
     info,
     servers,

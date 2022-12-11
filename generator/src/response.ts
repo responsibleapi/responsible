@@ -1,6 +1,6 @@
 import { getString, Mime, parseHeader, StatusCodeStr } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
-import { delUndef, isEmpty } from "./typescript"
+import { noUndef, isEmpty } from "./typescript"
 import { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"
 import { typeName } from "./schema"
@@ -11,7 +11,7 @@ const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
   if (n.values.length) {
     const [mime, schema] = parseBody(n)
 
-    return delUndef({
+    return noUndef({
       description: n.name,
       content: typeName(n) === "unknown" ? undefined : { [mime]: { schema } },
     })
@@ -71,7 +71,7 @@ const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
     }
   }
 
-  return delUndef({
+  return noUndef({
     description: n.name,
     headers: isEmpty(headers) ? undefined : headers,
     content: isEmpty(content) ? undefined : content,
@@ -210,7 +210,7 @@ export const parseCoreRes = (
 
       const mime = matchingReses(scope, status).find(x => x.mime)?.mime
 
-      const ret: ScopeRes = delUndef({
+      const ret: ScopeRes = noUndef({
         ...v,
         content: replaceStars(v.content, mime),
         mime: undefined,

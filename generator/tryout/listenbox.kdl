@@ -23,7 +23,7 @@ struct "SubmitReq" {
 enum "Plan" {
     free
     basic
-    premium
+    creator
 }
 
 struct "UserResp" {
@@ -50,17 +50,10 @@ struct "RecentResp" {
 }
 
 struct "ErrorStruct" {
-    errorType "enum" {
-        PARSING_ERROR
-        VALIDATION_ERROR
-        MISSING_MATCHING_BODY_PROCESSOR
-    }
-    (?)message "string"
-
-    (?)keyword "string"
-    (?)input "unknown"
-    (?)schema "struct"
-    (?)inputScope "string"
+    type "string" minLength=1
+    message "string" minLength=1
+    (?)causeType "string" minLength=1
+    (?)causeMessage "string" minLength=1
 }
 
 struct "ITunesCategory" {
@@ -173,7 +166,7 @@ GET "/api/health" head=true {
     }
 }
 
-scope {
+* {
     res {
     // added to every operation
         "400" {
@@ -183,9 +176,9 @@ scope {
     }
 }
 
-"/japi" {
+scope "/japi" {
 
-    scope {
+    * {
         req {
             mime "application/json"
         }
@@ -236,7 +229,7 @@ scope {
         name "submitUrl"
 
         req {
-            (?)header "authorization" "string" minLength=1
+            (?)header "authorization" "string"
             body "SubmitReq"
         }
 
@@ -251,33 +244,88 @@ scope {
         }
     }
 
-    GET "/show/:show_id(ShowID)" {
-        name "getShow"
+    scope "/show/:show_id(ShowID)" {
 
-        req {
-            (?)header "authorization" "string" minLength=1
-        }
-
-        res {
-            "200" "Show"
-            "403" "unknown"
-            "404" "unknown"
-        }
-    }
-
-    GET "/show/:show_id(ShowID)/items" {
-        name "getItems"
-
-        req {
-            query {
-                (?)before "dateTime"
-                (?)limit "int32" minimum=1
+        * {
+            res {
+                "403" "unknown"
+                "404" "unknown"
             }
         }
 
-        res {
-            "200" "ItemsResp"
-            "404" "unknown"
+        GET {
+            name "getShow"
+
+            req {
+                (?)header "authorization" "string"
+            }
+
+            res {
+                "200" "Show"
+            }
+        }
+
+        PUT {
+            name "editShow"
+
+            req {
+                body "EditShowReq"
+            }
+
+            res {
+                "200" "Show"
+            }
+        }
+
+        DELETE {
+            name "deleteFeed"
+
+            res {
+                "200" "unknown"
+            }
+        }
+
+        GET "/items" {
+            name "getItems"
+
+            req {
+                query {
+                    (?)before "dateTime"
+                    (?)limit "int32" minimum=1
+                }
+            }
+
+            res {
+                "200" "ItemsResp"
+            }
+        }
+
+        GET "/downloads" {
+            name "getDownloads"
+
+            req {
+                query {
+                    (?)timezone "string" minLength=1
+                }
+            }
+
+            res {
+                "200" "DownloadsChart"
+            }
+        }
+
+        GET "/episode_downloads" {
+            name "episodeDownloads"
+
+            res {
+                "200" "array" {
+                    struct {
+                        title "string"
+                        url "httpURL"
+                        downloads "nat32"
+                    }
+                }
+            }
         }
     }
 
@@ -308,20 +356,6 @@ scope {
         }
     }
 
-    GET "/show/:show_id(ShowID)/episode_downloads/" {
-        name "episodeDownloads"
-
-        res {
-            "200" "array" {
-                struct {
-                    title "string"
-                    url "httpURL"
-                    downloads "nat32"
-                }
-            }
-        }
-    }
-
     GET "/user/:email(email)/shows" {
         name "showsByEmail"
 
@@ -330,9 +364,8 @@ scope {
         }
     }
 
-    "/auth" {
-
-        scope {
+    scope "/auth" {
+        * {
             req {
                 security {
                     OR {
@@ -349,7 +382,8 @@ scope {
             }
         }
 
-        "/user" {
+        scope "/user" {
+
             GET {
                 name "getUser"
                 res {
@@ -415,7 +449,8 @@ scope {
             }
         }
 
-        "/later" {
+        scope "/later" {
+
             GET {
                 name "getLater"
                 res {
@@ -432,33 +467,24 @@ scope {
                     "402" "unknown"
                 }
             }
-        }
 
-        "/later/:item_id(ItemID)" {
+            scope "/:item_id(ItemID)" {
 
-            POST {
-                name "addLater"
-                req "unknown"
-                res {
-                    "200" "unknown"
-                    "402" "unknown"
+                POST {
+                    name "addLater"
+                    req "unknown"
+                    res {
+                        "200" "unknown"
+                        "402" "unknown"
+                    }
                 }
-            }
 
-            DELETE {
-                name "removeLater"
-                res {
-                    "200" "unknown"
+                DELETE {
+                    name "removeLater"
+                    res {
+                        "200" "unknown"
+                    }
                 }
-            }
-        }
-
-    // TODO change to /show/:show_id
-        DELETE "/feed/:show_id(ShowID)" {
-            name "deleteFeed"
-
-            res {
-                "200" "unknown"
             }
         }
 
@@ -477,35 +503,6 @@ scope {
             }
         }
 
-        PUT "/show/:show_id(ShowID)" {
-            name "editShow"
-
-            req {
-                body "EditShowReq"
-            }
-
-            res {
-                "200" "Show"
-                "403" "unknown"
-                "404" "unknown"
-            }
-        }
-
-        GET "/show/:show_id(ShowID)/downloads" {
-            name "getDownloads"
-
-            req {
-                query {
-                    (?)timezone "string" minLength=1
-                }
-            }
-
-            res {
-                "200" "DownloadsChart"
-                "403" "unknown"
-            }
-        }
-
         POST "/reverse" {
             name "reversePlaylist"
             req "ReverseReq"
@@ -517,7 +514,7 @@ scope {
     }
 }
 
-"/oauth/google" {
+scope "/oauth/google" {
 
     GET {
         name "googleSlash"

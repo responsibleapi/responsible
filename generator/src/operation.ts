@@ -1,6 +1,6 @@
 import { capitalize, getString, isMime, Mime, mkNode } from "./kdl"
 import { parseCoreRes, ScopeResponses } from "./response"
-import { checkNonNull, delUndef } from "./typescript"
+import { checkNonNull, noUndef } from "./typescript"
 import { parseSchemaOrRef } from "./schema"
 import { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"
@@ -79,7 +79,7 @@ export const parseOps = (
 
   const op: OpenAPIV3.OperationObject = deepmerge(
     req,
-    delUndef({
+    noUndef({
       operationId,
       description,
       responses: res,
@@ -99,7 +99,7 @@ export const parseOps = (
       responses: Object.fromEntries(
         Object.entries(op.responses).map(([k, v]) => [
           k,
-          delUndef({ ...v, content: undefined }),
+          noUndef({ ...v, content: undefined }),
         ]),
       ),
     }

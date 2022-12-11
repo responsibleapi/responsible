@@ -8,7 +8,7 @@ export const checkNonNull = <T>(t: T | null | undefined): NonNullable<T> => {
   return t
 }
 
-export const delUndef = <T extends Record<string, unknown>>(t: T): T => {
+export const noUndef = <T extends Record<string, unknown>>(t: T): T => {
   for (const k in t) {
     if (t[k] === undefined) {
       delete t[k]

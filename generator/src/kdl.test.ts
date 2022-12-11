@@ -14,20 +14,12 @@ const validate = (x: OpenAPIV3.Document): void => {
     .to.be.empty
 }
 
-test.concurrent("listenbox.kdl to OpenAPI", async () => {
-  validate(
-    parseOpenAPI(parse(await readFile("tryout/listenbox.kdl", "utf8")).output),
-  )
-})
-
-test.concurrent("yanic", async () => {
-  const openapi = parseOpenAPI(
-    parse(await readFile("tryout/yanic.kdl", "utf8")).output,
-  )
-  expect(clean(openapi)).toEqual(
-    JSON.parse(await readFile("tryout/yanic.json", "utf8")),
-  )
-  validate(openapi)
+test.concurrent("yanic JSON", async () => {
+  expect(
+    clean(
+      parseOpenAPI(parse(await readFile("tryout/yanic.kdl", "utf8")).output),
+    ),
+  ).toEqual(JSON.parse(await readFile("tryout/yanic.json", "utf8")))
 })
 
 test.concurrent("array", async () => {
@@ -75,4 +67,19 @@ test.concurrent("array", async () => {
       },
     },
   })
+})
+
+test.concurrent("kdl parse no errors", async () => {
+  const texts = await Promise.all(
+    ["listenbox", "yanic", "elkx", "youtube"].map(name =>
+      readFile(`../generator/tryout/${name}.kdl`, "utf-8"),
+    ),
+  )
+
+  for (const text of texts) {
+    const { errors, output } = parse(text)
+    expect(errors, JSON.stringify(errors, null, 2)).to.be.empty
+
+    validate(parseOpenAPI(output))
+  }
 })

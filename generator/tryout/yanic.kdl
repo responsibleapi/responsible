@@ -1,3 +1,5 @@
+responsible syntax="0.0.1"
+
 info {
     title "yanic"
     version "1.0.0"
@@ -17,7 +19,7 @@ struct "DownloadReq" {
     opts "YtDlOpts"
 }
 
-scope {
+* {
     req {
         mime "application/json"
     }

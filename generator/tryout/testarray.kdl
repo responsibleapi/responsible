@@ -1,6 +1,6 @@
 type "ShowID" "string"
 
-scope {
+* {
     res {
         mime "application/json"
     }

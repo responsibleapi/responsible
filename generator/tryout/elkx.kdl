@@ -1,7 +1,7 @@
-external "ElkNode"
-external "LayoutOpts"
+type "ElkNode" "struct"
+type "LayoutOpts" "struct"
 
-scope {
+* {
     req {
         mime "application/json"
     }
