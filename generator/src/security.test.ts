@@ -1,4 +1,4 @@
-import { parseSecurity } from "./request"
+import { parseSecurity } from "./security"
 import { expect, test } from "vitest"
 import { parse } from "kdljs"
 

@@ -1,15 +1,14 @@
 import {
   isRequired,
   parseSchemaOrRef,
-  SchemaOrRef,
   toEnum,
   toStruct,
   typeName,
 } from "./schema"
 import { isURLPath, mergePaths, parsePath, TypedPath, URLPath } from "./path"
+import { isEmpty, noUndef } from "./typescript"
 import { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"
-import { noUndef } from "./typescript"
 import { parseOps } from "./operation"
 import { parseScope } from "./scope"
 import { kdljs } from "kdljs"
@@ -176,27 +175,12 @@ const pathParams = (
   }))
 
 interface FishedScope {
-  schemas: Record<string, OpenAPIV3.SchemaObject>
-  securitySchemes: Record<string, OpenAPIV3.SecuritySchemeObject>
+  schemas?: Record<string, OpenAPIV3.SchemaObject>
+  securitySchemes?: Record<
+    string,
+    OpenAPIV3.SecuritySchemeObject | OpenAPIV3.ReferenceObject
+  >
   paths: OpenAPIV3.PathsObject
-}
-
-const enter = (
-  pth: string,
-  node: kdljs.Node,
-  path: TypedPath,
-  scope: Partial<OpenAPIV3.OperationObject>,
-  schemas: Record<string, SchemaOrRef>,
-  paths: OpenAPIV3.PathsObject,
-) => {
-  if (!isURLPath(pth)) throw new Error(JSON.stringify(node))
-
-  const entered = enterScope(node, {
-    path: mergePaths(path, parsePath(pth)),
-    parentScope: scope,
-  })
-  Object.assign(schemas, entered.schemas)
-  Object.assign(paths, entered.paths)
 }
 
 const enterScope = (
@@ -210,7 +194,13 @@ const enterScope = (
   },
 ): FishedScope => {
   const schemas: Record<string, OpenAPIV3.SchemaObject> = {}
+
   const paths: OpenAPIV3.PathsObject = {}
+
+  const securitySchemes: Record<
+    string,
+    OpenAPIV3.SecuritySchemeObject | OpenAPIV3.ReferenceObject
+  > = (parentScope as OpenAPIV3.ComponentsObject).securitySchemes ?? {}
 
   let scope: Partial<OpenAPIV3.OperationObject> = parentScope
 
@@ -283,7 +273,16 @@ const enterScope = (
       }
 
       case "scope": {
-        enter(getString(node, 0), node, path, scope, schemas, paths)
+        const pth = getString(node, 0)
+        if (!isURLPath(pth)) throw new Error(JSON.stringify(node))
+
+        const entered = enterScope(node, {
+          path: mergePaths(path, parsePath(pth)),
+          parentScope: scope,
+        })
+        Object.assign(schemas, entered.schemas)
+        Object.assign(paths, entered.paths)
+        Object.assign(securitySchemes, entered.securitySchemes)
         break
       }
 
@@ -295,7 +294,11 @@ const enterScope = (
     }
   }
 
-  return { schemas, paths }
+  return noUndef({
+    paths,
+    schemas: isEmpty(schemas) ? undefined : schemas,
+    securitySchemes: isEmpty(securitySchemes) ? undefined : securitySchemes,
+  })
 }
 
 /**
@@ -304,7 +307,7 @@ const enterScope = (
 export const parseOpenAPI = (doc: kdljs.Document): OpenAPIV3.Document => {
   const { info, servers } = topLevel(doc)
 
-  const { schemas, paths } = enterScope(mkNode("", doc), {
+  const { schemas, paths, securitySchemes } = enterScope(mkNode("", doc), {
     path: { path: "", types: {} },
     parentScope: {},
   })
@@ -313,7 +316,7 @@ export const parseOpenAPI = (doc: kdljs.Document): OpenAPIV3.Document => {
     openapi: "3.0.1",
     info,
     servers,
-    components: { schemas },
+    components: { schemas, securitySchemes },
     paths,
   })
 }
