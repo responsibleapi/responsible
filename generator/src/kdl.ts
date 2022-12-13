@@ -117,9 +117,6 @@ export const parseHeader = (n: kdljs.Node): OpenAPIV3.HeaderObject => ({
   schema: parseSchemaOrRef(n),
 })
 
-export const capitalize = <T extends string>(s: T): Capitalize<T> | "" =>
-  (s.length ? `${s[0].toUpperCase()}${s.slice(1)}` : s) as Capitalize<T>
-
 export const mkNode = (
   name: string,
   children?: kdljs.Node[],
@@ -178,12 +175,10 @@ const pathParams = (
     schema: parseSchemaOrRef(mkNode(type)),
   }))
 
-type Refs = Record<string, OpenAPIV3.SchemaObject>
-type Paths = OpenAPIV3.PathsObject
-
 interface FishedScope {
-  schemas: Refs
-  paths: Paths
+  schemas: Record<string, OpenAPIV3.SchemaObject>
+  securitySchemes: Record<string, OpenAPIV3.SecuritySchemeObject>
+  paths: OpenAPIV3.PathsObject
 }
 
 const enter = (

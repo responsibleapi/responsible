@@ -16,3 +16,6 @@ export const noUndef = <T extends Record<string, unknown>>(t: T): T => {
   }
   return t
 }
+
+export const capitalize = <T extends string>(s: T): Capitalize<T> | "" =>
+  (s ? `${s[0].toUpperCase()}${s.slice(1)}` : "") as Capitalize<T>

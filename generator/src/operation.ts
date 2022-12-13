@@ -1,6 +1,6 @@
-import { capitalize, getString, isMime, Mime, mkNode } from "./kdl"
+import { capitalize, checkNonNull, noUndef } from "./typescript"
 import { parseCoreRes, ScopeResponses } from "./response"
-import { checkNonNull, noUndef } from "./typescript"
+import { getString, isMime, Mime, mkNode } from "./kdl"
 import { parseSchemaOrRef } from "./schema"
 import { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"

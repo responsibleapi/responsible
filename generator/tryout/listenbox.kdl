@@ -133,9 +133,7 @@ struct "PreSignedUploadURL" {
 }
 
 struct "DownloadsChart" {
-
-//    TODO figure out minItems
-    list "array" {
+    list "array" minItems=0 {
         struct {
             day "utcMillis"
             downloads "nat32"
@@ -360,7 +358,12 @@ scope "/japi" {
         name "showsByEmail"
 
         res {
-            "200" "array" "ShowID"
+            "200" "array" {
+                "struct" {
+                    id "ShowID"
+                    title "string" minLength=1
+                }
+            }
         }
     }
 
@@ -630,15 +633,40 @@ GET "/w/:item_id(ItemID).:ext(NonEmptyString)" head=true {
     }
 }
 
-POST "/stripe/hooks" {
-    name "stripeWebhook"
+scope "/stripe" {
 
-    req {
-        header "Stripe-Signature" "string" minLength=1
-        body "application/json" "string" minLength=1
+    POST "/hooks" {
+        name "stripeWebhook"
+
+        req {
+            header "Stripe-Signature" "string" minLength=1
+            body "application/json" "string" minLength=1
+        }
+
+        res {
+            "200" "unknown"
+        }
     }
 
-    res {
-        "200" "unknown"
+    GET "/checkout" {
+        name "redirectCheckout"
+
+        res {
+            "302" {
+                header "location" "httpURL"
+            }
+            "401" "unknown"
+        }
+    }
+
+    GET "/billing" {
+        name "redirectBilling"
+
+        res {
+            "302" {
+                header "location" "httpURL"
+            }
+            "401" "unknown"
+        }
     }
 }

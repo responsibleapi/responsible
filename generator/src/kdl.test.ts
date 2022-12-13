@@ -22,9 +22,25 @@ test.concurrent("yanic JSON", async () => {
   ).toEqual(JSON.parse(await readFile("tryout/yanic.json", "utf8")))
 })
 
-test.concurrent("array", async () => {
+test.concurrent("array", () => {
   const openapi = parseOpenAPI(
-    parse(await readFile("tryout/testarray.kdl", "utf8")).output,
+    parse(`
+type "ShowID" "string"
+
+* {
+    res {
+        mime "application/json"
+    }
+}
+
+GET "/user/:email(email)/shows" {
+    name "showsByEmail"
+
+    res {
+        "200" "array" "ShowID"
+    }
+}
+`).output,
   )
 
   expect(clean(openapi)).toEqual(<OpenAPIV3.Document>{
