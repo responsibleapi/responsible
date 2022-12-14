@@ -227,7 +227,13 @@ scope "/japi" {
         name "submitUrl"
 
         req {
-            (?)header "authorization" "string"
+            (?)security {
+                OR {
+                    header "authorization"
+                    cookie "token"
+                }
+            }
+
             body "SubmitReq"
         }
 
@@ -246,7 +252,6 @@ scope "/japi" {
 
         * {
             res {
-                "403" "unknown"
                 "404" "unknown"
             }
         }
@@ -254,32 +259,8 @@ scope "/japi" {
         GET {
             name "getShow"
 
-            req {
-                (?)header "authorization" "string"
-            }
-
             res {
                 "200" "Show"
-            }
-        }
-
-        PUT {
-            name "editShow"
-
-            req {
-                body "EditShowReq"
-            }
-
-            res {
-                "200" "Show"
-            }
-        }
-
-        DELETE {
-            name "deleteFeed"
-
-            res {
-                "200" "unknown"
             }
         }
 
@@ -295,34 +276,6 @@ scope "/japi" {
 
             res {
                 "200" "ItemsResp"
-            }
-        }
-
-        GET "/downloads" {
-            name "getDownloads"
-
-            req {
-                query {
-                    (?)timezone "string" minLength=1
-                }
-            }
-
-            res {
-                "200" "DownloadsChart"
-            }
-        }
-
-        GET "/episode_downloads" {
-            name "episodeDownloads"
-
-            res {
-                "200" "array" {
-                    struct {
-                        title "string"
-                        url "httpURL"
-                        downloads "nat32"
-                    }
-                }
             }
         }
     }
@@ -341,47 +294,45 @@ scope "/japi" {
         }
     }
 
-    POST "/unsubscribe" {
-        name "unsubscribe"
-        description "Unsubscribe the email from product updates"
-
-        req "struct" {
-            email "email"
-        }
-
-        res {
-            "200" "unknown"
-        }
-    }
-
-    GET "/user/:email(email)/shows" {
-        name "showsByEmail"
-
-        res {
-            "200" "array" {
-                "struct" {
-                    id "ShowID"
-                    title "string" minLength=1
-                }
-            }
-        }
-    }
-
     scope "/auth" {
         * {
             req {
                 security {
                     OR {
-                        header "authorization" "string" minLength=1
-                        cookie "token" "string" minLength=1
+                        header "authorization"
+                        cookie "token"
                     }
                 }
-            // TODO remove once security is implemented
-                header "authorization" "string" minLength=1
             }
 
             res {
                 "401" "unknown"
+            }
+        }
+
+        POST "/unsubscribe" {
+            name "unsubscribe"
+            description "Unsubscribe the email from product updates"
+
+            req "struct" {
+                email "email"
+            }
+
+            res {
+                "200" "unknown"
+            }
+        }
+
+        GET "/user/:email(email)/shows" {
+            name "showsByEmail"
+
+            res {
+                "200" "array" {
+                    "struct" {
+                        id "ShowID"
+                        title "string" minLength=1
+                    }
+                }
             }
         }
 
@@ -448,6 +399,84 @@ scope "/japi" {
             res {
                 "201" "struct" {
                     url "httpURL"
+                }
+            }
+        }
+
+        GET "/checkout" {
+            name "redirectCheckout"
+
+            res {
+                "302" {
+                    header "location" "httpURL"
+                }
+            }
+        }
+
+        GET "/billing" {
+            name "redirectBilling"
+
+            res {
+                "302" {
+                    header "location" "httpURL"
+                }
+            }
+        }
+
+        scope "/show/:show_id(ShowID)" {
+
+            * {
+                res {
+                    "403" "unknown"
+                    "404" "unknown"
+                }
+            }
+
+            PUT {
+                name "editShow"
+
+                req {
+                    body "EditShowReq"
+                }
+
+                res {
+                    "200" "Show"
+                }
+            }
+
+            DELETE {
+                name "deleteFeed"
+
+                res {
+                    "200" "unknown"
+                }
+            }
+
+            GET "/downloads" {
+                name "getDownloads"
+
+                req {
+                    query {
+                        (?)timezone "string" minLength=1
+                    }
+                }
+
+                res {
+                    "200" "DownloadsChart"
+                }
+            }
+
+            GET "/episode_downloads" {
+                name "episodeDownloads"
+
+                res {
+                    "200" "array" {
+                        struct {
+                            title "string"
+                            url "httpURL"
+                            downloads "nat32"
+                        }
+                    }
                 }
             }
         }
@@ -633,40 +662,15 @@ GET "/w/:item_id(ItemID).:ext(NonEmptyString)" head=true {
     }
 }
 
-scope "/stripe" {
+POST "/stripe/hooks" {
+    name "stripeWebhook"
 
-    POST "/hooks" {
-        name "stripeWebhook"
-
-        req {
-            header "Stripe-Signature" "string" minLength=1
-            body "application/json" "string" minLength=1
-        }
-
-        res {
-            "200" "unknown"
-        }
+    req {
+        header "Stripe-Signature" "string" minLength=1
+        body "application/json" "string" minLength=1
     }
 
-    GET "/checkout" {
-        name "redirectCheckout"
-
-        res {
-            "302" {
-                header "location" "httpURL"
-            }
-            "401" "unknown"
-        }
-    }
-
-    GET "/billing" {
-        name "redirectBilling"
-
-        res {
-            "302" {
-                header "location" "httpURL"
-            }
-            "401" "unknown"
-        }
+    res {
+        "200" "unknown"
     }
 }

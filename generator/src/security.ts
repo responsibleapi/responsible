@@ -1,11 +1,16 @@
 import { OpenAPIV3 } from "openapi-types"
 import { capitalize } from "./typescript"
+import { isRequired } from "./schema"
 import { getString } from "./kdl"
 import { kdljs } from "kdljs"
 
 const parseSecurities = (
   parent: kdljs.Node,
 ): ReadonlyArray<OpenAPIV3.ApiKeySecurityScheme> => {
+  if (!isRequired(parent)) {
+    throw new Error(`optionality not supported in ${JSON.stringify(parent)}`)
+  }
+
   const ret = Array<OpenAPIV3.ApiKeySecurityScheme>()
 
   for (const node of parent.children) {
@@ -38,6 +43,16 @@ interface ParsedSecurity {
   security: OpenAPIV3.SecurityRequirementObject[]
 }
 
+const addOptional = (
+  node: kdljs.Node,
+  security: Array<OpenAPIV3.SecurityRequirementObject>,
+): Array<OpenAPIV3.SecurityRequirementObject> => {
+  if (!isRequired(node)) {
+    security.push({})
+  }
+  return security
+}
+
 export const parseSecurity = (parent: kdljs.Node): ParsedSecurity => {
   const node = parent.children[0]
   if (!node) return { securitySchemes: {}, security: [] }
@@ -47,7 +62,10 @@ export const parseSecurity = (parent: kdljs.Node): ParsedSecurity => {
       const securitySchemes = toRecord(parseSecurities(node))
       return {
         securitySchemes,
-        security: Object.keys(securitySchemes).map(x => ({ [x]: [] })),
+        security: addOptional(
+          parent,
+          Object.keys(securitySchemes).map(x => ({ [x]: [] })),
+        ),
       }
     }
 
@@ -55,9 +73,9 @@ export const parseSecurity = (parent: kdljs.Node): ParsedSecurity => {
       const securitySchemes = toRecord(parseSecurities(node))
       return {
         securitySchemes,
-        security: [
+        security: addOptional(parent, [
           Object.fromEntries(Object.keys(securitySchemes).map(x => [x, []])),
-        ],
+        ]),
       }
     }
 
@@ -70,7 +88,7 @@ export const parseSecurity = (parent: kdljs.Node): ParsedSecurity => {
 
       return {
         securitySchemes,
-        security: [{ [securityKeys[0]]: [] }],
+        security: addOptional(parent, [{ [securityKeys[0]]: [] }]),
       }
     }
   }

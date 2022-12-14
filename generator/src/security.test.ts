@@ -2,6 +2,34 @@ import { parseSecurity } from "./security"
 import { expect, test } from "vitest"
 import { parse } from "kdljs"
 
+test.concurrent("optional", () => {
+  expect(
+    parseSecurity(
+      parse(`
+        (?)security {
+            OR {
+                header "authorization"
+                cookie "token"
+            }
+        }`).output[0],
+    ),
+  ).toEqual(<ReturnType<typeof parseSecurity>>{
+    securitySchemes: {
+      AuthorizationHeader: {
+        type: "apiKey",
+        in: "header",
+        name: "authorization",
+      },
+      TokenCookie: {
+        type: "apiKey",
+        in: "cookie",
+        name: "token",
+      },
+    },
+    security: [{ AuthorizationHeader: [] }, { TokenCookie: [] }, {}],
+  })
+})
+
 test.concurrent("listenbox security", () => {
   expect(
     parseSecurity(
