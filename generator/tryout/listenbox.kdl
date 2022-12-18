@@ -75,7 +75,7 @@ struct "Show" {
     episodes "nat32"
     language "string"
     title "string"
-    type "YouTubeFeedType"
+    (?)type "YouTubeFeedType"
     videoFeedURL "httpURL"
     youtubeURL "httpURL"
     (?)analyticsPrefix "httpURL"
@@ -116,9 +116,13 @@ struct "JsonItem" {
     id "ItemID"
     title "string"
     webpage_url "httpURL"
+    pub_date_utc "utcMillis"
+    audio_url "httpURL"
+    mime "mime"
+
     (?)duration_seconds "seconds"
     (?)image "httpURL"
-    (?)mime "mime"
+    (?)author "string"
 }
 
 struct "ItemsResp" {
@@ -187,6 +191,10 @@ scope "/japi" {
                 mime "application/json"
                 header "Content-Length" "int32" minimum=1
             }
+
+            * {
+                header "X-Robots-Tag" "string" length=7
+            }
         }
     }
 
@@ -219,7 +227,9 @@ scope "/japi" {
                 jwt "string" minLength=1
             }
 
-            "401" "unknown"
+            "401" {
+                description "Incorrect OTP"
+            }
         }
     }
 
@@ -243,7 +253,9 @@ scope "/japi" {
                 (?)plan "Plan"
             }
 
-            "401" "unknown"
+            "401" {
+                description "Submitting playlists requires a login"
+            }
             "404" "unknown"
         }
     }
@@ -280,17 +292,26 @@ scope "/japi" {
         }
     }
 
+    struct "WorkerEvent" {
+        url "httpURL"
+        headers "dict" "string" "string"
+        timestamp "utcMillis"
+    }
+
     POST "/cdn_log" {
         name "logCDN"
 
-        req "struct" {
-            url "httpURL"
-            headers "dict" "string" "string"
-            timestamp "utcMillis"
+        req {
+            body "WorkerEvent"
+
+        // workaround for a current worker to avoid redeploying it 😏
+            body "text/plain" "WorkerEvent"
         }
 
         res {
-            "201" "unknown"
+            "201" {
+                (?)header "Content-Length" "int32" minimum=0 maximum=0
+            }
         }
     }
 
@@ -357,8 +378,9 @@ scope "/japi" {
 
             DELETE {
                 name "deleteUser"
+
                 res {
-                    "200" "UserResp"
+                    "200" "unknown"
                 }
             }
         }
@@ -370,41 +392,23 @@ scope "/japi" {
             }
         }
 
-        POST "/checkout" {
-            name "checkout"
-
-            req "struct" {
-                plan "Plan"
-                interval "enum" {
-                    month
-                    year
-                }
-                success_url "httpURL"
-                cancel_url "httpURL"
-            }
-
-            res {
-                "201" "struct" {
-                    id "StripeCheckoutID"
-                }
-                "409" "unknown"
-            }
-        }
-
-        POST "/portal" {
-            name "customerPortal"
-            req "struct" {
-                return_url "httpURL"
-            }
-            res {
-                "201" "struct" {
-                    url "httpURL"
-                }
-            }
+        enum "PlanInterval" {
+            month
+            year
         }
 
         GET "/checkout" {
-            name "redirectCheckout"
+            name "checkoutRedirect"
+            description "Redirect to the checkout page or to billing if already subscribed"
+
+            req {
+                query {
+                    plan "Plan"
+                    interval "PlanInterval"
+                    success_url "httpURL"
+                    cancel_url "httpURL"
+                }
+            }
 
             res {
                 "302" {
@@ -414,7 +418,11 @@ scope "/japi" {
         }
 
         GET "/billing" {
-            name "redirectBilling"
+            name "billingRedirect"
+
+            req {
+                (?)query "return_url" "httpURL"
+            }
 
             res {
                 "302" {
@@ -456,9 +464,7 @@ scope "/japi" {
                 name "getDownloads"
 
                 req {
-                    query {
-                        (?)timezone "string" minLength=1
-                    }
+                    (?)query "timezone" "string" minLength=1
                 }
 
                 res {
@@ -524,9 +530,7 @@ scope "/japi" {
             name "preSignedImageUploadURL"
 
             req {
-                query {
-                    filename "string" minLength=1
-                }
+                query "filename" "string" minLength=1
             }
 
             res {
@@ -547,6 +551,14 @@ scope "/japi" {
 }
 
 scope "/oauth/google" {
+
+    * {
+        res {
+            * {
+                header "X-Robots-Tag" "string" length=7
+            }
+        }
+    }
 
     GET {
         name "googleSlash"
@@ -667,7 +679,7 @@ POST "/stripe/hooks" {
 
     req {
         header "Stripe-Signature" "string" minLength=1
-        body "application/json" "string" minLength=1
+        body "application/json" "struct"
     }
 
     res {

@@ -11,6 +11,7 @@ const die = (s: string): never => {
 
 const main = async () => {
   const args = arg({
+    "--watch": Boolean,
     "--version": Boolean,
     "--help": Boolean,
   })

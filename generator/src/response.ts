@@ -1,6 +1,6 @@
 import { getString, Mime, parseHeader, StatusCodeStr } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
-import { noUndef, isEmpty } from "./typescript"
+import { isEmpty, noUndef } from "./typescript"
 import { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"
 import { typeName } from "./schema"
@@ -21,6 +21,7 @@ const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
 
   let mime: Mime | undefined
 
+  let description: string | undefined
   const headers: NonNullable<OpenAPIV3.ResponseObject["headers"]> = {}
   const content: NonNullable<OpenAPIV3.ResponseObject["content"]> = {}
 
@@ -63,6 +64,11 @@ const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
         break
       }
 
+      case "description": {
+        description = getString(c, 0)
+        break
+      }
+
       default: {
         if (throwOnDefault) {
           throw new Error(JSON.stringify(c))
@@ -72,7 +78,7 @@ const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
   }
 
   return noUndef({
-    description: n.name,
+    description: description || n.name,
     headers: isEmpty(headers) ? undefined : headers,
     content: isEmpty(content) ? undefined : content,
     mime,
