@@ -1,11 +1,12 @@
-import { getString, isRef, Mime, parseParam } from "./kdl"
+import type { Mime} from "./kdl";
+import { getString, isRef, parseParam } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
 import { isEmpty, noUndef } from "./typescript"
 import { parseSecurity } from "./security"
-import { OpenAPIV3 } from "openapi-types"
+import type { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"
 import { typeName } from "./schema"
-import { kdljs } from "kdljs"
+import type { kdljs } from "kdljs"
 
 interface ReqScope {
   mime?: Mime

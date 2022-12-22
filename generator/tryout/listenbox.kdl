@@ -623,10 +623,9 @@ GET "/rss/:show_id(ShowID)/:type(AudioVideo).rss" head=true {
             headers {
                 "Content-Length" "int32" minimum=1
                 "ETag" "string" minLength=1
+                "Cache-Control" "string" enum="no-cache"
+                "CDN-Cache-Control" "string" enum="max-age=2147483647"
                 (?)"Last-Modified" "string" minLength=1
-            // TODO const
-                "Cache-Control" "string" minLength=1
-                "CDN-Cache-Control" "string" minLength=1
             }
             body "application/rss+xml" "string" minLength=1
         }

@@ -1,11 +1,12 @@
-import { getString, Mime, parseHeader, StatusCodeStr } from "./kdl"
+import type { Mime, StatusCodeStr } from "./kdl";
+import { getString, parseHeader } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
 import { isEmpty, noUndef } from "./typescript"
-import { OpenAPIV3 } from "openapi-types"
+import type { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"
 import { typeName } from "./schema"
-import { HasMime } from "./scope"
-import { kdljs } from "kdljs"
+import type { HasMime } from "./scope"
+import type { kdljs } from "kdljs"
 
 const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
   if (n.values.length) {

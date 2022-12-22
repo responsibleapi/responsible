@@ -1,9 +1,9 @@
 module.exports = {
   root: true,
   env: { node: true },
-  plugins: ["@typescript-eslint", "ban"],
+  plugins: ["ban"],
   parser: "@typescript-eslint/parser",
-  parserOptions: { project: "./tsconfig.base.json" },
+  parserOptions: { project: "./tsconfig.json" },
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
@@ -12,16 +12,17 @@ module.exports = {
   ],
   ignorePatterns: ["**/*.test.ts", "**/build.js", "**/dist/*"],
   rules: {
-    eqeqeq: "error",
-    "no-throw-literal": "error",
-    "no-console": "error",
     "ban/ban": [
       "error",
       {
         name: "parseInt",
-        message: "Prefer Number constructor",
+        message: "Use Number() constructor",
       },
     ],
+
+    eqeqeq: "error",
+    "no-throw-literal": "error",
+    "no-console": "error",
 
     "no-shadow": "off",
     "@typescript-eslint/no-shadow": "error",
@@ -52,5 +53,7 @@ module.exports = {
     "@typescript-eslint/restrict-template-expressions": "warn",
     "@typescript-eslint/no-unsafe-argument": "warn",
     "@typescript-eslint/explicit-module-boundary-types": "error",
+
+    "@typescript-eslint/consistent-type-imports": "warn",
   },
 }

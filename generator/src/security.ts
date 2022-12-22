@@ -1,8 +1,8 @@
-import { OpenAPIV3 } from "openapi-types"
+import type { OpenAPIV3 } from "openapi-types"
 import { capitalize } from "./typescript"
 import { isRequired } from "./schema"
 import { getString } from "./kdl"
-import { kdljs } from "kdljs"
+import type { kdljs } from "kdljs"
 
 const parseSecurities = (
   parent: kdljs.Node,

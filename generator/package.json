@@ -13,11 +13,11 @@
     "openapi-schema-validator": "^12.0.2"
   },
   "scripts": {
-    "watch-test": "vitest",
-    "test": "vitest run src/",
-    "lint": "eslint src/",
+    "build": "yarn build:cjs && yarn build:esm",
     "build:cjs": "tsc --declaration --module commonjs --outDir dist/",
     "build:esm": "tsc --module es2015 --outDir dist/esm/",
-    "build": "yarn build:cjs && yarn build:esm"
+    "lint": "eslint src/ --fix",
+    "test": "vitest run src/",
+    "watch:test": "vitest"
   }
 }

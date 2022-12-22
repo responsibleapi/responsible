@@ -1,5 +1,6 @@
-import { OpenAPIV3 } from "openapi-types"
-import { kdljs } from "kdljs"
+import type { OpenAPIV3 } from "openapi-types"
+import { noUndef } from "./typescript"
+import type { kdljs } from "kdljs"
 
 export type SchemaOrRef = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 
@@ -78,17 +79,20 @@ export const parseSchemaOrRef = (
     }
 
     case "string": {
-      const parsed = +String(node.properties.length)
-      const length = isNaN(parsed) ? undefined : parsed
+      const parsedLen = Number(node.properties.length)
+      const length = isNaN(parsedLen) ? undefined : parsedLen
 
-      return {
+      const enumArr = node.properties.enum ? [node.properties.enum] : undefined
+
+      // @ts-ignore well...
+      return noUndef({
         minLength: length,
         maxLength: length,
         ...node.properties,
-        // @ts-ignore well...
         length: undefined,
         type: "string",
-      }
+        enum: enumArr,
+      })
     }
 
     case "boolean":

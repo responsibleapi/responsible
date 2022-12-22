@@ -5,26 +5,27 @@ import { expect, test } from "vitest"
 import { parseOpenAPI } from "./kdl"
 import { parse } from "kdljs"
 
-const clean = <T>(t: T): T => JSON.parse(JSON.stringify(t))
+const toOpenAPI = (s: string): OpenAPIV3.Document => {
+  const kdl = parse(s)
 
-const validate = (x: OpenAPIV3.Document): void => {
-  const { errors } = new OpenApiValidator({ version: 3 }).validate(clean(x))
+  expect(kdl.errors, JSON.stringify(kdl.errors, null, 2)).to.be.empty
 
-  expect(errors, JSON.stringify(x, null, 2) + JSON.stringify(errors, null, 2))
-    .to.be.empty
+  const doc = parseOpenAPI(kdl.output)
+
+  const vld = new OpenApiValidator({ version: doc.openapi }).validate(doc)
+  expect(vld.errors, JSON.stringify(vld.errors, null, 2)).to.be.empty
+
+  return doc
 }
 
 test.concurrent("yanic JSON", async () => {
-  expect(
-    clean(
-      parseOpenAPI(parse(await readFile("tryout/yanic.kdl", "utf8")).output),
-    ),
-  ).toEqual(JSON.parse(await readFile("tryout/yanic.json", "utf8")))
+  expect(toOpenAPI(await readFile("tryout/yanic.kdl", "utf8"))).toEqual(
+    JSON.parse(await readFile("tryout/yanic.json", "utf8")),
+  )
 })
 
 test.concurrent("array", () => {
-  const openapi = parseOpenAPI(
-    parse(`
+  const openapi = toOpenAPI(`
 type "ShowID" "string"
 
 * {
@@ -40,10 +41,9 @@ GET "/user/:email(email)/shows" {
         "200" "array" "ShowID"
     }
 }
-`).output,
-  )
+`)
 
-  expect(clean(openapi)).toEqual(<OpenAPIV3.Document>{
+  expect(openapi).toEqual(<OpenAPIV3.Document>{
     openapi: "3.0.1",
     info: {
       title: "",
@@ -93,9 +93,88 @@ test.concurrent("kdl parse no errors", async () => {
   )
 
   for (const text of texts) {
-    const { errors, output } = parse(text)
-    expect(errors, JSON.stringify(errors, null, 2)).to.be.empty
-
-    validate(parseOpenAPI(output))
+    toOpenAPI(text)
   }
+})
+
+test.concurrent("query param names", () => {
+  const { paths } = toOpenAPI(`
+GET "/youtube/v3/search" {
+    req {
+        query {
+            part "string" enum="snippet"
+
+        // Filters (specify 0 or 1 of the following parameters)
+            (?)forContentOwner "boolean"
+            (?)forDeveloper "boolean"
+            (?)forMine "boolean"
+            (?)relatedToVideoId "string" minLength=1
+
+            (?)channelId "string" minLength=1
+            (?)channelType "enum" {
+                any
+                show
+            }
+            (?)eventType "enum" {
+                completed
+                live
+                upcoming
+            }
+        }
+    }
+}
+`)
+
+  expect(paths["/youtube/v3/search"].get.parameters).toEqual(<
+    OpenAPIV3.ParameterObject[]
+  >[
+    {
+      in: "query",
+      name: "part",
+      required: true,
+      schema: { type: "string", enum: ["snippet"] },
+    },
+    {
+      in: "query",
+      name: "forContentOwner",
+      required: false,
+      schema: { type: "boolean" },
+    },
+    {
+      in: "query",
+      name: "forDeveloper",
+      required: false,
+      schema: { type: "boolean" },
+    },
+    {
+      in: "query",
+      name: "forMine",
+      required: false,
+      schema: { type: "boolean" },
+    },
+    {
+      in: "query",
+      name: "relatedToVideoId",
+      required: false,
+      schema: { type: "string", minLength: 1 },
+    },
+    {
+      in: "query",
+      name: "channelId",
+      required: false,
+      schema: { type: "string", minLength: 1 },
+    },
+    {
+      in: "query",
+      name: "channelType",
+      required: false,
+      schema: { type: "string", enum: ["any", "show"] },
+    },
+    {
+      in: "query",
+      name: "eventType",
+      required: false,
+      schema: { type: "string", enum: ["completed", "live", "upcoming"] },
+    },
+  ])
 })
