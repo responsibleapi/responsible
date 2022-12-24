@@ -17,15 +17,18 @@ export const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
   enum: node.children.map(x => x.name),
 })
 
-export const toStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
-  type: "object",
-  properties: node.children.length
-    ? Object.fromEntries(node.children.map(x => [x.name, parseSchemaOrRef(x)]))
-    : undefined,
-  required: node.children.length
-    ? node.children.flatMap(x => (isRequired(x) ? [x.name] : []))
-    : undefined,
-})
+export const toStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject =>
+  noUndef({
+    type: "object",
+    properties: node.children.length
+      ? Object.fromEntries(
+          node.children.map(x => [x.name, parseSchemaOrRef(x)]),
+        )
+      : undefined,
+    required: node.children.length
+      ? node.children.flatMap(x => (isRequired(x) ? [x.name] : []))
+      : undefined,
+  } as const)
 
 export const typeName = (n: kdljs.Node): string => {
   if (!n.values.length) return n.name
@@ -81,18 +84,14 @@ export const parseSchemaOrRef = (
     case "string": {
       const parsedLen = Number(node.properties.length)
       const length = isNaN(parsedLen) ? undefined : parsedLen
-
-      const enumArr = node.properties.enum ? [node.properties.enum] : undefined
-
-      // @ts-ignore well...
       return noUndef({
         minLength: length,
         maxLength: length,
         ...node.properties,
         length: undefined,
         type: "string",
-        enum: enumArr,
-      })
+        enum: node.properties.enum ? [node.properties.enum] : undefined,
+      } as const)
     }
 
     case "boolean":

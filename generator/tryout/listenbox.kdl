@@ -193,7 +193,7 @@ scope "/japi" {
             }
 
             * {
-                header "X-Robots-Tag" "string" length=7
+                header "X-Robots-Tag" "string" enum="noindex"
             }
         }
     }

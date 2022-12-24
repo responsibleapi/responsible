@@ -1,12 +1,12 @@
-import type { Mime} from "./kdl";
-import { getString, isRef, parseParam } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
+import { getString, isRef, parseParam } from "./kdl"
 import { isEmpty, noUndef } from "./typescript"
-import { parseSecurity } from "./security"
 import type { OpenAPIV3 } from "openapi-types"
+import { parseSecurity } from "./security"
 import { deepmerge } from "deepmerge-ts"
 import { typeName } from "./schema"
 import type { kdljs } from "kdljs"
+import type { Mime } from "./kdl"
 
 interface ReqScope {
   mime?: Mime
@@ -60,10 +60,10 @@ export const parseScopeReq = (parent: kdljs.Node): ScopeReq => {
 
       case "query": {
         if (node.values.length) {
-          parameters.push(parseParam(node.name, getString(node, 0), node))
+          parameters.push(parseParam("query", getString(node, 0), node))
         } else {
           for (const q of node.children) {
-            parameters.push(parseParam(node.name, q.name, q))
+            parameters.push(parseParam("query", q.name, q))
           }
         }
         break

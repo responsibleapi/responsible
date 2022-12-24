@@ -5,8 +5,8 @@ import {
   toStruct,
   typeName,
 } from "./schema"
-import type { TypedPath, URLPath } from "./path";
 import { isURLPath, mergePaths, parsePath } from "./path"
+import type { TypedPath, URLPath } from "./path"
 import { isEmpty, noUndef } from "./typescript"
 import type { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"
@@ -102,13 +102,13 @@ const topLevel = (doc: kdljs.Document): Readonly<TopLevel> => {
 }
 
 export const parseParam = (
-  paramIn: "header" | "cookie" | "path" | "query",
+  paramIn: "header" | "cookie" | "query",
   name: string,
   n: kdljs.Node,
 ): OpenAPIV3.ParameterObject => ({
   name,
   in: paramIn,
-  required: paramIn === "path" ? true : isRequired(n),
+  required: isRequired(n),
   schema: parseSchemaOrRef(n),
 })
 

@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react"
 import { parseOpenAPI } from "../../../generator/src/kdl"
+import { Header } from "../main/Header"
 import { jsonLanguage } from "@codemirror/lang-json"
 import CodeMirror from "@uiw/react-codemirror"
-import type { OpenAPIV3 } from "openapi-types"
-import { exampleKDL } from "../examplekdl"
+import React, { useEffect, useMemo, useState } from "react"
 import { parse } from "kdljs"
+import { exampleKDL } from "../examplekdl"
+import type { OpenAPIV3 } from "openapi-types"
 
 const LOCAL_STORAGE_KEY = "kdl"
 
@@ -35,21 +36,25 @@ export default function Index(): JSX.Element {
   )
 
   return (
-    <div className="flex flex-row w-full h-screen divide-x">
-      <CodeMirror
-        className="flex-1 h-full"
-        height={"100%"}
-        value={kdl}
-        onChange={str => setKDL(str || "")}
-      />
+    <div className="flex h-screen w-full flex-col">
+      <Header />
 
-      <CodeMirror
-        className="flex-1 h-full"
-        readOnly={true}
-        height={"100%"}
-        value={result}
-        extensions={[jsonLanguage]}
-      />
+      <div className="flex w-full flex-1 flex-row divide-x overflow-y-hidden">
+        <CodeMirror
+          className="flex-1"
+          height={"100%"}
+          value={kdl}
+          onChange={str => setKDL(str || "")}
+        />
+
+        <CodeMirror
+          className="flex-1"
+          readOnly={true}
+          height={"100%"}
+          value={result}
+          extensions={[jsonLanguage]}
+        />
+      </div>
     </div>
   )
 }

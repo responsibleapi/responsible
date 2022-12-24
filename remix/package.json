@@ -15,6 +15,9 @@
     "start": "cross-env NODE_ENV=production yarn dev:wrangler",
     "lint": "eslint app/ --fix"
   },
+  "resolutions": {
+    "@typescript-eslint/eslint-plugin": "^5.30.5"
+  },
   "dependencies": {
     "@codemirror/lang-json": "^6.0.1",
     "@headlessui/react": "^1.7.4",
@@ -41,9 +44,6 @@
     "tailwindcss": "^3.2.4",
     "typescript": "^4.8.4",
     "wrangler": "^2.2.1"
-  },
-  "resolutions": {
-    "@typescript-eslint/eslint-plugin": "^5.30.5"
   },
   "engines": {
     "node": ">=16.13"

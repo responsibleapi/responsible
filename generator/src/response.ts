@@ -1,11 +1,11 @@
-import type { Mime, StatusCodeStr } from "./kdl";
-import { getString, parseHeader } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
+import type { Mime, StatusCodeStr } from "./kdl"
 import { isEmpty, noUndef } from "./typescript"
 import type { OpenAPIV3 } from "openapi-types"
+import { getString, parseHeader } from "./kdl"
 import { deepmerge } from "deepmerge-ts"
-import { typeName } from "./schema"
 import type { HasMime } from "./scope"
+import { typeName } from "./schema"
 import type { kdljs } from "kdljs"
 
 const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
@@ -96,7 +96,7 @@ export const parseScopeRes = (node: kdljs.Node): ScopeResponses => {
 
   for (const c of node.children) {
     switch (true) {
-      case Boolean(+c.name): {
+      case Boolean(Number(c.name)): {
         ret[c.name as StatusCodeStr] = parseStatus(c, true)
         break
       }
