@@ -1,8 +1,10 @@
-# Responsible
+# Responsible API
 
-OpenAPI toolkit
+OpenAPI toolkit for enabling contract-first development.
 
-## Problems OpenAPI solves
+## Why
+
+### Problems OpenAPI solves
 
 - Client & server team collaboration
 - Server request validation
@@ -12,29 +14,129 @@ OpenAPI toolkit
 - Backwards compatibility verification
 - Language and framework independence
 
-## OpenAPI's problem: verbosity
+### OpenAPI's problem: verbosity
 
-Responsible builds on top of OpenAPI and solves **the only problem OpenAPI has: verbosity**.
-It's hard to create, modify and read.
+- Frameworks like [FastAPI](https://fastapi.tiangolo.com) have a way to generate the spec from code, but you lose:
 
-Frameworks like [FastAPI](https://fastapi.tiangolo.com) have a way to generate the spec from code, but you lose:
+  - Client & server team collaboration (the spec is engraved in the server code)
+  - Language and framework independence (more effort to get off the framework)
 
-- Client & server team collaboration (the spec is engraved in the server code)
-- Language and framework independence (more effort to get off the framework)
+- [Stoplight](https://stoplight.io) simplifies OpenAPI management, but lacks coherence with the codebase,
+  requiring synchronization between the spec and the code.
 
-[Stoplight](https://stoplight.io) simplifies OpenAPI management, but lacks coherence with the codebase,
-requiring synchronization between the spec and the code.
+### Responsible DSL
 
-## Problems Responsible solves
+Responsible builds on top of OpenAPI and solves the verbosity problem.
 
-### Custom DSL
+## Install
 
-- OpenAPI DSL is extremely verbose and hard to read. It's also hard to maintain. This library provides a custom DSL that
-  is much more readable and maintainable.
-
-## CLI
+Homebrew
 
 ```shell
 brew tap responsibleapi/responsible
 brew install responsible
 ```
+
+Or use the online editor https://responsibleapi.com
+
+## Quick language tutorial
+
+### Operations
+
+Responsible's operation syntax is simple. Start with an HTTP method followed by a path:
+
+```kdl
+GET "/search" {
+
+//  OpenAPI's `operationId`
+    name "searchItems"
+
+    req {
+    // define request's query params
+        query {
+        // query param "q" & type=string
+            q "string" minLength=1 {
+                description "Search query"
+            }
+        // query param "next" & it's optional
+            (?)next "string" format="uuid"
+        }
+    }
+
+    res {
+    // for 200 status code, the response body is a a JSON object with following fields
+        "200" "application/json" "struct" {
+        // field "results" & type=Array<string>
+            results "array" "string"
+        // field "next", type=UUID and it's optional
+            (?)next "string" format="uuid"
+        }
+
+    // there is a 400 response, but it's shape is unknown (can be anything of any mime type)
+        "400" "unknown"
+    }
+}
+```
+
+### Types
+
+The `200` response struct can be extracted and named:
+
+```kdl
+// this a type alias
+type "ItemID" "string" format="uuid"
+
+// struct is type: "object" + "properties" + "required" in JsonSchema
+struct "SearchResults" {
+    results "array" "ItemID"
+    (?)next "string" format="uuid"
+}
+
+GET "/search" {
+    req {
+        query {
+            q "string" minLength=1
+            (?)next "string" format="uuid"
+        }
+    }
+
+    res {
+        "200" "application/json" "SearchResults"
+        "400" "unknown"
+    }
+}
+```
+
+### Operation wildcards
+
+Now let's introduce a second operation: `getItem`:
+
+```kdl
+// this a type alias
+type "ItemID" "string" format="uuid"
+
+// path param "id" is of type `ItemID`
+GET "/items/:id(ItemID)" {
+    name "getItem"
+
+    res {
+        "200" "application/json" "Item"
+        "400" "unknown"
+    }
+}
+```
+
+You can see that we have to repeat the `application/json` mime. We can fix that with an operation wildcard:
+
+```kdl
+// for any operation
+* {
+// in it's response
+    res {
+    // for any status code, the response body mime is `application/json`
+        mime "application/json"
+    }
+}
+```
+
+And remove all the `application/json` mime from operations.

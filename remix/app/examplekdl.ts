@@ -5,8 +5,8 @@ info {
 }
 
 // defined in an external lib. yt-dlp for python, manually for kotlin
-external "YtDlInfo"
-external "YtDlOpts"
+type "YtDlInfo" "struct"
+tyoe "YtDlOpts" "struct"
 
 struct "InfoReq" {
     url "httpURL"

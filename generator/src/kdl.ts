@@ -5,8 +5,8 @@ import {
   toStruct,
   typeName,
 } from "./schema"
-import { isURLPath, mergePaths, parsePath } from "./path"
 import type { TypedPath, URLPath } from "./path"
+import { isURLPath, mergePaths, parsePath } from "./path"
 import { isEmpty, noUndef } from "./typescript"
 import type { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"

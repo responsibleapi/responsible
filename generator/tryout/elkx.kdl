@@ -8,7 +8,6 @@ type "LayoutOpts" "struct"
 
     res {
         mime "application/json"
-
         header "Content-Length" "int32" minimum=1
     }
 }

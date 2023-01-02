@@ -1,3 +1,5 @@
+import React from "react"
+
 const navigation = [
   { name: "Docs", href: "#" },
   { name: "Pricing", href: "#" },
