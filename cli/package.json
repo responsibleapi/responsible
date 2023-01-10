@@ -8,7 +8,8 @@
     "esb": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node16 --minify --sourcemap --external:fsevents",
     "lint": "eslint src/ --fix",
     "start": "yarn esb && node --enable-source-maps dist/index.js ../generator/tryout/listenbox.kdl | pbcopy",
-    "start:watch": "yarn esb && node --enable-source-maps dist/index.js -w -o dist/openapi.json ../generator/tryout/listenbox.kdl"
+    "start:watch": "yarn esb && node --enable-source-maps dist/index.js -w -o dist/openapi.json ../generator/tryout/listenbox.kdl",
+    "postversion": "git push && git push --tags"
   },
   "dependencies": {
     "arg": "^5.0.2",
