@@ -140,3 +140,50 @@ You can see that we have to repeat the `application/json` mime. We can fix that 
 ```
 
 And remove all the `application/json` mime from operations.
+
+## Generating a client:
+
+### Install
+
+```shell
+brew install openapi-generator
+```
+
+### Typescript
+
+```shell
+responsible file.kdl -o /tmp/out.json
+openapi-generator generate -g typescript-fetch -i /tmp/out.json -o gen/ --remove-operation-id-prefix --additional-properties=typescriptThreePlus=true,modelPropertyNaming=original,nullSafeAdditionalProps=true,enumPropertyNaming=original,supportsES6=true,useSingleRequestParameter=false
+```
+
+### Kotlin
+
+```shell
+
+```
+
+## API test assist
+
+### Kotlin
+
+See https://github.com/responsibleapi/test-kotlin-vertx
+
+### Python
+
+To be published
+
+## API fuzzing
+
+Use https://schemathesis.io for now
+
+### Install
+
+```shell
+pip3 install schemathesis
+```
+
+### Run
+
+```shell
+st run --checks all --base-url http://localhost:8080 --workers 40 src/main/resources/openapi.json
+```
