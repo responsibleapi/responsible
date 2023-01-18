@@ -5,7 +5,7 @@
   "bin": "dist/index.js",
   "scripts": {
     "build": "yarn esb && pkg package.json",
-    "deploy": "yarn build && gh release create --generate-notes v$npm_package_version dist/responsible-arm64 dist/responsible-x64",
+    "release": "yarn build && gh release create --generate-notes v$npm_package_version dist/responsible-arm64 dist/responsible-x64",
     "esb": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node16 --minify --sourcemap --external:fsevents",
     "lint": "eslint src/ --fix",
     "start": "yarn esb && node --enable-source-maps dist/index.js ../generator/tryout/listenbox.kdl | pbcopy",
