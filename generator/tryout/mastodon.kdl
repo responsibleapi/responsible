@@ -1,0 +1,70 @@
+responsible syntax=1
+
+info {
+    title "Mastodon"
+}
+
+struct "Application" {
+    name "string"
+    (?)website "httpURL"
+    vapid_key "string"
+    (?)client_id "string"
+    (?)client_secret "string"
+}
+
+struct "Err" {
+    error "string"
+}
+
+scope "/api/v1" {
+
+    * {
+        req {
+            mime "application/x-www-form-urlencoded"
+        }
+
+        res {
+            mime "application/json"
+
+            "422" "Err"
+        }
+    }
+
+    scope "/apps" {
+        POST {
+            req "struct" {
+                client_name "string"
+                redirect_uris "string"
+                (?)scopes "string"
+                (?)website "httpURL"
+            }
+
+            res {
+                "200" "Application"
+            }
+        }
+
+        GET "/verify_credentials" {
+
+            req {
+                header "Authorization" "string" pattern="^Bearer .+$"
+            }
+
+            res {
+                "200" "struct" {
+                    name "string"
+                    (?)website "httpURL"
+                    vapid_key "string"
+                }
+
+                "401" "Err"
+            }
+        }
+    }
+
+    scope "/oauth" {
+        POST "/token" {
+
+        }
+    }
+}

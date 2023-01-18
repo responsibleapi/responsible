@@ -7,10 +7,7 @@
   "components": {
     "schemas": {
       "LoginReq": {
-        "required": [
-          "email",
-          "host"
-        ],
+        "required": ["email", "host"],
         "type": "object",
         "properties": {
           "email": {
@@ -23,10 +20,7 @@
         }
       },
       "OtpReq": {
-        "required": [
-          "email",
-          "otp"
-        ],
+        "required": ["email", "otp"],
         "type": "object",
         "properties": {
           "email": {
@@ -43,9 +37,7 @@
         }
       },
       "SubmitReq": {
-        "required": [
-          "url"
-        ],
+        "required": ["url"],
         "type": "object",
         "properties": {
           "url": {
@@ -55,9 +47,7 @@
         }
       },
       "UnsubscribeReq": {
-        "required": [
-          "email"
-        ],
+        "required": ["email"],
         "type": "object",
         "properties": {
           "email": {
@@ -67,9 +57,7 @@
         }
       },
       "UserReq": {
-        "required": [
-          "updates"
-        ],
+        "required": ["updates"],
         "type": "object",
         "properties": {
           "updates": {
@@ -78,12 +66,7 @@
         }
       },
       "CheckoutReq": {
-        "required": [
-          "cancel_url",
-          "interval",
-          "plan",
-          "success_url"
-        ],
+        "required": ["cancel_url", "interval", "plan", "success_url"],
         "type": "object",
         "properties": {
           "cancel_url": {
@@ -92,18 +75,11 @@
           },
           "interval": {
             "type": "string",
-            "enum": [
-              "month",
-              "year"
-            ]
+            "enum": ["month", "year"]
           },
           "plan": {
             "type": "string",
-            "enum": [
-              "free",
-              "basic",
-              "creator"
-            ]
+            "enum": ["free", "basic", "creator"]
           },
           "success_url": {
             "type": "string",
@@ -112,9 +88,7 @@
         }
       },
       "PortalReq": {
-        "required": [
-          "return_url"
-        ],
+        "required": ["return_url"],
         "type": "object",
         "properties": {
           "return_url": {
@@ -124,12 +98,7 @@
         }
       },
       "EditShowReq": {
-        "required": [
-          "explicit",
-          "language",
-          "owner",
-          "ownerEmail"
-        ],
+        "required": ["explicit", "language", "owner", "ownerEmail"],
         "type": "object",
         "properties": {
           "analyticsPrefix": {
@@ -187,10 +156,7 @@
         }
       },
       "ReverseReq": {
-        "required": [
-          "showID",
-          "value"
-        ],
+        "required": ["showID", "value"],
         "type": "object",
         "properties": {
           "showID": {
@@ -202,11 +168,7 @@
         }
       },
       "ErrorStruct": {
-        "required": [
-          "name",
-          "type",
-          "value"
-        ],
+        "required": ["name", "type", "value"],
         "type": "object",
         "properties": {
           "message": {
@@ -239,24 +201,17 @@
         }
       },
       "LoginResp": {
-        "required": [
-          "login"
-        ],
+        "required": ["login"],
         "type": "object",
         "properties": {
           "login": {
             "type": "string",
-            "enum": [
-              "EXISTING",
-              "NEW"
-            ]
+            "enum": ["EXISTING", "NEW"]
           }
         }
       },
       "OtpResp": {
-        "required": [
-          "jwt"
-        ],
+        "required": ["jwt"],
         "type": "object",
         "properties": {
           "jwt": {
@@ -270,24 +225,15 @@
         "additionalProperties": false
       },
       "SubmitResp": {
-        "required": [
-          "showID"
-        ],
+        "required": ["showID"],
         "type": "object",
         "properties": {
           "plan": {
             "type": "string",
-            "enum": [
-              "free",
-              "basic",
-              "creator",
-              null
-            ]
+            "enum": ["free", "basic", "creator", null]
           },
           "showID": {
-            "required": [
-              "id"
-            ],
+            "required": ["id"],
             "type": "object",
             "properties": {
               "id": {
@@ -358,9 +304,7 @@
             "format": "email"
           },
           "primaryCategory": {
-            "required": [
-              "category"
-            ],
+            "required": ["category"],
             "type": "object",
             "properties": {
               "category": {
@@ -379,9 +323,7 @@
             "type": "boolean"
           },
           "secondaryCategory": {
-            "required": [
-              "category"
-            ],
+            "required": ["category"],
             "type": "object",
             "properties": {
               "category": {
@@ -397,12 +339,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "playlist",
-              "channel",
-              "rss",
-              null
-            ]
+            "enum": ["playlist", "channel", "rss", null]
           },
           "videoFeedURL": {
             "type": "string",
@@ -419,10 +356,7 @@
         }
       },
       "ItemsResp": {
-        "required": [
-          "items",
-          "total"
-        ],
+        "required": ["items", "total"],
         "type": "object",
         "properties": {
           "items": {
@@ -479,12 +413,7 @@
         }
       },
       "UserResp": {
-        "required": [
-          "email",
-          "plan",
-          "trialed",
-          "updates"
-        ],
+        "required": ["email", "plan", "trialed", "updates"],
         "type": "object",
         "properties": {
           "email": {
@@ -493,11 +422,7 @@
           },
           "plan": {
             "type": "string",
-            "enum": [
-              "free",
-              "basic",
-              "creator"
-            ]
+            "enum": ["free", "basic", "creator"]
           },
           "trialed": {
             "type": "boolean"
@@ -508,21 +433,13 @@
         }
       },
       "RecentResp": {
-        "required": [
-          "list",
-          "plan"
-        ],
+        "required": ["list", "plan"],
         "type": "object",
         "properties": {
           "list": {
             "type": "array",
             "items": {
-              "required": [
-                "episodes",
-                "feed_id",
-                "id",
-                "title"
-              ],
+              "required": ["episodes", "feed_id", "id", "title"],
               "type": "object",
               "properties": {
                 "author": {
@@ -557,18 +474,12 @@
           },
           "plan": {
             "type": "string",
-            "enum": [
-              "free",
-              "basic",
-              "creator"
-            ]
+            "enum": ["free", "basic", "creator"]
           }
         }
       },
       "CheckoutResp": {
-        "required": [
-          "id"
-        ],
+        "required": ["id"],
         "type": "object",
         "properties": {
           "id": {
@@ -577,9 +488,7 @@
         }
       },
       "PortalResp": {
-        "required": [
-          "url"
-        ],
+        "required": ["url"],
         "type": "object",
         "properties": {
           "url": {
@@ -589,11 +498,7 @@
         }
       },
       "PreSignedUploadURL": {
-        "required": [
-          "fileUrl",
-          "headers",
-          "uploadUrl"
-        ],
+        "required": ["fileUrl", "headers", "uploadUrl"],
         "type": "object",
         "properties": {
           "fileUrl": {
@@ -611,19 +516,13 @@
         }
       },
       "DownloadsChart": {
-        "required": [
-          "list",
-          "total"
-        ],
+        "required": ["list", "total"],
         "type": "object",
         "properties": {
           "list": {
             "type": "array",
             "items": {
-              "required": [
-                "day",
-                "downloads"
-              ],
+              "required": ["day", "downloads"],
               "type": "object",
               "properties": {
                 "day": {
@@ -644,9 +543,7 @@
         }
       },
       "ReverseResp": {
-        "required": [
-          "value"
-        ],
+        "required": ["value"],
         "type": "object",
         "properties": {
           "value": {
