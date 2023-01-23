@@ -1,13 +1,13 @@
 {
   "name": "responsible",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "MIT",
   "bin": "dist/index.js",
   "scripts": {
     "build": "yarn esb && pkg package.json",
-    "release": "yarn build && gh release create --generate-notes v$npm_package_version dist/responsible-arm64 dist/responsible-x64",
     "esb": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node16 --minify --sourcemap --external:fsevents",
     "lint": "eslint src/ --fix",
+    "release": "yarn build && gh release create --generate-notes v$npm_package_version dist/responsible-*",
     "start": "yarn esb && node --enable-source-maps dist/index.js ../generator/tryout/listenbox.kdl | pbcopy",
     "start:watch": "yarn esb && node --enable-source-maps dist/index.js -w -o dist/openapi.json ../generator/tryout/listenbox.kdl",
     "test": "vitest run src/",
@@ -23,6 +23,7 @@
   },
   "pkg": {
     "targets": [
+      "node16-linux-x64",
       "node16-macos-arm64",
       "node16-macos-x64"
     ],

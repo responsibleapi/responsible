@@ -31,14 +31,7 @@ const args = arg({
   "-o": "--output",
 })
 
-const main = async () => {
-  if (args["--version"]) {
-    console.log(version)
-    return
-  }
-
-  if (args["--help"]) {
-    console.log(`
+const help = `
 Usage: responsible [file]
 
 Options:
@@ -46,7 +39,16 @@ Options:
   --help    Show this help
   --output  Output file
   --watch   Watch for changes. Requires --output
-`)
+`
+
+const main = async () => {
+  if (args["--version"]) {
+    console.log(version)
+    return
+  }
+
+  if (args["--help"]) {
+    console.log(help)
     return
   }
 
