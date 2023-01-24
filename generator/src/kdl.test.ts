@@ -1,9 +1,11 @@
 import OpenApiValidator from "openapi-schema-validator"
 import { OpenAPIV3 } from "openapi-types"
-import { readFile } from "fs/promises"
+import { readdir, readFile } from "fs/promises"
 import { expect, test } from "vitest"
 import { parseOpenAPI } from "./kdl"
 import { parse } from "kdljs"
+import { yanicJSON } from "./yanic.test"
+import * as path from "path"
 
 const toOpenAPI = (s: string): OpenAPIV3.Document => {
   const kdl = parse(s)
@@ -18,10 +20,12 @@ const toOpenAPI = (s: string): OpenAPIV3.Document => {
   return doc
 }
 
+const EXAMPLES_DIR = "../examples/"
+
 test.concurrent("yanic JSON", async () => {
-  expect(toOpenAPI(await readFile("tryout/yanic.kdl", "utf8"))).toEqual(
-    JSON.parse(await readFile("tryout/yanic.json", "utf8")),
-  )
+  expect(
+    toOpenAPI(await readFile(path.join(EXAMPLES_DIR, "yanic.kdl"), "utf8")),
+  ).toEqual(yanicJSON)
 })
 
 test.concurrent("array", () => {
@@ -86,10 +90,9 @@ GET "/user/:email(email)/shows" {
 })
 
 test.concurrent("kdl parse no errors", async () => {
+  const files = await readdir(EXAMPLES_DIR)
   const texts = await Promise.all(
-    ["listenbox", "yanic", "elkx", "youtube"].map(name =>
-      readFile(`../generator/tryout/${name}.kdl`, "utf-8"),
-    ),
+    files.map(file => readFile(path.join(EXAMPLES_DIR, file), "utf-8")),
   )
 
   for (const text of texts) {

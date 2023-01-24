@@ -1,4 +1,6 @@
 export const exampleKDL = `
+responsible syntax=1
+
 info {
     title "yanic"
     version "1.0.0"
@@ -6,7 +8,7 @@ info {
 
 // defined in an external lib. yt-dlp for python, manually for kotlin
 type "YtDlInfo" "struct"
-tyoe "YtDlOpts" "struct"
+type "YtDlOpts" "struct"
 
 struct "InfoReq" {
     url "httpURL"
@@ -18,7 +20,7 @@ struct "DownloadReq" {
     opts "YtDlOpts"
 }
 
-scope {
+* {
     req {
         mime "application/json"
     }

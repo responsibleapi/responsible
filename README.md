@@ -153,13 +153,14 @@ brew install openapi-generator
 
 ```shell
 responsible file.kdl -o /tmp/out.json
-openapi-generator generate -g typescript-fetch -i /tmp/out.json -o gen/ --remove-operation-id-prefix --additional-properties=typescriptThreePlus=true,modelPropertyNaming=original,nullSafeAdditionalProps=true,enumPropertyNaming=original,supportsES6=true,useSingleRequestParameter=false
+openapi-generator generate -g typescript-fetch -i /tmp/out.json -o gen/ --additional-properties=typescriptThreePlus=true,modelPropertyNaming=original,nullSafeAdditionalProps=true,enumPropertyNaming=original,supportsES6=true,useSingleRequestParameter=false
 ```
 
 ### Kotlin
 
 ```shell
-
+responsible file.kdl -o /tmp/out.json
+openapi-generator generate -g kotlin -i /tmp/out.json -o gen/ --additional-properties=library=jvm-vertx
 ```
 
 ## API test assist

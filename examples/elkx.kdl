@@ -1,3 +1,5 @@
+responsible syntax=1
+
 type "ElkNode" "struct"
 type "LayoutOpts" "struct"
 
