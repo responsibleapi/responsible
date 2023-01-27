@@ -1,6 +1,6 @@
 # Responsible API
 
-OpenAPI toolkit for enabling contract-first development.
+OpenAPI toolkit: DSL and test helpers
 
 ## Why
 
@@ -40,6 +40,10 @@ brew install responsible
 Or use the online editor https://responsibleapi.com
 
 ## Quick language tutorial
+
+Responsible DSL is based on KDL language. Visit https://kdl.dev to learn more
+
+[Browse examples](examples/).
 
 ### Operations
 

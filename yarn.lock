@@ -2350,35 +2350,35 @@
   resolved "https://registry.yarnpkg.com/@vanilla-extract/private/-/private-1.0.3.tgz#7ec72bc2ff6fe51f9d650f962e8d1989b073690f"
   integrity sha512-17kVyLq3ePTKOkveHxXuIJZtGYs+cSoev7BlP+Lf4916qfDhk/HBjvlYDe8egrea7LNPHKwSZJK/bzZC+Q6AwQ==
 
-"@vitest/expect@0.28.1":
-  version "0.28.1"
-  resolved "https://registry.yarnpkg.com/@vitest/expect/-/expect-0.28.1.tgz#75e81973c907fe7516b78bcfdc99c6f6c07bf714"
-  integrity sha512-BOvWjBoocKrrTTTC0opIvzOEa7WR/Ovx4++QYlbjYKjnQJfWRSEQkTpAIEfOURtZ/ICcaLk5jvsRshXvjarZew==
+"@vitest/expect@0.28.2":
+  version "0.28.2"
+  resolved "https://registry.yarnpkg.com/@vitest/expect/-/expect-0.28.2.tgz#375af32579b3d6b972a1fe0be0e0260ffb84bc7d"
+  integrity sha512-syEAK7I24/aGR2lXma98WNnvMwAJ+fMx32yPcj8eLdCEWjZI3SH8ozMaKQMy65B/xZCZAl6MXmfjtJb2CpWPMg==
   dependencies:
-    "@vitest/spy" "0.28.1"
-    "@vitest/utils" "0.28.1"
+    "@vitest/spy" "0.28.2"
+    "@vitest/utils" "0.28.2"
     chai "^4.3.7"
 
-"@vitest/runner@0.28.1":
-  version "0.28.1"
-  resolved "https://registry.yarnpkg.com/@vitest/runner/-/runner-0.28.1.tgz#f3c72befec05ef9a3565de7de9974b19f2ff7275"
-  integrity sha512-kOdmgiNe+mAxZhvj2eUTqKnjfvzzknmrcS+SZXV7j6VgJuWPFAMCv3TWOe03nF9dkqDfVLCDRw/hwFuCzmzlQg==
+"@vitest/runner@0.28.2":
+  version "0.28.2"
+  resolved "https://registry.yarnpkg.com/@vitest/runner/-/runner-0.28.2.tgz#671c8f489ceac2bcf1bc2d993f9920da10347d3f"
+  integrity sha512-BJ9CtfPwWM8uc5p7Ty0OprwApyh8RIaSK7QeQPhwfDYA59AAE009OytqA3aX0yj1Qy5+k/mYFJS8RJZgsueSGA==
   dependencies:
-    "@vitest/utils" "0.28.1"
+    "@vitest/utils" "0.28.2"
     p-limit "^4.0.0"
     pathe "^1.1.0"
 
-"@vitest/spy@0.28.1":
-  version "0.28.1"
-  resolved "https://registry.yarnpkg.com/@vitest/spy/-/spy-0.28.1.tgz#9efdce05273161cd9036f3f520d0e836602b926d"
-  integrity sha512-XGlD78cG3IxXNnGwEF121l0MfTNlHSdI25gS2ik0z6f/D9wWUOru849QkJbuNl4CMlZCtNkx3b5IS6MRwKGKuA==
+"@vitest/spy@0.28.2":
+  version "0.28.2"
+  resolved "https://registry.yarnpkg.com/@vitest/spy/-/spy-0.28.2.tgz#74d970601eebc41d48e685323b2853b2c88f8db4"
+  integrity sha512-KlLzTzi5E6tHcI12VT+brlY1Pdi7sUzLf9+YXgh80+CfLu9DqPZi38doBBAUhqEnW/emoLCMinPMMoJlNAQZXA==
   dependencies:
     tinyspy "^1.0.2"
 
-"@vitest/utils@0.28.1":
-  version "0.28.1"
-  resolved "https://registry.yarnpkg.com/@vitest/utils/-/utils-0.28.1.tgz#01c347803dff8c02d7b097210f3749987e5b2ce6"
-  integrity sha512-a7cV1fs5MeU+W+8sn8gM9gV+q7V/wYz3/4y016w/icyJEKm9AMdSHnrzxTWaElJ07X40pwU6m5353Jlw6Rbd8w==
+"@vitest/utils@0.28.2":
+  version "0.28.2"
+  resolved "https://registry.yarnpkg.com/@vitest/utils/-/utils-0.28.2.tgz#2d79de7afb44e821a2c7e692bafb40d2cf765bb7"
+  integrity sha512-wcVTNnVdr22IGxZHDgiXrxWYcXsNg0iX2iBuOH3tVs9eme6fXJ0wxjn0/gCpp0TofQSoUwo3tX8LNACFVseDuA==
   dependencies:
     cli-truncate "^3.1.0"
     diff "^5.1.0"
@@ -2428,10 +2428,15 @@ acorn@^7.0.0:
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-7.4.1.tgz#feaed255973d2e77555b83dbc08851a6c63520fa"
   integrity sha512-nQyp0o1/mNdbTO1PO6kHkwSrmgZ0MT/jCCpNiwbUjGoRN4dlBhqJtoQuCnEOKzgTVwg0ZWiCoQy6SxMebQVh8A==
 
-acorn@^8.0.0, acorn@^8.7.0, acorn@^8.8.0, acorn@^8.8.1:
+acorn@^8.0.0, acorn@^8.7.0, acorn@^8.8.0:
   version "8.8.1"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.8.1.tgz#0a3f9cbecc4ec3bea6f0a80b66ae8dd2da250b73"
   integrity sha512-7zFpHzhnqYKrkYdUjF1HI1bzd0VygEGX8lFk4k5zVMqHEoES+P+7TKI+EvLO9WVMJ8eekdO0aDEK044xTXwPPA==
+
+acorn@^8.8.1:
+  version "8.8.2"
+  resolved "https://registry.yarnpkg.com/acorn/-/acorn-8.8.2.tgz#1b2f25db02af965399b9776b0c2c391276d37c4a"
+  integrity sha512-xjIYgE8HBrkpd/sJqOGNspf8uHG+NOHGOw6a/Urj8taM2EXfdNAH2oFcPeIFfsv3+kz/mJrS5VuMqbNLjCa2vw==
 
 agent-base@6, agent-base@^6.0.0, agent-base@^6.0.2:
   version "6.0.2"
@@ -7611,9 +7616,9 @@ prettier-plugin-packagejson@^2.3.0:
     synckit "0.8.4"
 
 prettier-plugin-tailwindcss@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/prettier-plugin-tailwindcss/-/prettier-plugin-tailwindcss-0.2.1.tgz#989b35afd86c550cb671da69891aba4f4a051159"
-  integrity sha512-aIO8IguumORyRsmT+E7JfJ3A9FEoyhqZR7Au7TBOege3VZkgMvHJMkufeYp4zjnDK2iq4ktkvGMNOQR9T8lisQ==
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/prettier-plugin-tailwindcss/-/prettier-plugin-tailwindcss-0.2.2.tgz#61f4437936c79c8cc2915f31b4bd512605177239"
+  integrity sha512-5RjUbWRe305pUpc48MosoIp6uxZvZxrM6GyOgsbGLTce+ehePKNm7ziW2dLG2air9aXbGuXlHVSQQw4Lbosq3w==
 
 prettier@2.7.1:
   version "2.7.1"
@@ -9348,10 +9353,10 @@ vfile@^5.0.0:
     unist-util-stringify-position "^3.0.0"
     vfile-message "^3.0.0"
 
-vite-node@0.28.1:
-  version "0.28.1"
-  resolved "https://registry.yarnpkg.com/vite-node/-/vite-node-0.28.1.tgz#e2af53e112e57455a474e9f7a6478b1cdf79a6ab"
-  integrity sha512-Mmab+cIeElkVn4noScCRjy8nnQdh5LDIR4QCH/pVWtY15zv5Z1J7u6/471B9JZ2r8CEIs42vTbngaamOVkhPLA==
+vite-node@0.28.2:
+  version "0.28.2"
+  resolved "https://registry.yarnpkg.com/vite-node/-/vite-node-0.28.2.tgz#58b52fc638f86fee9bfe4990abaea7e4d74f6514"
+  integrity sha512-zyiJ3DLs9zXign4P2MD4PQk+7rdT+JkHukgmmS0KuImbCQ7WnCdea5imQVeT6OtUsBwsLztJxQODUsinVr91tg==
   dependencies:
     cac "^6.7.14"
     debug "^4.3.4"
@@ -9375,17 +9380,17 @@ vite-node@0.28.1:
     fsevents "~2.3.2"
 
 vitest@^0.28.1:
-  version "0.28.1"
-  resolved "https://registry.yarnpkg.com/vitest/-/vitest-0.28.1.tgz#a87656075e01436c887048efd83a5d32792ce890"
-  integrity sha512-F6wAO3K5+UqJCCGt0YAl3Ila2f+fpBrJhl9n7qWEhREwfzQeXlMkkCqGqGtzBxCSa8kv5QHrkshX8AaPTXYACQ==
+  version "0.28.2"
+  resolved "https://registry.yarnpkg.com/vitest/-/vitest-0.28.2.tgz#952e1ad83fbd04ee1bfce634b106a371a5973603"
+  integrity sha512-HJBlRla4Mng0OiZ8aWunCecJ6BzLDA4yuzuxiBuBU2MXjGB6I4zT7QgIBL/UrwGKlNxLwaDC5P/4OpeuTlW8yQ==
   dependencies:
     "@types/chai" "^4.3.4"
     "@types/chai-subset" "^1.3.3"
     "@types/node" "*"
-    "@vitest/expect" "0.28.1"
-    "@vitest/runner" "0.28.1"
-    "@vitest/spy" "0.28.1"
-    "@vitest/utils" "0.28.1"
+    "@vitest/expect" "0.28.2"
+    "@vitest/runner" "0.28.2"
+    "@vitest/spy" "0.28.2"
+    "@vitest/utils" "0.28.2"
     acorn "^8.8.1"
     acorn-walk "^8.2.0"
     cac "^6.7.14"
@@ -9401,7 +9406,7 @@ vitest@^0.28.1:
     tinypool "^0.3.0"
     tinyspy "^1.0.2"
     vite "^3.0.0 || ^4.0.0"
-    vite-node "0.28.1"
+    vite-node "0.28.2"
     why-is-node-running "^2.2.2"
 
 vm2@^3.9.8:
