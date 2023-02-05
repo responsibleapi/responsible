@@ -47,6 +47,7 @@ export const Header = (): JSX.Element => (
           </a>
         </div>
       </div>
+
       <div className="flex flex-wrap justify-center space-x-6 py-4 lg:hidden">
         {navigation.map(link => (
           <a
