@@ -9,4 +9,7 @@ module.exports = {
   // serverBuildPath: "functions/[[path]].js",
   // publicPath: "/build/",
   watchPaths: ["../generator/"],
+  future: {
+    unstable_tailwind: true,
+  },
 }

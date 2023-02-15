@@ -7,7 +7,8 @@ import {
   ScrollRestoration,
 } from "@remix-run/react"
 import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare"
-import styles from "./styles/app.css"
+
+import styles from "./tailwind.css"
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
