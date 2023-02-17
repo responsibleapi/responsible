@@ -194,7 +194,7 @@ export function Hero(): JSX.Element {
                     __html:
                       '<iframe src="https://www.loom.com/embed/c2bd1e534cd24e70a36bc1a01b5a354c" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>',
                   }}
-                ></div>
+                />
               </div>
             </div>
           </div>
