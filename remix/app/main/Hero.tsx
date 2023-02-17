@@ -3,6 +3,7 @@ import { Dialog } from "@headlessui/react"
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline"
 import { RobotSVG } from "./RobotSVG"
 import { UniversalLink } from "../lib/UniversalLink"
+import { Strings } from "./strings"
 
 interface Nav {
   name: string
@@ -84,10 +85,10 @@ export function Hero(): JSX.Element {
       <div className="px-6 pt-6 lg:px-8">
         <nav className="flex items-center justify-between" aria-label="Global">
           <div className="flex lg:flex-1">
-            <a href="#" className="-m-1.5 p-1.5">
-              <span className="sr-only">Your Company</span>
+            <UniversalLink href="/" className="-m-1.5 p-1.5">
+              <span className="sr-only">{Strings.title}</span>
               <RobotSVG className={"h-8 w-8"} />
-            </a>
+            </UniversalLink>
           </div>
 
           <div className="flex lg:hidden">
@@ -117,10 +118,12 @@ export function Hero(): JSX.Element {
         <Dialog as="div" open={mobileMenuOpen} onClose={setMobileMenuOpen}>
           <Dialog.Panel className="fixed inset-0 z-10 overflow-y-auto bg-white px-6 py-6 lg:hidden">
             <div className="flex items-center justify-between">
-              <a href="#" className="-m-1.5 p-1.5">
-                <span className="sr-only">Your Company</span>
-                <RobotSVG className={"h-8 w-8"} />
-              </a>
+              <UniversalLink href="/" className="-m-1.5 p-1.5">
+                <span className="sr-only">{Strings.title}</span>
+
+                <RobotSVG className="h-8 w-8" />
+              </UniversalLink>
+
               <button
                 type="button"
                 className="-m-2.5 rounded-md p-2.5 text-gray-700"
@@ -181,13 +184,17 @@ export function Hero(): JSX.Element {
 
             <div className="mt-16 flow-root sm:mt-24">
               <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
-                <img
-                  src="https://tailwindui.com/img/component-images/project-app-screenshot.png"
-                  alt="App screenshot"
-                  width={2432}
-                  height={1442}
-                  className="rounded-md shadow-2xl ring-1 ring-gray-900/10"
-                />
+                <div
+                  style={{
+                    position: "relative",
+                    paddingBottom: "62.5%",
+                    height: 0,
+                  }}
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      '<iframe src="https://www.loom.com/embed/c2bd1e534cd24e70a36bc1a01b5a354c" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>',
+                  }}
+                ></div>
               </div>
             </div>
           </div>
