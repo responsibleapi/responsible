@@ -7,11 +7,11 @@
     "build": "cross-env NODE_ENV=production remix build",
     "clean": "rm -rf .cache/ app/styles/ function/ public/build/",
     "deploy": "cross-env NODE_ENV=production wrangler pages publish ./public --commit-dirty=true",
-    "wrangler": "wrangler pages dev ./public",
+    "wrangler": "wrangler pages dev ./public --compatibility-date=2023-02-17",
     "dev:remix": "remix watch",
     "dev:wrangler": "cross-env NODE_ENV=development yarn wrangler",
     "dev": "npm-run-all build --parallel \"dev:*\"",
-    "start": "cross-env NODE_ENV=production npm run wrangler",
+    "start": "cross-env NODE_ENV=production yarn wrangler",
     "lint": "eslint app/ --fix"
   },
   "resolutions": {
