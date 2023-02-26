@@ -45,16 +45,22 @@ type "PlaylistItems" "struct"
 type "Playlists" "struct"
 type "Channels" "struct"
 
-GET "/videos" {
-    req {
-        query {
-            id "VideoIDs"
-            maxResults "int32" default=50
-            part "Parts"
-        }
+scope "/videos" {
+    POST {
+
     }
-    res {
-        "200" "Videos"
+
+    GET {
+        req {
+            query {
+                id "VideoIDs"
+                maxResults "int32" default=50
+                part "Parts"
+            }
+        }
+        res {
+            "200" "Videos"
+        }
     }
 }
 
