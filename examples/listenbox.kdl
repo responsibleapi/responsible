@@ -685,3 +685,32 @@ POST "/stripe/hooks" {
         "200" "unknown"
     }
 }
+
+scope "/youtube/hooks" {
+
+    GET {
+        name "verifyYouTubeHook"
+
+        req {
+            (?)query "hub.challenge" "string" minLength=1
+            (?)query "hub.lease_seconds" "int32"
+        }
+
+        res {
+            "200" "unknown"
+        }
+    }
+
+    POST {
+        name "postYouTubeHook"
+
+        req {
+            header "Link" "string" minLength=1
+            (?)body "*/*" "unknown"
+        }
+
+        res {
+            "200" "unknown"
+        }
+    }
+}
