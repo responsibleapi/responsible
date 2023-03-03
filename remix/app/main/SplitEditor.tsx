@@ -5,7 +5,7 @@ import CodeMirror from "@uiw/react-codemirror"
 import { jsonLanguage } from "@codemirror/lang-json"
 import { parse } from "kdljs"
 
-import { exampleKDL } from "../examplekdl"
+import { exampleKDL } from "./examplekdl"
 
 const LOCAL_STORAGE_KEY = "kdl"
 
@@ -35,7 +35,7 @@ export const SplitEditor = () => {
   )
 
   return (
-    <div className="flex w-full flex-1 flex-row divide-x overflow-y-hidden">
+    <div className="flex min-h-screen w-full flex-1 flex-row divide-x overflow-y-hidden">
       <CodeMirror
         className="flex-1"
         height={"100%"}

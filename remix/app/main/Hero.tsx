@@ -1,6 +1,8 @@
+import type { ReactNode } from "react"
 import { useState } from "react"
 import { Dialog } from "@headlessui/react"
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline"
+
 import { RobotSVG } from "./RobotSVG"
 import { UniversalLink } from "../lib/UniversalLink"
 import { Strings } from "./strings"
@@ -10,14 +12,14 @@ interface Nav {
   href: `https://${string}` | `/${string}`
 }
 
-const urls = {
+export const NAV_URLS = {
   docs: "https://github.com/responsibleapi/responsible",
   editor: "/editor",
 } as const
 
 const navigation: ReadonlyArray<Nav> = [
-  { name: "Docs", href: urls.docs },
-  { name: "Editor", href: urls.editor },
+  { name: "Docs", href: NAV_URLS.docs },
+  { name: "Editor", href: NAV_URLS.editor },
   { name: "Discord", href: "https://discord.gg/wuhd9QzQ33" },
 ]
 
@@ -73,7 +75,7 @@ const BottomGradient = () => (
   </svg>
 )
 
-export function Hero(): JSX.Element {
+export function Hero({ children }: { children: ReactNode }): JSX.Element {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
@@ -82,7 +84,7 @@ export function Hero(): JSX.Element {
         <TopGradient />
       </div>
 
-      <div className="px-6 pt-6 lg:px-8">
+      <div className="px-6 py-6 lg:py-8">
         <nav className="flex items-center justify-between" aria-label="Global">
           <div className="flex lg:flex-1">
             <UniversalLink href="/" className="-m-1.5 p-1.5">
@@ -153,55 +155,11 @@ export function Hero(): JSX.Element {
         </Dialog>
       </div>
 
-      <main>
-        <div className="relative py-24 sm:py-32 lg:pb-40">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl">
-                Build HTTP APIs with confidence
-              </h1>
+      <main className="relative">
+        {children}
 
-              <p className="mt-6 text-lg leading-8 text-gray-600">
-                Responsible API is a toolkit for increased OpenAPI productivity
-              </p>
-
-              <div className="mt-10 flex items-center justify-center gap-x-6">
-                <UniversalLink
-                  href={urls.editor}
-                  className="rounded-md bg-indigo-600 px-3.5 py-1.5 text-base font-semibold leading-7 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                >
-                  Get started
-                </UniversalLink>
-
-                <UniversalLink
-                  href={urls.docs}
-                  className="text-base font-semibold leading-7 text-gray-900"
-                >
-                  Learn more <span aria-hidden="true">→</span>
-                </UniversalLink>
-              </div>
-            </div>
-
-            <div className="mt-16 flow-root sm:mt-24">
-              <div className="-m-2 rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
-                <div
-                  style={{
-                    position: "relative",
-                    paddingBottom: "62.5%",
-                    height: 0,
-                  }}
-                  dangerouslySetInnerHTML={{
-                    __html:
-                      '<iframe src="https://www.loom.com/embed/c2bd1e534cd24e70a36bc1a01b5a354c" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>',
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
-            <BottomGradient />
-          </div>
+        <div className="absolute inset-x-0 top-[calc(100%-13rem)] -z-10 transform-gpu overflow-hidden blur-3xl sm:top-[calc(100%-30rem)]">
+          <BottomGradient />
         </div>
       </main>
     </div>
