@@ -5,7 +5,8 @@
     "generator",
     "testing",
     "cli",
-    "remix"
+    "remix",
+    "next"
   ],
   "scripts": {},
   "devDependencies": {

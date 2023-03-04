@@ -4,3 +4,4 @@ node_modules/
 samples/
 dist/
 yarn-error.log
+.vscode/
