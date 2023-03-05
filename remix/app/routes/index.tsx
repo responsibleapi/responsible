@@ -1,6 +1,7 @@
 import React from "react"
-import { UniversalLink } from "../../lib/UniversalLink"
-import { NAV_URLS } from "../../main/Hero"
+
+import { UniversalLink } from "../lib/UniversalLink"
+import { NAV_URLS } from "../main/Hero"
 
 // noinspection JSUnusedGlobalSymbols
 export default function Index(): JSX.Element {

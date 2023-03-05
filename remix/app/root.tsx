@@ -1,3 +1,6 @@
+import styles from "./tailwind.css"
+
+import React from "react"
 import {
   Links,
   LiveReload,
@@ -8,7 +11,7 @@ import {
 } from "@remix-run/react"
 import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare"
 
-import styles from "./tailwind.css"
+import { Hero } from "./main/Hero"
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -19,6 +22,12 @@ export const meta: MetaFunction = () => ({
 // noinspection JSUnusedGlobalSymbols
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }]
 
+const RootLayout = () => (
+  <Hero>
+    <Outlet />
+  </Hero>
+)
+
 export default function App(): JSX.Element {
   return (
     <html lang="en">
@@ -28,7 +37,8 @@ export default function App(): JSX.Element {
       </head>
 
       <body>
-        <Outlet />
+        <RootLayout />
+
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
