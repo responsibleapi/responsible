@@ -11,6 +11,6 @@ module.exports = {
   watchPaths: ["../generator/"],
   future: {
     unstable_tailwind: true,
-    unstable_dev: true,
+    // unstable_dev: true,
   },
 }
