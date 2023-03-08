@@ -10,16 +10,22 @@ const die = (s: string): never => {
   return process.exit(1)
 }
 
-const onKdlChange = async (json: string, kdl: string): Promise<void> => {
-  console.time(`writing ${json}`)
-  const doc = parse(await readFile(kdl, "utf8"))
-  if (doc.output) {
-    await writeFile(json, JSON.stringify(parseOpenAPI(doc.output), null, 2))
-    console.timeEnd(`writing ${json}`)
-  } else {
-    console.error(JSON.stringify(doc.errors, null, 2))
+const onKdlChange =
+  (jsonPath: string) =>
+  async (kdlPath: string): Promise<void> => {
+    console.time(`writing ${jsonPath}`)
+
+    const doc = parse(await readFile(kdlPath, "utf8"))
+    if (doc.output) {
+      await writeFile(
+        jsonPath,
+        JSON.stringify(parseOpenAPI(doc.output), null, 2),
+      )
+      console.timeEnd(`writing ${jsonPath}`)
+    } else {
+      console.error(JSON.stringify(doc.errors, null, 2))
+    }
   }
-}
 
 const args = arg({
   "--watch": Boolean,
@@ -60,8 +66,8 @@ const main = async () => {
   if (args["--watch"]) {
     if (!out) return die("Must specify --output with --watch")
 
-    await onKdlChange(out, file)
-    chokidar.watch(file).on("change", path => onKdlChange(out, path))
+    await onKdlChange(out)(file)
+    chokidar.watch(file).on("change", onKdlChange(out))
     return
   }
 
