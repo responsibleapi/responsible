@@ -10,7 +10,7 @@
     "wrangler": "wrangler pages dev ./public --compatibility-date=2023-02-17 --live-reload",
     "dev:remix": "remix watch",
     "dev:wrangler": "cross-env NODE_ENV=development yarn wrangler",
-    "dev": "npm-run-all --parallel \"dev:*\"",
+    "dev": "npm-run-all build --parallel \"dev:*\"",
     "start": "cross-env NODE_ENV=production yarn wrangler",
     "lint": "eslint app/ --fix"
   },

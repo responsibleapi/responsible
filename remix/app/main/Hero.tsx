@@ -106,13 +106,13 @@ export function Hero({ children }: { children: ReactNode }): JSX.Element {
 
           <div className="hidden lg:flex lg:gap-x-12">
             {navigation.map(item => (
-              <a
+              <UniversalLink
                 key={item.name}
                 href={item.href}
                 className="text-sm font-semibold leading-6 text-gray-900"
               >
                 {item.name}
-              </a>
+              </UniversalLink>
             ))}
           </div>
         </nav>
