@@ -41,7 +41,7 @@ export default function App(): JSX.Element {
 
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
+        {/*<LiveReload />*/}
       </body>
     </html>
   )

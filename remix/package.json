@@ -7,7 +7,7 @@
     "build": "cross-env NODE_ENV=production remix build",
     "clean": "rm -rf .cache/ app/styles/ function/ public/build/",
     "deploy": "cross-env NODE_ENV=production wrangler pages publish ./public --commit-dirty=true",
-    "wrangler": "wrangler pages dev ./public --compatibility-date=2023-02-17 --live-reload",
+    "wrangler": "wrangler pages dev ./public --compatibility-date=2023-02-17 --live-reload --local",
     "dev:remix": "remix watch",
     "dev:wrangler": "cross-env NODE_ENV=development yarn wrangler",
     "dev": "npm-run-all build --parallel \"dev:*\"",
@@ -32,6 +32,7 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^3.18.0",
+    "@miniflare/tre": "^3.0.0-next.12",
     "@remix-run/dev": "^1.7.6",
     "@remix-run/eslint-config": "^1.7.6",
     "@tailwindcss/forms": "^0.5.3",

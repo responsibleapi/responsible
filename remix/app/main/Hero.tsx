@@ -13,7 +13,7 @@ interface Nav {
 }
 
 export const NAV_URLS = {
-  docs: "https://github.com/responsibleapi/responsible",
+  docs: "https://github.com/responsibleapi/responsible#readme",
   editor: "/editor",
 } as const
 
@@ -89,7 +89,7 @@ export function Hero({ children }: { children: ReactNode }): JSX.Element {
           <div className="flex lg:flex-1">
             <UniversalLink href="/" className="-m-1.5 p-1.5">
               <span className="sr-only">{Strings.title}</span>
-              <RobotSVG className={"h-8 w-8"} />
+              <RobotSVG className="h-8 w-8" />
             </UniversalLink>
           </div>
 
@@ -115,6 +115,9 @@ export function Hero({ children }: { children: ReactNode }): JSX.Element {
               </UniversalLink>
             ))}
           </div>
+
+          {/*dummy for justify-between*/}
+          <div className="hidden lg:flex lg:flex-1 lg:justify-end" />
         </nav>
 
         <Dialog as="div" open={mobileMenuOpen} onClose={setMobileMenuOpen}>
