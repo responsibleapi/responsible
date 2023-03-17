@@ -11,7 +11,7 @@ import {
 } from "@remix-run/react"
 import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare"
 
-import { Hero } from "./main/Hero"
+import { Hero } from "./main/view/Hero"
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",

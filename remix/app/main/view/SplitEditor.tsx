@@ -1,11 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react"
 import type { OpenAPIV3 } from "openapi-types"
-import { parseOpenAPI } from "@responsible/generator/src/kdl"
 import CodeMirror from "@uiw/react-codemirror"
 import { jsonLanguage } from "@codemirror/lang-json"
 import { parse } from "kdljs"
 
-import { exampleKDL } from "./examplekdl"
+import { exampleKDL } from "../examplekdl"
+import { parseOpenAPI } from "../../../../generator/src/kdl"
 
 const LOCAL_STORAGE_KEY = "kdl"
 

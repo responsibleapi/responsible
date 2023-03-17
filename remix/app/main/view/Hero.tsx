@@ -4,8 +4,8 @@ import { Dialog } from "@headlessui/react"
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline"
 
 import { RobotSVG } from "./RobotSVG"
-import { UniversalLink } from "../lib/UniversalLink"
-import { Strings } from "./strings"
+import { UniversalLink } from "../../lib/UniversalLink"
+import { Strings } from "../strings"
 
 interface Nav {
   name: string
