@@ -5,13 +5,11 @@
   "sideEffects": false,
   "scripts": {
     "build": "cross-env NODE_ENV=production remix build",
-    "clean": "rm -rf .cache/ app/styles/ function/ public/build/",
-    "deploy": "cross-env NODE_ENV=production wrangler pages publish ./public --commit-dirty=true",
-    "wrangler": "wrangler pages dev ./public --compatibility-date=2023-02-17 --live-reload --local",
+    "clean": "rm -rf .cache/ functions/ public/build/",
+    "deploy": "wrangler pages publish public/ --commit-dirty=true",
+    "dev": "remix build && concurrently \"yarn:dev:*\"",
     "dev:remix": "remix watch",
-    "dev:wrangler": "cross-env NODE_ENV=development yarn wrangler",
-    "dev": "npm-run-all build --parallel \"dev:*\"",
-    "start": "cross-env NODE_ENV=production yarn wrangler",
+    "dev:wrangler": "wrangler pages dev ./public --compatibility-date=2023-02-17 --live-reload --local",
     "lint": "eslint app/ --fix"
   },
   "resolutions": {
@@ -32,7 +30,6 @@
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^3.18.0",
-    "@miniflare/tre": "^3.0.0-next.12",
     "@remix-run/dev": "^1.7.6",
     "@remix-run/eslint-config": "^1.7.6",
     "@tailwindcss/forms": "^0.5.3",
@@ -40,11 +37,10 @@
     "@types/react-dom": "^18.0.10",
     "autoprefixer": "^10.4.13",
     "concurrently": "^7.6.0",
-    "npm-run-all": "^4.1.5",
     "postcss": "^8.4.19",
     "react-refresh": "^0.14.0",
     "tailwindcss": "^3.2.4",
-    "wrangler": "^2.2.1"
+    "wrangler": "^2.12.3"
   },
   "engines": {
     "node": ">=16.13"

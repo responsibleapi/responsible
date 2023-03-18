@@ -3,15 +3,13 @@ import styles from "./tailwind.css"
 import React from "react"
 import {
   Links,
-  LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react"
 import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare"
-
-import { Hero } from "./main/view/Hero"
+import { Hero2 } from "./main/jsx/Hero2"
 
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
@@ -23,9 +21,9 @@ export const meta: MetaFunction = () => ({
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }]
 
 const RootLayout = () => (
-  <Hero>
+  <Hero2>
     <Outlet />
-  </Hero>
+  </Hero2>
 )
 
 export default function App(): JSX.Element {

@@ -1,5 +1,4 @@
-export const exampleKDL = `
-responsible syntax=1
+export const exampleKDL = `responsible syntax=1
 
 info {
     title "yanic"
