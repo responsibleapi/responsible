@@ -3,7 +3,6 @@ import stylesheet from "./tailwind.css"
 import React from "react"
 import {
   Links,
-  LiveReload,
   Meta,
   Outlet,
   Scripts,

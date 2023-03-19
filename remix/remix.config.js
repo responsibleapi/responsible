@@ -4,6 +4,7 @@ module.exports = {
 
   future: {
     unstable_tailwind: true,
+    v2_routeConvention: true,
   },
 
   devServerBroadcastDelay: 1000,

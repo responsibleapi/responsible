@@ -10,7 +10,7 @@
     "deploy": "wrangler pages publish ./public --commit-dirty=true",
     "dev": "remix build && concurrently \"yarn:dev:*\"",
     "dev:remix": "remix watch",
-    "dev:wrangler": "wrangler pages dev ./public --live-reload --local",
+    "dev:wrangler": "wrangler pages dev ./public --live-reload --local --compatibility-date=2023-03-19",
     "lint": "eslint app/ --fix"
   },
   "resolutions": {
