@@ -40,6 +40,7 @@ export default function SplitEditor(): JSX.Element {
   return (
     <div className="flex min-h-screen w-full flex-1 flex-row divide-x overflow-y-hidden">
       <CodeMirror
+        theme="dark"
         className="flex-1"
         height={"100%"}
         value={kdl}
@@ -47,6 +48,7 @@ export default function SplitEditor(): JSX.Element {
       />
 
       <CodeMirror
+        theme="dark"
         className="flex-1"
         readOnly={true}
         height={"100%"}

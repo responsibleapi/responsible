@@ -38,6 +38,7 @@ export default function Index(): JSX.Element {
       <CodeMirror
         className="mt-16 overflow-hidden rounded-md bg-white/5 shadow-2xl ring-1 ring-white/10 sm:mt-24"
         value={exampleKDL}
+        theme="dark"
         readOnly
       />
     </div>
