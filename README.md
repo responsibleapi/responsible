@@ -104,6 +104,16 @@ scope "/users/:id(UserID)" {
 }
 ```
 
+1. Start by defining the document's metadata with the `info` block.
+2. Create custom types and structures for the API using the `type` and `struct` keywords.
+3. The `*` block sets up common request and response attributes applied to all endpoints.
+4. Define your API endpoints using HTTP methods like `GET`, `POST`, `PUT`, and `DELETE`.
+5. Inside each endpoint, specify the request and response properties, such as path parameters, query parameters, and
+   response status codes.
+
+Once you've written the Responsible API document, you can compile it into an OpenAPI JSON file, which can be used for
+generating documentation, client libraries, and server stubs, as well as performing Contract Tests.
+
 <details>
 <summary>Compiled OpenAPI JSON</summary>
 
@@ -131,7 +141,10 @@ scope "/users/:id(UserID)" {
             "type": "string"
           }
         },
-        "required": ["id", "name"]
+        "required": [
+          "id",
+          "name"
+        ]
       },
       "UserList": {
         "type": "object",
@@ -143,7 +156,9 @@ scope "/users/:id(UserID)" {
             }
           }
         },
-        "required": ["users"]
+        "required": [
+          "users"
+        ]
       }
     }
   },
@@ -281,16 +296,6 @@ scope "/users/:id(UserID)" {
 ```
 
 </details>
-
-1. Start by defining the document's metadata with the `info` block.
-2. Create custom types and structures for the API using the `type` and `struct` keywords.
-3. The `*` block sets up common request and response attributes applied to all endpoints.
-4. Define your API endpoints using HTTP methods like `GET`, `POST`, `PUT`, and `DELETE`.
-5. Inside each endpoint, specify the request and response properties, such as path parameters, query parameters, and
-   response status codes.
-
-Once you've written the Responsible API document, you can compile it into an OpenAPI JSON file, which can be used for
-generating documentation, client libraries, and server stubs, as well as performing Contract Tests.
 
 ## Generating a client:
 

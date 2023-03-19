@@ -11,11 +11,13 @@ export default function Index(): JSX.Element {
     <div className="mx-auto max-w-7xl px-6 lg:px-8">
       <div className="mx-auto max-w-2xl text-center">
         <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
-          Build HTTP APIs with confidence
+          Build reliable HTTP APIs
         </h1>
 
         <p className="mt-6 text-lg leading-8 text-gray-300">
-          Responsible API is a toolkit for increased OpenAPI productivity
+          Responsible API is an OpenAPI toolkit that features a concise language
+          and testing libraries, empowering you to build robust HTTP APIs in any
+          language or framework
         </p>
 
         <div className="mt-10 flex items-center justify-center gap-x-6">
