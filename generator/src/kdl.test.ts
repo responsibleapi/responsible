@@ -1,11 +1,12 @@
 import OpenApiValidator from "openapi-schema-validator"
 import { OpenAPIV3 } from "openapi-types"
+import * as path from "path"
 import { readdir, readFile } from "fs/promises"
 import { expect, test } from "vitest"
-import { parseOpenAPI } from "./kdl"
 import { parse } from "kdljs"
+
+import { parseOpenAPI } from "./kdl"
 import { yanicJSON } from "./yanic.test"
-import * as path from "path"
 
 const toOpenAPI = (s: string): OpenAPIV3.Document => {
   const kdl = parse(s)

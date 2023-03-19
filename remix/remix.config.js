@@ -1,10 +1,9 @@
 /** @type {import("@remix-run/dev").AppConfig} */
 module.exports = {
   watchPaths: ["../generator/"],
+
   future: {
-    v2_routeConvention: true,
     unstable_tailwind: true,
-    unstable_dev: { appServerPort: 8788 },
   },
 
   devServerBroadcastDelay: 1000,

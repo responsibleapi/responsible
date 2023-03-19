@@ -1,8 +1,9 @@
-import styles from "./tailwind.css"
+import stylesheet from "./tailwind.css"
 
 import React from "react"
 import {
   Links,
+  LiveReload,
   Meta,
   Outlet,
   Scripts,
@@ -12,6 +13,7 @@ import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare"
 
 import { Hero2 } from "./main/jsx/Hero2"
 
+// noinspection JSUnusedGlobalSymbols
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
   title: "New Remix App",
@@ -19,7 +21,9 @@ export const meta: MetaFunction = () => ({
 })
 
 // noinspection JSUnusedGlobalSymbols
-export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }]
+export const links: LinksFunction = () => [
+  { rel: "stylesheet", href: stylesheet },
+]
 
 export default function App(): JSX.Element {
   return (

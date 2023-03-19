@@ -1,13 +1,14 @@
+import type { kdljs } from "kdljs"
+import { deepmerge } from "deepmerge-ts"
+import type { OpenAPIV3 } from "openapi-types"
+
 import { capitalize, checkNonNull, noUndef } from "./typescript"
 import type { Mime } from "./kdl"
 import { getString, isMime, mkNode } from "./kdl"
 import type { ScopeResponses } from "./response"
 import { parseCoreRes } from "./response"
-import type { OpenAPIV3 } from "openapi-types"
 import { parseSchemaOrRef } from "./schema"
-import { deepmerge } from "deepmerge-ts"
 import { parseCoreReq } from "./request"
-import type { kdljs } from "kdljs"
 
 export const replaceStars = (
   content: Record<string, OpenAPIV3.MediaTypeObject> | undefined,

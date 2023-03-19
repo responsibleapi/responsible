@@ -1,25 +1,28 @@
+import type { Dispatch, SetStateAction } from "react"
 import React, { useEffect, useMemo, useState } from "react"
 import type { OpenAPIV3 } from "openapi-types"
+import { parse } from "kdljs"
 import CodeMirror from "@uiw/react-codemirror"
 import { jsonLanguage } from "@codemirror/lang-json"
-import { parse } from "kdljs"
 
-import { exampleKDL } from "../examplekdl"
 import { parseOpenAPI } from "../../../../generator/src/kdl"
+import { exampleKDL } from "../examplekdl"
 
-const LOCAL_STORAGE_KEY = "kdl"
+const useLocalStorage = (
+  k: string,
+  dflt: string,
+): [v: string, d: Dispatch<SetStateAction<string>>] => {
+  const [v, setV] = useState(dflt)
 
-const useSaveLocalStorage = (k: string, v: string): void =>
+  useEffect(() => setV(localStorage.getItem(k) ?? dflt), [k, dflt])
+
   useEffect(() => localStorage.setItem(k, v), [k, v])
 
-export const SplitEditor = () => {
-  const [kdl, setKDL] = useState("")
+  return [v, setV]
+}
 
-  useEffect(() => {
-    setKDL(localStorage.getItem(LOCAL_STORAGE_KEY) ?? exampleKDL)
-  }, [])
-
-  useSaveLocalStorage(LOCAL_STORAGE_KEY, kdl)
+export default function SplitEditor(): JSX.Element {
+  const [kdl, setKDL] = useLocalStorage("kdl", exampleKDL)
 
   const core: OpenAPIV3.Document = useMemo(() => {
     try {

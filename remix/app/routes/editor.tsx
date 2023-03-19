@@ -1,7 +1,11 @@
-import React from "react"
+import React, { lazy, Suspense } from "react"
 
-import { SplitEditor } from "../main/jsx/SplitEditor"
+const SplitEditor = lazy(() => import("../main/jsx/SplitEditor"))
 
 export default function Editor(): JSX.Element {
-  return <SplitEditor />
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <SplitEditor />
+    </Suspense>
+  )
 }

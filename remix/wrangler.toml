@@ -1,0 +1,3 @@
+name = "responsible"
+compatibility_date = "2023-03-19"
+compatibility_flags = ["streams_enable_constructors"]
