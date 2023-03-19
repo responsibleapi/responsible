@@ -14,7 +14,7 @@
     "watch:test": "vitest"
   },
   "dependencies": {
-    "deepmerge-ts": "^5.0.0",
+    "deepmerge-ts": "^4.3.0",
     "kdljs": "^0.1.5"
   },
   "devDependencies": {

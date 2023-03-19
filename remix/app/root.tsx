@@ -9,6 +9,7 @@ import {
   ScrollRestoration,
 } from "@remix-run/react"
 import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare"
+
 import { Hero2 } from "./main/jsx/Hero2"
 
 export const meta: MetaFunction = () => ({
@@ -20,12 +21,6 @@ export const meta: MetaFunction = () => ({
 // noinspection JSUnusedGlobalSymbols
 export const links: LinksFunction = () => [{ rel: "stylesheet", href: styles }]
 
-const RootLayout = () => (
-  <Hero2>
-    <Outlet />
-  </Hero2>
-)
-
 export default function App(): JSX.Element {
   return (
     <html lang="en">
@@ -35,7 +30,9 @@ export default function App(): JSX.Element {
       </head>
 
       <body>
-        <RootLayout />
+        <Hero2>
+          <Outlet />
+        </Hero2>
 
         <ScrollRestoration />
         <Scripts />
