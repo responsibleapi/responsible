@@ -1,32 +1,13 @@
 # Responsible API
 
-OpenAPI toolkit: DSL and test helpers
+Responsible API was created to:
 
-## Why
-
-### Problems OpenAPI solves
-
-- Client & server team collaboration
-- Server request validation
-- Server response validation (e.g. https://schemathesis.io)
-- Client generation (https://openapi-generator.tech, https://microsoft.github.io/kiota)
-- Mock server generation
-- Backwards compatibility verification
-- Language and framework independence
-
-### OpenAPI's problem: verbosity
-
-- Frameworks like [FastAPI](https://fastapi.tiangolo.com) have a way to generate the spec from code, but you lose:
-
-  - Client & server team collaboration (the spec is engraved in the server code)
-  - Language and framework independence (more effort to get off the framework)
-
-- [Stoplight](https://stoplight.io) simplifies OpenAPI management, but lacks coherence with the codebase,
-  requiring synchronization between the spec and the code.
-
-### Responsible DSL
-
-Responsible builds on top of OpenAPI and solves the verbosity problem.
+- Provide a concise syntax to overcome OpenAPI complexity and verbosity
+- Enable Contract Tests for reliable and consistent APIs
+- Allow for tight integration within the development process using version control systems like Git,
+  unlike [stoplight.io](https://stoplight.io/)
+- Offer language and framework independence, unlike [FastAPI](https://fastapi.tiangolo.com/), for reusability,
+  adaptability, and flexibility in technology choices.
 
 ## Install
 
@@ -45,105 +26,93 @@ Responsible DSL is based on KDL language. Visit https://kdl.dev to learn more
 
 [Browse examples](examples/).
 
-### Operations
-
-Responsible's operation syntax is simple. Start with an HTTP method followed by a path:
-
-```kdl
-GET "/search" {
-
-//  OpenAPI's `operationId`
-    name "searchItems"
-
-    req {
-    // define request's query params
-        query {
-        // query param "q" & type=string
-            q "string" minLength=1 {
-                description "Search query"
-            }
-        // query param "next" & it's optional
-            (?)next "string" format="uuid"
-        }
-    }
-
-    res {
-    // for 200 status code, the response body is a a JSON object with following fields
-        "200" "application/json" "struct" {
-        // field "results" & type=Array<string>
-            results "array" "string"
-        // field "next", type=UUID and it's optional
-            (?)next "string" format="uuid"
-        }
-
-    // there is a 400 response, but it's shape is unknown (can be anything of any mime type)
-        "400" "unknown"
-    }
-}
-```
-
-### Types
-
-The `200` response struct can be extracted and named:
+In this quick tutorial, we'll show you how to create a simple Responsible API document for a basic user management
+system. Responsible API documents consist of various elements such as types, structs, and endpoints.
 
 ```kdl
-// this a type alias
-type "ItemID" "string" format="uuid"
+responsible syntax=1
 
-// struct is type: "object" + "properties" + "required" in JsonSchema
-struct "SearchResults" {
-    results "array" "ItemID"
-    (?)next "string" format="uuid"
+info {
+    title "User Management API"
+    version "1.0.0"
 }
 
-GET "/search" {
-    req {
-        query {
-            q "string" minLength=1
-            (?)next "string" format="uuid"
-        }
-    }
+type "UserID" "string" minLength=1
 
-    res {
-        "200" "application/json" "SearchResults"
-        "400" "unknown"
-    }
+struct "User" {
+    id "UserID"
+    name "string" minLength=1
 }
-```
 
-### Operation wildcards
-
-Now let's introduce a second operation: `getItem`:
-
-```kdl
-// this a type alias
-type "ItemID" "string" format="uuid"
-
-// path param "id" is of type `ItemID`
-GET "/items/:id(ItemID)" {
-    name "getItem"
-
-    res {
-        "200" "application/json" "Item"
-        "400" "unknown"
-    }
+struct "UserList" {
+    users "array" "User"
 }
-```
 
-You can see that we have to repeat the `application/json` mime. We can fix that with an operation wildcard:
-
-```kdl
-// for any operation
 * {
-// in it's response
+    req {
+        mime "application/json"
+    }
+
     res {
-    // for any status code, the response body mime is `application/json`
         mime "application/json"
     }
 }
+
+scope "/users" {
+
+    GET {
+        res {
+            "200" "UserList"
+        }
+    }
+
+    POST {
+        req "User"
+
+        res {
+            "201" "User"
+        }
+    }
+}
+
+scope "/users/:id(UserID)" {
+
+    * {
+        res {
+            "404" "unknown"
+        }
+    }
+
+    GET {
+        res {
+            "200" "User"
+        }
+    }
+
+    PUT {
+        req "User"
+        res {
+            "200" "User"
+        }
+    }
+
+    DELETE {
+        res {
+            "204" "unknown"
+        }
+    }
+}
 ```
 
-And remove all the `application/json` mime from operations.
+1. Start by defining the document's metadata with the `info` block.
+2. Create custom types and structures for the API using the `type` and `struct` keywords.
+3. The `*` block sets up common request and response attributes applied to all endpoints.
+4. Define your API endpoints using HTTP methods like `GET`, `POST`, `PUT`, and `DELETE`.
+5. Inside each endpoint, specify the request and response properties, such as path parameters, query parameters, and
+   response status codes.
+
+Once you've written the Responsible API document, you can compile it into an OpenAPI JSON file, which can be used for
+generating documentation, client libraries, and server stubs, as well as performing Contract Tests.
 
 ## Generating a client:
 
