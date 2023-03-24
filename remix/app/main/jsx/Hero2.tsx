@@ -4,7 +4,7 @@ import { Dialog } from "@headlessui/react"
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline"
 
 import { RobotSVG } from "./RobotSVG"
-import { HERO_NAVIGATION } from "./Hero"
+import { HERO_NAVIGATION } from "../urls"
 import { UniversalLink } from "../../lib/UniversalLink"
 import { Strings } from "../strings"
 

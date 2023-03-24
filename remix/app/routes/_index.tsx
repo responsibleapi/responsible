@@ -2,7 +2,7 @@ import React from "react"
 import CodeMirror from "@uiw/react-codemirror"
 
 import { UniversalLink } from "../lib/UniversalLink"
-import { NAV_URLS } from "../main/jsx/Hero"
+import { EXTERNAL_URLS, INTERNAL_URLS } from "../main/urls"
 import { exampleKDL } from "../main/examplekdl"
 
 // noinspection JSUnusedGlobalSymbols
@@ -22,14 +22,14 @@ export default function Index(): JSX.Element {
 
         <div className="mt-10 flex items-center justify-center gap-x-6">
           <UniversalLink
-            href={NAV_URLS.editor}
+            href={INTERNAL_URLS.editor}
             className="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400"
           >
             Get started
           </UniversalLink>
 
           <UniversalLink
-            href={NAV_URLS.docs}
+            href={EXTERNAL_URLS.docs}
             className="text-sm font-semibold leading-6 text-white"
           >
             Learn more <span aria-hidden="true">→</span>
