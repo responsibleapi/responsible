@@ -17,17 +17,17 @@
     "@typescript-eslint/eslint-plugin": "^5.30.5"
   },
   "dependencies": {
-    "@codemirror/lang-json": "^6.0.1",
     "@headlessui/react": "^1.7.4",
     "@heroicons/react": "^2.0.14",
     "@remix-run/cloudflare": "^1.14.3",
     "@remix-run/cloudflare-pages": "^1.14.3",
     "@remix-run/react": "^1.14.3",
-    "@uiw/react-codemirror": "^4.15.1",
     "clsx": "^1.2.1",
+    "highlight.js": "^11.7.0",
     "isbot": "^3.6.5",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-simple-code-editor": "^0.13.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^3.18.0",

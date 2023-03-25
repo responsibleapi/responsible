@@ -1,10 +1,13 @@
-import React, { Suspense } from "react"
+import React from "react"
+import type { LinksFunction } from "@remix-run/cloudflare"
 
 import { UniversalLink } from "../lib/UniversalLink"
 import { EXTERNAL_URLS, INTERNAL_URLS } from "../main/urls"
 import { Strings } from "../main/strings"
-import { Spinner } from "../main/jsx/Spinner"
 import LandingMirror from "../main/jsx/LandingMirror"
+import { highlightCSS } from "../main/jsx/HighlightedEditor"
+
+export const links: LinksFunction = () => [highlightCSS]
 
 // noinspection JSUnusedGlobalSymbols
 export default function Index(): JSX.Element {
@@ -36,9 +39,7 @@ export default function Index(): JSX.Element {
         </div>
       </div>
 
-      <Suspense fallback={<Spinner />}>
-        <LandingMirror />
-      </Suspense>
+      <LandingMirror />
     </div>
   )
 }

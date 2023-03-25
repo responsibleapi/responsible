@@ -2,11 +2,10 @@ import type { Dispatch, SetStateAction } from "react"
 import React, { useEffect, useMemo, useState } from "react"
 import type { OpenAPIV3 } from "openapi-types"
 import { parse } from "kdljs"
-import CodeMirror from "@uiw/react-codemirror"
-import { jsonLanguage } from "@codemirror/lang-json"
 
 import { parseOpenAPI } from "../../../../generator/src/kdl"
 import { exampleKDL } from "../examplekdl"
+import { HighlightedEditor } from "./HighlightedEditor"
 
 const useLocalStorage = (
   k: string,
@@ -22,10 +21,6 @@ const useLocalStorage = (
 }
 
 export default function SplitEditor(): JSX.Element {
-  if (typeof window === "undefined") {
-    throw Error("LandingMirror should only render on the client.")
-  }
-
   const [kdl, setKDL] = useLocalStorage("kdl", exampleKDL)
 
   const core: OpenAPIV3.Document = useMemo(() => {
@@ -42,23 +37,14 @@ export default function SplitEditor(): JSX.Element {
   )
 
   return (
-    <div className="flex min-h-screen w-full flex-1 flex-row divide-x overflow-y-hidden">
-      <CodeMirror
-        theme="dark"
-        className="flex-1"
-        height={"100%"}
-        value={kdl}
-        onChange={str => setKDL(str || "")}
-      />
+    <div className="flex w-full flex-1 flex-row divide-x">
+      <div className="h-[700px] flex-1 overflow-auto">
+        <HighlightedEditor value={kdl} onChange={setKDL} language="kdl" />
+      </div>
 
-      <CodeMirror
-        theme="dark"
-        className="flex-1"
-        readOnly={true}
-        height={"100%"}
-        value={result}
-        extensions={[jsonLanguage]}
-      />
+      <div className="h-[700px] flex-1 overflow-auto">
+        <HighlightedEditor readOnly={true} value={result} language="json" />
+      </div>
     </div>
   )
 }
