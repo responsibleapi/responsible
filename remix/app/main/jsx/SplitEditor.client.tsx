@@ -13,9 +13,17 @@ const useLocalStorage = (
 ): [v: string, d: Dispatch<SetStateAction<string>>] => {
   const [v, setV] = useState(dflt)
 
-  useEffect(() => setV(localStorage.getItem(k) ?? dflt), [k, dflt])
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return
 
-  useEffect(() => localStorage.setItem(k, v), [k, v])
+    setV(localStorage.getItem(k) ?? dflt)
+  }, [k, dflt])
+
+  useEffect(() => {
+    if (typeof localStorage === "undefined") return
+
+    localStorage.setItem(k, v)
+  }, [k, v])
 
   return [v, setV]
 }

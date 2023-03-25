@@ -26,7 +26,7 @@ export const HighlightedEditor = ({
   className?: string
 }) => (
   <Editor
-    className={clsx("bg-gray-900 font-mono text-gray-50", className)}
+    className={clsx("bg-gray-900 font-mono text-sm text-gray-50", className)}
     padding={10}
     readOnly={readOnly}
     value={value}
