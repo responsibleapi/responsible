@@ -10,13 +10,15 @@ import {
 } from "@remix-run/react"
 import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare"
 
-import { Hero2 } from "./main/jsx/Hero2"
+import { Hero } from "./main/jsx/Hero"
+import { Strings } from "./main/strings"
 
 // noinspection JSUnusedGlobalSymbols
 export const meta: MetaFunction = () => ({
   charset: "utf-8",
-  title: "New Remix App",
   viewport: "width=device-width,initial-scale=1",
+  title: Strings.title,
+  description: Strings.description,
 })
 
 // noinspection JSUnusedGlobalSymbols
@@ -38,9 +40,9 @@ export default function App(): JSX.Element {
       </head>
 
       <body>
-        <Hero2>
+        <Hero>
           <Outlet />
-        </Hero2>
+        </Hero>
 
         <ScrollRestoration />
         <Scripts />

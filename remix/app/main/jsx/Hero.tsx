@@ -36,7 +36,7 @@ const TopGradient = () => (
   </svg>
 )
 
-export const Hero2 = ({ children }: { children: ReactNode }): JSX.Element => {
+export const Hero = ({ children }: { children: ReactNode }): JSX.Element => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (

@@ -141,10 +141,7 @@ generating documentation, client libraries, and server stubs, as well as perform
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "name"
-        ]
+        "required": ["id", "name"]
       },
       "UserList": {
         "type": "object",
@@ -156,9 +153,7 @@ generating documentation, client libraries, and server stubs, as well as perform
             }
           }
         },
-        "required": [
-          "users"
-        ]
+        "required": ["users"]
       }
     }
   },
@@ -344,3 +339,7 @@ pip3 install schemathesis
 ```shell
 st run --checks all --base-url http://localhost:8080 --workers 40 src/main/resources/openapi.json
 ```
+
+### See also
+
+- [AWS Smithy](https://smithy.io/2.0/index.html)

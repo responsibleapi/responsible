@@ -22,6 +22,10 @@ const useLocalStorage = (
 }
 
 export default function SplitEditor(): JSX.Element {
+  if (typeof window === "undefined") {
+    throw Error("LandingMirror should only render on the client.")
+  }
+
   const [kdl, setKDL] = useLocalStorage("kdl", exampleKDL)
 
   const core: OpenAPIV3.Document = useMemo(() => {
