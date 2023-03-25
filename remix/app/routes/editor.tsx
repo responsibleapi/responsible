@@ -4,7 +4,7 @@ import type { LinksFunction } from "@remix-run/cloudflare"
 import { Spinner } from "../main/jsx/Spinner"
 import { highlightCSS } from "../main/jsx/HighlightedEditor"
 
-const SplitEditor = lazy(() => import("../main/jsx/SplitEditor.client"))
+const SplitEditor = lazy(() => import("../main/jsx/SplitEditor"))
 
 export const links: LinksFunction = () => [highlightCSS]
 
