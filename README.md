@@ -314,7 +314,7 @@ responsible file.kdl -o /tmp/out.json
 openapi-generator generate -g kotlin -i /tmp/out.json -o gen/ --additional-properties=library=jvm-vertx
 ```
 
-## API test assist
+## Testing
 
 ### Kotlin
 
@@ -324,7 +324,11 @@ See https://github.com/responsibleapi/test-kotlin-vertx
 
 To be published
 
-## API fuzzing
+### Javascript
+
+To be published
+
+## Fuzzing
 
 Use https://schemathesis.io for now
 
@@ -340,6 +344,10 @@ pip3 install schemathesis
 st run --checks all --base-url http://localhost:8080 --workers 40 src/main/resources/openapi.json
 ```
 
-### See also
+## See also
 
 - [AWS Smithy](https://smithy.io/2.0/index.html)
+- [OpenAPI](https://swagger.io/specification)
+- [WSDL](https://en.wikipedia.org/wiki/Web_Services_Description_Language)
+- [Protoforce](https://www.protoforce.io)
+- [Stoplight](https://stoplight.io)
