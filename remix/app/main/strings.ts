@@ -1,5 +1,4 @@
 export const Strings = {
-  title: "Responsible API",
-  description:
-    "Responsible API is a small language that helps you leverage OpenAPI tooling without the OpenAPI maintenance nightmare",
+  title: "ResponsibleAPI",
+  description: "A small language that compiles to OpenAPI",
 } as const

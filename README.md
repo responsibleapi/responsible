@@ -1,13 +1,6 @@
-# Responsible API
+# ResponsibleAPI
 
-Responsible API was created to:
-
-- Provide a concise syntax to overcome OpenAPI complexity and verbosity
-- Enable Contract Tests for reliable and consistent APIs
-- Allow for tight integration within the development process using version control systems like Git,
-  unlike [stoplight.io](https://stoplight.io/)
-- Offer language and framework independence, unlike [FastAPI](https://fastapi.tiangolo.com/), for reusability,
-  adaptability, and flexibility in technology choices.
+A small language that compiles to OpenAPI
 
 ## Install
 
@@ -18,7 +11,7 @@ brew tap responsibleapi/responsible
 brew install responsible
 ```
 
-Or use the online editor https://responsibleapi.com
+Or use the online editor https://responsibleapi.com/editor
 
 ## Quick language tutorial
 
@@ -73,34 +66,34 @@ scope "/users" {
             "201" "User"
         }
     }
-}
 
-scope "/users/:id(UserID)" {
+    scope "/:id(UserID)" {
 
-    * {
-        res {
-            "404" "unknown"
-        }
-    }
+       * {
+           res {
+               "404" "unknown"
+           }
+       }
 
-    GET {
-        res {
-            "200" "User"
-        }
-    }
+       GET {
+           res {
+               "200" "User"
+           }
+       }
 
-    PUT {
-        req "User"
-        res {
-            "200" "User"
-        }
-    }
+       PUT {
+           req "User"
+           res {
+               "200" "User"
+           }
+       }
 
-    DELETE {
-        res {
-            "204" "unknown"
-        }
-    }
+       DELETE {
+           res {
+               "204" "unknown"
+           }
+       }
+   }
 }
 ```
 
@@ -347,7 +340,8 @@ st run --checks all --base-url http://localhost:8080 --workers 40 src/main/resou
 ## See also
 
 - [AWS Smithy](https://smithy.io/2.0/index.html)
-- [OpenAPI](https://swagger.io/specification)
-- [WSDL](https://en.wikipedia.org/wiki/Web_Services_Description_Language)
-- [Protoforce](https://www.protoforce.io)
-- [Stoplight](https://stoplight.io)
+- [OpenAPI](https://swagger.io/docs/specification/about/)
+- [WSDL](https://en.wikipedia.org/wiki/Web_Services_Description_Language/)
+- [Protoforce](https://www.protoforce.io/)
+- [Stoplight](https://stoplight.io/)
+- [RAML](https://raml.org/)

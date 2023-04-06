@@ -3,7 +3,6 @@ import type { LinksFunction } from "@remix-run/cloudflare"
 
 import { UniversalLink } from "../lib/UniversalLink"
 import { EXTERNAL_URLS, INTERNAL_URLS } from "../main/urls"
-import { Strings } from "../main/strings"
 import LandingMirror from "../main/jsx/LandingMirror"
 import { highlightCSS } from "../main/jsx/HighlightedEditor"
 
@@ -19,7 +18,7 @@ export default function Index(): JSX.Element {
         </h1>
 
         <p className="mt-6 text-lg leading-8 text-gray-300">
-          {Strings.description}
+          ResponsibleAPI is a small language that compiles to OpenAPI
         </p>
 
         <div className="mt-10 flex items-center justify-center gap-x-6">
