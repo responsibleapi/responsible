@@ -22,6 +22,6 @@
     "prettier-plugin-packagejson": "^2.3.0",
     "prettier-plugin-tailwindcss": "^0.2.1",
     "typescript": "^5.0.2",
-    "vitest": "^0.29.1"
+    "vitest": "^0.30.0"
   }
 }
