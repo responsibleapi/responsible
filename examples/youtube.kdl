@@ -24,10 +24,10 @@ servers {
 }
 
 // youtube video id
-type "VideoID" "string" pattern="^[a-zA-Z0-9_-]{11}$"
+type "VideoID" "string" minLength=1
 
 // youtube playlust id
-type "PlaylistID" "string" pattern="^[a-zA-Z0-9_-]{34}$"
+type "PlaylistID" "string" minLength=1
 
 type "VideoIDs" "array" "VideoID"
 
@@ -43,7 +43,48 @@ type "Parts" "array" "Part"
 type "Videos" "struct"
 type "PlaylistItems" "struct"
 type "Playlists" "struct"
-type "Channels" "struct"
+
+struct "Thumbnail" {
+    (?)height "int32"
+    (?)url "string"
+    (?)width "int32"
+}
+
+struct "Channels" {
+
+    etag "string"
+    items "array" "Item" minItems=0
+    kind "string"
+    pageInfo "PageInfo"
+
+    struct "Item" {
+        id "string"
+        (?)contentDetails "ContentDetails"
+        (?)etag "string"
+        (?)kind "string"
+        (?)snippet "Snippet"
+    }
+
+    struct "RelatedPlaylists" {
+        uploads "string"
+        (?)watchHistory "string"
+        (?)watchLater "string"
+    }
+
+    struct "ContentDetails" {
+        relatedPlaylists "RelatedPlaylists"
+    }
+
+    struct "Snippet" {
+        (?)country "string"
+        (?)customUrl "string"
+        (?)description "string"
+        (?)localized "Localized"
+        publishedAt "utcMillis"
+        (?)thumbnails "dict" "string" "Thumbnail"
+        title "string"
+    }
+}
 
 scope "/videos" {
     POST {
