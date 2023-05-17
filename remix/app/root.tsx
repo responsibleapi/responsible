@@ -37,7 +37,7 @@ export const meta: V2_MetaFunction<typeof loader> = ({ data }) => [
   { name: "viewport", content: "width=device-width,initial-scale=1" },
   { title: Strings.title },
   { name: "description", content: Strings.description },
-  { name: "og:image", content: hostURL(data.host, "/og.jpg") },
+  { name: "og:image", content: hostURL(data.host, "/OG.jpg") },
 ]
 
 // noinspection JSUnusedGlobalSymbols
