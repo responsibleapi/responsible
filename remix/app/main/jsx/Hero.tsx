@@ -2,8 +2,6 @@ import type { ReactNode } from "react"
 import React, { useState } from "react"
 import { Dialog } from "@headlessui/react"
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline"
-
-import { RobotSVG } from "./RobotSVG"
 import { HERO_NAVIGATION } from "../urls"
 import { UniversalLink } from "../../lib/UniversalLink"
 import { Strings } from "../strings"
@@ -48,8 +46,11 @@ export const Hero = ({ children }: { children: ReactNode }): JSX.Element => {
         >
           <div className="flex lg:flex-1">
             <UniversalLink href="/" className="-m-1.5 p-1.5">
-              <span className="sr-only">Your Company</span>
-              <RobotSVG className="h-8 w-auto" />
+              <img
+                className="h-8 w-8"
+                src="/icon.svg"
+                alt="ResponsibleAPI icon"
+              />
             </UniversalLink>
           </div>
 
@@ -91,7 +92,11 @@ export const Hero = ({ children }: { children: ReactNode }): JSX.Element => {
             <div className="flex items-center justify-between">
               <UniversalLink href="#" className="-m-1.5 p-1.5">
                 <span className="sr-only">{Strings.title}</span>
-                <RobotSVG className="h-8 w-auto" />
+                <img
+                  className="h-8 w-8"
+                  src="/icon.svg"
+                  alt="ResponsibleAPI icon"
+                />
               </UniversalLink>
 
               <button
@@ -110,7 +115,7 @@ export const Hero = ({ children }: { children: ReactNode }): JSX.Element => {
                     <UniversalLink
                       key={item.name}
                       href={item.href}
-                      className="-mx-3 block rounded-lg py-2 px-3 text-base font-semibold leading-7 text-white hover:bg-gray-800"
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-white hover:bg-gray-800"
                     >
                       {item.name}
                     </UniversalLink>

@@ -1,5 +1,4 @@
-import type { HLJSApi, Language } from "highlight.js"
-import hljs from "highlight.js"
+import hljs, { type HLJSApi, type Language } from "highlight.js"
 
 // https://github.com/Devasta/highlightjs-kdl/blob/master/src/languages/kdl.js
 const defineKDL = (hljs: HLJSApi): Language => {

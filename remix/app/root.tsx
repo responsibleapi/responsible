@@ -8,18 +8,18 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react"
-import type { LinksFunction, MetaFunction } from "@remix-run/cloudflare"
+import type { LinksFunction, V2_MetaFunction } from "@remix-run/cloudflare"
 
 import { Hero } from "./main/jsx/Hero"
 import { Strings } from "./main/strings"
 
 // noinspection JSUnusedGlobalSymbols
-export const meta: MetaFunction = () => ({
-  charset: "utf-8",
-  viewport: "width=device-width,initial-scale=1",
-  title: Strings.title,
-  description: Strings.description,
-})
+export const meta: V2_MetaFunction = () => [
+  { charset: "utf-8" },
+  { name: "viewport", content: "width=device-width,initial-scale=1" },
+  { title: Strings.title },
+  { name: "description", content: Strings.description },
+]
 
 // noinspection JSUnusedGlobalSymbols
 export const links: LinksFunction = () => [
