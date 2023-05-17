@@ -1,6 +1,13 @@
+import { Hero } from "./main/jsx/Hero"
+import { Strings } from "./main/strings"
 import stylesheet from "./tailwind.css"
-
-import React from "react"
+import type {
+  LinksFunction,
+  LoaderArgs,
+  TypedResponse,
+  V2_MetaFunction,
+} from "@remix-run/cloudflare"
+import { json } from "@remix-run/cloudflare"
 import {
   Links,
   Meta,
@@ -8,17 +15,29 @@ import {
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react"
-import type { LinksFunction, V2_MetaFunction } from "@remix-run/cloudflare"
+import React from "react"
 
-import { Hero } from "./main/jsx/Hero"
-import { Strings } from "./main/strings"
+const hostURL = (host: string, path?: string): string => {
+  const proto =
+    host.includes("localhost") || host.includes("127.0.0.1") ? "http" : "https"
+
+  return `${proto}://${host}${path ?? ""}`
+}
+
+export const loader = ({
+  request,
+}: LoaderArgs): TypedResponse<{ host: string }> =>
+  json({
+    host: request.headers.get("host") || "localhost:3000",
+  })
 
 // noinspection JSUnusedGlobalSymbols
-export const meta: V2_MetaFunction = () => [
+export const meta: V2_MetaFunction<typeof loader> = ({ data }) => [
   { charset: "utf-8" },
   { name: "viewport", content: "width=device-width,initial-scale=1" },
   { title: Strings.title },
   { name: "description", content: Strings.description },
+  { name: "og:image", content: hostURL(data.host, "/og.jpg") },
 ]
 
 // noinspection JSUnusedGlobalSymbols

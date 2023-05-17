@@ -3,9 +3,9 @@ module.exports = {
   semi: false,
   trailingComma: "all",
   plugins: [
-    require("prettier-plugin-packagejson"),
-    require("prettier-plugin-organize-imports"),
-    require("prettier-plugin-tailwindcss"),
+    "prettier-plugin-packagejson",
+    "@ianvs/prettier-plugin-sort-imports",
+    "prettier-plugin-tailwindcss",
   ],
   pluginSearchDirs: false,
 }
