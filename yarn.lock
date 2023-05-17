@@ -1844,7 +1844,14 @@
     "@cloudflare/kv-asset-handler" "^0.1.3"
     "@remix-run/server-runtime" "1.16.0"
 
-"@remix-run/dev@^1.14.3":
+"@remix-run/css-bundle@^1.16.0":
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/@remix-run/css-bundle/-/css-bundle-1.16.0.tgz#efbe328c8311c01602449746b8d2297e3d6f5c61"
+  integrity sha512-N8CgYGJNpdtyd4enuY0UIje+rHvDEPCxXnkAJ6ggTvoSM4c919e5LXUWM5o67NAbdBAYQfqQO/EknL3D/dSw7w==
+  dependencies:
+    "@remix-run/dev" "1.16.0"
+
+"@remix-run/dev@1.16.0", "@remix-run/dev@^1.14.3":
   version "1.16.0"
   resolved "https://registry.yarnpkg.com/@remix-run/dev/-/dev-1.16.0.tgz#05b9fd951d18c5913f7847e23041a98df2b0ab65"
   integrity sha512-mA5Wv8sOgN3pSZvjn22aEu+O+uz2/qkgRvB5RnXWncPtvOq8dMmGH7J9kvKO/iOF8btK5FaudymK+AjM6Yifag==

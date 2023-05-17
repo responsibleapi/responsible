@@ -8,14 +8,16 @@ import type {
   V2_MetaFunction,
 } from "@remix-run/cloudflare"
 import { json } from "@remix-run/cloudflare"
+import { cssBundleHref } from "@remix-run/css-bundle"
 import {
   Links,
+  LiveReload,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
 } from "@remix-run/react"
-import React from "react"
+import React, { type JSX } from "react"
 
 const hostURL = (host: string, path?: string): string => {
   const proto =
@@ -31,17 +33,12 @@ export const loader = ({
     host: request.headers.get("host") || "localhost:3000",
   })
 
-// noinspection JSUnusedGlobalSymbols
 export const meta: V2_MetaFunction<typeof loader> = ({ data }) => [
-  { charset: "utf-8" },
-  { name: "viewport", content: "width=device-width,initial-scale=1" },
-  { title: Strings.title },
-  { name: "description", content: Strings.description },
   { name: "og:image", content: hostURL(data.host, "/OG.jpg") },
 ]
 
-// noinspection JSUnusedGlobalSymbols
 export const links: LinksFunction = () => [
+  ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
   { rel: "stylesheet", href: stylesheet },
   {
     rel: "icon",
@@ -54,6 +51,10 @@ export default function App(): JSX.Element {
   return (
     <html lang="en">
       <head>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width,initial-scale=1" />
+        <title>{Strings.title}</title>
+        <meta name="description" content={Strings.description} />
         <Meta />
         <Links />
       </head>
@@ -65,7 +66,7 @@ export default function App(): JSX.Element {
 
         <ScrollRestoration />
         <Scripts />
-        {/*<LiveReload />*/}
+        <LiveReload />
       </body>
     </html>
   )

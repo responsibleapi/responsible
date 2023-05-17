@@ -1,18 +1,9 @@
 /** @type {import("@remix-run/dev").AppConfig} */
 module.exports = {
   watchPaths: ["../generator/"],
-
-  future: {
-    v2_routeConvention: true,
-    v2_meta: true,
-    v2_errorBoundary: true,
-    v2_normalizeFormMethod: true,
-  },
-
-  tailwind: true,
   devServerBroadcastDelay: 1000,
   ignoredRouteFiles: ["**/.*"],
-  server: "./server.js",
+  server: "./server.ts",
   serverBuildPath: "functions/[[path]].js",
   serverConditions: ["worker"],
   serverDependenciesToBundle: "all",
@@ -23,4 +14,11 @@ module.exports = {
   // appDirectory: "app",
   // assetsBuildDirectory: "public/build",
   // publicPath: "/build/",
+  future: {
+    v2_errorBoundary: true,
+    v2_meta: true,
+    v2_normalizeFormMethod: true,
+    v2_routeConvention: true,
+  },
+  tailwind: true,
 }
