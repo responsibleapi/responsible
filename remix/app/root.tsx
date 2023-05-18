@@ -1,5 +1,4 @@
 import { Hero } from "./main/jsx/Hero"
-import { Strings } from "./main/strings"
 import stylesheet from "./tailwind.css"
 import type {
   LinksFunction,
@@ -53,8 +52,6 @@ export default function App(): JSX.Element {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
-        <title>{Strings.title}</title>
-        <meta name="description" content={Strings.description} />
         <Meta />
         <Links />
       </head>

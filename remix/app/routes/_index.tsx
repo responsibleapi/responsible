@@ -1,12 +1,17 @@
-import React from "react"
-import type { LinksFunction } from "@remix-run/cloudflare"
-
 import { UniversalLink } from "../lib/UniversalLink"
-import { EXTERNAL_URLS, INTERNAL_URLS } from "../main/urls"
-import LandingMirror from "../main/jsx/LandingMirror"
 import { highlightCSS } from "../main/jsx/HighlightedEditor"
+import LandingMirror from "../main/jsx/LandingMirror"
+import { Strings } from "../main/strings"
+import { EXTERNAL_URLS, INTERNAL_URLS } from "../main/urls"
+import { type LinksFunction, type V2_MetaFunction } from "@remix-run/cloudflare"
+import React, { type JSX } from "react"
 
 export const links: LinksFunction = () => [highlightCSS]
+
+export const meta: V2_MetaFunction = () => [
+  { title: Strings.title },
+  { name: "description", content: Strings.description },
+]
 
 // noinspection JSUnusedGlobalSymbols
 export default function Index(): JSX.Element {
