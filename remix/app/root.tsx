@@ -25,17 +25,22 @@ const hostURL = (host: string, path?: string): string => {
   return `${proto}://${host}${path ?? ""}`
 }
 
-export const loader = ({
-  request,
-}: LoaderArgs): TypedResponse<{ host: string }> =>
+interface Props {
+  host: string
+}
+
+// noinspection JSUnusedGlobalSymbols
+export const loader = ({ request }: LoaderArgs): TypedResponse<Props> =>
   json({
     host: request.headers.get("host") || "localhost:3000",
   })
 
-export const meta: V2_MetaFunction<typeof loader> = ({ data }) => [
+// noinspection JSUnusedGlobalSymbols
+export const meta: V2_MetaFunction<Props> = ({ data }) => [
   { name: "og:image", content: hostURL(data.host, "/OG.jpg") },
 ]
 
+// noinspection JSUnusedGlobalSymbols
 export const links: LinksFunction = () => [
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
   { rel: "stylesheet", href: stylesheet },
@@ -46,6 +51,7 @@ export const links: LinksFunction = () => [
   },
 ]
 
+// noinspection JSUnusedGlobalSymbols
 export default function App(): JSX.Element {
   return (
     <html lang="en">

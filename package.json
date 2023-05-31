@@ -11,6 +11,7 @@
     "deploy": "yarn workspace @responsible/remix cleanDeploy"
   },
   "devDependencies": {
+    "@ianvs/prettier-plugin-sort-imports": "^3.7.2",
     "@typescript-eslint/eslint-plugin": "^5.30.5",
     "@typescript-eslint/parser": "^5.30.5",
     "eslint": "^8.25.0",
@@ -18,7 +19,6 @@
     "fast-check": "^3.1.0",
     "openapi-types": "^12.0.0",
     "prettier": "^2.7.1",
-    "@ianvs/prettier-plugin-sort-imports": "^3.7.2",
     "prettier-plugin-packagejson": "^2.3.0",
     "prettier-plugin-tailwindcss": "^0.2.1",
     "typescript": "^5.0.2",
