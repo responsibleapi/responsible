@@ -1,8 +1,8 @@
-import { parseSecurity } from "./security"
-import { expect, test } from "vitest"
 import { parse } from "kdljs"
+import { expect, test } from "vitest"
+import { parseSecurity } from "./security"
 
-test.concurrent("optional", () => {
+test("optional", () => {
   expect(
     parseSecurity(
       parse(`
@@ -30,7 +30,7 @@ test.concurrent("optional", () => {
   })
 })
 
-test.concurrent("listenbox security", () => {
+test("old listenbox security", () => {
   expect(
     parseSecurity(
       parse(`
@@ -58,7 +58,7 @@ test.concurrent("listenbox security", () => {
   })
 })
 
-test.concurrent("youtube security", () => {
+test("youtube security", () => {
   expect(
     parseSecurity(
       parse(`
@@ -75,5 +75,25 @@ test.concurrent("youtube security", () => {
       },
     },
     security: [{ KeyQuery: [] }],
+  })
+})
+
+test("listenbox security", () => {
+  expect(
+    parseSecurity(
+      parse(`
+        (?)security {
+          header "authorization"
+        }`).output[0],
+    ),
+  ).toEqual(<ReturnType<typeof parseSecurity>>{
+    securitySchemes: {
+      AuthorizationHeader: {
+        type: "apiKey",
+        in: "header",
+        name: "authorization",
+      },
+    },
+    security: [{ AuthorizationHeader: [] }, {}],
   })
 })

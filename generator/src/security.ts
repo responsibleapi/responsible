@@ -1,17 +1,12 @@
-import type { OpenAPIV3 } from "openapi-types"
 import type { kdljs } from "kdljs"
-
-import { capitalize } from "./typescript"
-import { isRequired } from "./schema"
+import type { OpenAPIV3 } from "openapi-types"
 import { getString } from "./kdl"
+import { isRequired } from "./schema"
+import { capitalize } from "./typescript"
 
 const parseSecurities = (
   parent: kdljs.Node,
 ): ReadonlyArray<OpenAPIV3.ApiKeySecurityScheme> => {
-  if (!isRequired(parent)) {
-    throw new Error(`optionality not supported in ${JSON.stringify(parent)}`)
-  }
-
   const ret = Array<OpenAPIV3.ApiKeySecurityScheme>()
 
   for (const node of parent.children) {

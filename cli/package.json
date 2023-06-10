@@ -1,17 +1,15 @@
 {
-  "name": "responsible",
+  "name": "@responsible/cli",
   "version": "0.2.1",
   "license": "MIT",
   "bin": "dist/index.js",
   "scripts": {
-    "build": "yarn esb && pkg package.json",
-    "esb": "esbuild src/index.ts --bundle --platform=node --outfile=dist/index.js --target=node16 --minify --sourcemap --external:fsevents",
+    "bld": "bun bundle.ts",
     "lint": "eslint src/ --fix",
-    "release": "yarn build && gh release create --generate-notes v$npm_package_version dist/responsible-*",
-    "start": "yarn esb && node --enable-source-maps dist/index.js ../examples/listenbox.kdl | pbcopy",
-    "start:watch": "yarn esb && node --enable-source-maps dist/index.js -w -o dist/openapi.json ../examples/listenbox.kdl",
-    "test": "vitest run src/",
-    "preversion": "yarn test",
+    "start": "bun bld && bun dist/index.js ../examples/listenbox.kdl | pbcopy",
+    "start:watch": "bun bld && bun dist/index.js -w -o dist/openapi.json ../examples/listenbox.kdl",
+    "tst": "bun test",
+    "preversion": "bun test",
     "postversion": "git push && git push --tags"
   },
   "dependencies": {
@@ -19,14 +17,6 @@
     "chokidar": "^3.5.3"
   },
   "devDependencies": {
-    "pkg": "^5.8.0"
-  },
-  "pkg": {
-    "targets": [
-      "node16-linux-x64",
-      "node16-macos-arm64",
-      "node16-macos-x64"
-    ],
-    "outputPath": "dist/"
+    "bun-types": "^0.6.7"
   }
 }

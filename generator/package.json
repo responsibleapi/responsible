@@ -7,11 +7,9 @@
   "module": "dist/esm/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
-    "build": "yarn build:cjs && yarn build:esm",
-    "build:cjs": "tsc --declaration --module commonjs --outDir dist/",
-    "build:esm": "tsc --module es2015 --outDir dist/esm/",
+    "bld": "bun bundle.ts",
     "lint": "eslint src/ --fix",
-    "test": "vitest run src/",
+    "test": "bun test",
     "watch:test": "vitest"
   },
   "dependencies": {

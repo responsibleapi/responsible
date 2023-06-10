@@ -1,9 +1,9 @@
 import { parseOpenAPI } from "../../generator/src/kdl"
-import { readFile, writeFile } from "fs/promises"
 import { version } from "../package.json"
-import chokidar from "chokidar"
-import { parse } from "kdljs"
 import arg from "arg"
+import chokidar from "chokidar"
+import { readFile, writeFile } from "fs/promises"
+import { parse } from "kdljs"
 
 const die = (s: string): never => {
   console.error(s)
