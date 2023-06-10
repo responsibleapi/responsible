@@ -28,23 +28,25 @@ const onKdlChange =
   }
 
 const args = arg({
-  "--watch": Boolean,
-  "--version": Boolean,
   "--help": Boolean,
   "--output": String,
+  "--version": Boolean,
+  "--watch": Boolean,
 
-  "-w": "--watch",
+  "-h": "--help",
   "-o": "--output",
+  "-v": "--version",
+  "-w": "--watch",
 })
 
 const help = `
 Usage: responsible [file]
 
 Options:
-  --version     Show version
-  --help        Show this help
-  -o, --output  Output file
-  -w, --watch   Watch for changes. Requires --output
+  -h, --help      Show this help
+  -o, --output    Output file
+  -v, --version   Show version
+  -w, --watch     Watch for changes. Requires --output
 `
 
 export const main = async (): Promise<void> => {
