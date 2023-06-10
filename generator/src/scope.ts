@@ -1,10 +1,9 @@
-import type { ScopeResponses } from "./response";
-import { parseScopeRes } from "./response"
-import type { OpenAPIV3 } from "openapi-types"
-import { parseScopeReq } from "./request"
 import { deepmerge } from "deepmerge-ts"
-import type { kdljs } from "kdljs"
-import type { Mime } from "./kdl"
+import { type kdljs } from "kdljs"
+import { type OpenAPIV3 } from "openapi-types"
+import { type Mime } from "./kdl"
+import { parseScopeReq } from "./request"
+import { parseScopeRes, type ScopeResponses } from "./response"
 
 export interface HasMime {
   mime?: Mime

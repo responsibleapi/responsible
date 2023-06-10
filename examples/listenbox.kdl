@@ -7,7 +7,7 @@ info {
 }
 
 servers {
-    url "https://listenbox.app"
+    url "https://api.listenbox.app"
     url "http://localhost:8080"
 }
 
@@ -17,6 +17,10 @@ type "ShowID" "string" minLength=11 maxLength=12
 type "StripeCheckoutID" "string" minLength=1
 
 struct "SubmitReq" {
+    url "httpURL"
+}
+
+struct "UrlResp" {
     url "httpURL"
 }
 
@@ -608,14 +612,6 @@ scope "/japi" {
 }
 
 scope "/oauth/google" {
-
-    * {
-        res {
-            * {
-                header "X-Robots-Tag" "string" length=7
-            }
-        }
-    }
 
     GET {
         name "googleSlash"

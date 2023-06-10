@@ -1,11 +1,12 @@
 import { readdir, readFile } from "fs/promises"
 import * as path from "path"
 import { parse } from "kdljs"
-import OpenApiValidator from "openapi-schema-validator"
 import { OpenAPIV3 } from "openapi-types"
 import { expect, test } from "vitest"
 import { parseOpenAPI } from "./kdl"
 import { yanicJSON } from "./yanic.test"
+
+const OpenAPISchemaValidator = require("openapi-schema-validator").default
 
 const toOpenAPI = (s: string): OpenAPIV3.Document => {
   const kdl = parse(s)
@@ -14,7 +15,7 @@ const toOpenAPI = (s: string): OpenAPIV3.Document => {
 
   const doc = parseOpenAPI(kdl.output)
 
-  const vld = new OpenApiValidator({ version: doc.openapi }).validate(doc)
+  const vld = new OpenAPISchemaValidator({ version: doc.openapi }).validate(doc)
   expect(vld.errors, JSON.stringify(vld.errors, null, 2)).toEqual([])
 
   return doc

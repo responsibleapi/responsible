@@ -12,25 +12,6 @@ module.exports = {
   ],
   ignorePatterns: ["**/*.test.ts", "**/build.js", "**/dist/*"],
   rules: {
-    "ban/ban": [
-      "error",
-      {
-        name: "parseInt",
-        message: "Use Number() constructor",
-      },
-    ],
-
-    eqeqeq: "error",
-    "no-throw-literal": "error",
-    "no-console": "error",
-
-    "no-shadow": "off",
-    "@typescript-eslint/no-shadow": "error",
-
-    "@typescript-eslint/no-inferrable-types": "off",
-    "@typescript-eslint/switch-exhaustiveness-check": "error",
-
-    "@typescript-eslint/no-for-in-array": "error",
     "@typescript-eslint/ban-ts-comment": [
       "error",
       {
@@ -41,19 +22,44 @@ module.exports = {
         minimumDescriptionLength: 1,
       },
     ],
-    "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
+
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      {
+        prefer: "type-imports",
+        fixStyle: "inline-type-imports",
+      },
+    ],
+    "@typescript-eslint/explicit-module-boundary-types": "error",
+
+    "@typescript-eslint/no-for-in-array": "error",
+    "@typescript-eslint/no-inferrable-types": "off",
+
     "@typescript-eslint/no-misused-promises": [
       "error",
       { checksVoidReturn: false },
     ],
+    "@typescript-eslint/no-shadow": "error",
+    "@typescript-eslint/no-unsafe-argument": "warn",
+
     "@typescript-eslint/no-unsafe-assignment": "warn",
+    "@typescript-eslint/no-unsafe-call": "warn",
     "@typescript-eslint/no-unsafe-member-access": "warn",
     "@typescript-eslint/no-unsafe-return": "warn",
-    "@typescript-eslint/no-unsafe-call": "warn",
+    "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_" }],
     "@typescript-eslint/restrict-template-expressions": "warn",
-    "@typescript-eslint/no-unsafe-argument": "warn",
-    "@typescript-eslint/explicit-module-boundary-types": "error",
+    "@typescript-eslint/switch-exhaustiveness-check": "error",
+    "ban/ban": [
+      "error",
+      {
+        name: "parseInt",
+        message: "Use Number() constructor",
+      },
+    ],
+    eqeqeq: "error",
+    "no-console": "error",
+    "no-shadow": "off",
 
-    "@typescript-eslint/consistent-type-imports": "warn",
+    "no-throw-literal": "error",
   },
 }

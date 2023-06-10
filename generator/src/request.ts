@@ -1,12 +1,10 @@
-import type { kdljs } from "kdljs"
-import type { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"
-
-import type { Mime } from "./kdl"
-import { getString, isRef, parseParam } from "./kdl"
-import { parseSecurity } from "./security"
-import { typeName } from "./schema"
+import { type kdljs } from "kdljs"
+import { type OpenAPIV3 } from "openapi-types"
+import { getString, isRef, parseParam, type Mime } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
+import { typeName } from "./schema"
+import { parseSecurity } from "./security"
 import { isEmpty, noUndef } from "./typescript"
 
 interface ReqScope {

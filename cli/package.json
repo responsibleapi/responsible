@@ -2,12 +2,20 @@
   "name": "@responsible/cli",
   "version": "0.2.1",
   "license": "MIT",
-  "bin": "dist/index.js",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "responsible": "bin.mjs"
+  },
+  "files": [
+    "dist/**/*",
+    "bin.mjs"
+  ],
   "scripts": {
     "bld": "bun bundle.ts",
     "lint": "eslint src/ --fix",
-    "start": "bun bld && bun dist/index.js ../examples/listenbox.kdl | pbcopy",
-    "start:watch": "bun bld && bun dist/index.js -w -o dist/openapi.json ../examples/listenbox.kdl",
+    "start": "bun bld && bun bin.mjs ../examples/listenbox.kdl | pbcopy",
+    "start:watch": "bun bld && bun bin.mjs -w -o dist/openapi.json ../examples/listenbox.kdl",
     "tst": "bun test",
     "preversion": "bun test",
     "postversion": "git push && git push --tags"

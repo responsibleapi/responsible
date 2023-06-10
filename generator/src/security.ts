@@ -1,5 +1,5 @@
-import type { kdljs } from "kdljs"
-import type { OpenAPIV3 } from "openapi-types"
+import { type kdljs } from "kdljs"
+import { type OpenAPIV3 } from "openapi-types"
 import { getString } from "./kdl"
 import { isRequired } from "./schema"
 import { capitalize } from "./typescript"
@@ -34,7 +34,7 @@ const toRecord = (
     arr.map(x => [`${capitalize(x.name)}${capitalize(x.in)}`, x]),
   )
 
-interface ParsedSecurity {
+export interface ParsedSecurity {
   securitySchemes: Record<string, OpenAPIV3.SecuritySchemeObject>
   security: OpenAPIV3.SecurityRequirementObject[]
 }

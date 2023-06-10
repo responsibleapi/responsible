@@ -1,9 +1,9 @@
+import { readFile, writeFile } from "fs/promises"
+import arg from "arg"
+import { watch } from "chokidar"
+import { parse } from "kdljs"
 import { parseOpenAPI } from "../../generator/src/kdl"
 import { version } from "../package.json"
-import arg from "arg"
-import chokidar from "chokidar"
-import { readFile, writeFile } from "fs/promises"
-import { parse } from "kdljs"
 
 const die = (s: string): never => {
   console.error(s)
@@ -41,13 +41,13 @@ const help = `
 Usage: responsible [file]
 
 Options:
-  --version Show version
-  --help    Show this help
-  --output  Output file
-  --watch   Watch for changes. Requires --output
+  --version     Show version
+  --help        Show this help
+  -o, --output  Output file
+  -w, --watch   Watch for changes. Requires --output
 `
 
-const main = async () => {
+export const main = async (): Promise<void> => {
   if (args["--version"]) {
     console.log(version)
     return
@@ -67,7 +67,7 @@ const main = async () => {
     if (!out) return die("Must specify --output with --watch")
 
     await onKdlChange(out)(file)
-    chokidar.watch(file).on("change", onKdlChange(out))
+    watch(file).on("change", onKdlChange(out))
     return
   }
 
@@ -83,5 +83,3 @@ const main = async () => {
     console.log(json)
   }
 }
-
-void main()

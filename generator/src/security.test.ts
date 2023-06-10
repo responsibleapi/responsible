@@ -1,6 +1,6 @@
 import { parse } from "kdljs"
 import { expect, test } from "vitest"
-import { parseSecurity } from "./security"
+import { parseSecurity, type ParsedSecurity } from "./security"
 
 test("optional", () => {
   expect(
@@ -13,7 +13,7 @@ test("optional", () => {
             }
         }`).output[0],
     ),
-  ).toEqual(<ReturnType<typeof parseSecurity>>{
+  ).toEqual({
     securitySchemes: {
       AuthorizationHeader: {
         type: "apiKey",
@@ -27,7 +27,7 @@ test("optional", () => {
       },
     },
     security: [{ AuthorizationHeader: [] }, { TokenCookie: [] }, {}],
-  })
+  } satisfies ParsedSecurity)
 })
 
 test("old listenbox security", () => {
@@ -41,7 +41,7 @@ test("old listenbox security", () => {
             }
         }`).output[0],
     ),
-  ).toEqual(<ReturnType<typeof parseSecurity>>{
+  ).toEqual({
     securitySchemes: {
       AuthorizationHeader: {
         type: "apiKey",
@@ -55,7 +55,7 @@ test("old listenbox security", () => {
       },
     },
     security: [{ AuthorizationHeader: [] }, { TokenCookie: [] }],
-  })
+  } satisfies ParsedSecurity)
 })
 
 test("youtube security", () => {
@@ -66,7 +66,7 @@ test("youtube security", () => {
           query "key"
         }`).output[0],
     ),
-  ).toEqual(<ReturnType<typeof parseSecurity>>{
+  ).toEqual({
     securitySchemes: {
       KeyQuery: {
         type: "apiKey",
@@ -75,7 +75,7 @@ test("youtube security", () => {
       },
     },
     security: [{ KeyQuery: [] }],
-  })
+  } satisfies ParsedSecurity)
 })
 
 test("listenbox security", () => {
@@ -86,7 +86,7 @@ test("listenbox security", () => {
           header "authorization"
         }`).output[0],
     ),
-  ).toEqual(<ReturnType<typeof parseSecurity>>{
+  ).toEqual({
     securitySchemes: {
       AuthorizationHeader: {
         type: "apiKey",
@@ -95,5 +95,5 @@ test("listenbox security", () => {
       },
     },
     security: [{ AuthorizationHeader: [] }, {}],
-  })
+  } satisfies ParsedSecurity)
 })
