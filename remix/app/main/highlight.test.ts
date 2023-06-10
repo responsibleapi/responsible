@@ -2,7 +2,7 @@ import { expect, test } from "vitest"
 
 import { registeredHighlight } from "./highlight"
 
-test.concurrent("HighlightKDL", () => {
+test("HighlightKDL", () => {
   expect(
     registeredHighlight(
       `

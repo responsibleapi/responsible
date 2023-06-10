@@ -1,7 +1,7 @@
 import { mergePaths, parsePath, TypedPath } from "./path"
 import { expect, test } from "vitest"
 
-test.concurrent("parse", () => {
+test("parse", () => {
   const ps: Record<`/${string}`, TypedPath> = {
     "/later/:item_id(ItemID)": {
       path: "/later/{item_id}",
@@ -40,7 +40,7 @@ test.concurrent("parse", () => {
   expect(Object.keys(ps).map(parsePath)).toEqual(Object.values(ps))
 })
 
-test.concurrent("merge", () => {
+test("merge", () => {
   expect(
     mergePaths(
       {

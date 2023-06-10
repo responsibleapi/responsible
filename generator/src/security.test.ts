@@ -1,8 +1,8 @@
-import { parseSecurity } from "./security"
-import { expect, test } from "vitest"
 import { parse } from "kdljs"
+import { expect, test } from "vitest"
+import { parseSecurity, type ParsedSecurity } from "./security"
 
-test.concurrent("optional", () => {
+test("optional", () => {
   expect(
     parseSecurity(
       parse(`
@@ -13,7 +13,7 @@ test.concurrent("optional", () => {
             }
         }`).output[0],
     ),
-  ).toEqual(<ReturnType<typeof parseSecurity>>{
+  ).toEqual({
     securitySchemes: {
       AuthorizationHeader: {
         type: "apiKey",
@@ -27,10 +27,10 @@ test.concurrent("optional", () => {
       },
     },
     security: [{ AuthorizationHeader: [] }, { TokenCookie: [] }, {}],
-  })
+  } satisfies ParsedSecurity)
 })
 
-test.concurrent("listenbox security", () => {
+test("old listenbox security", () => {
   expect(
     parseSecurity(
       parse(`
@@ -41,7 +41,7 @@ test.concurrent("listenbox security", () => {
             }
         }`).output[0],
     ),
-  ).toEqual(<ReturnType<typeof parseSecurity>>{
+  ).toEqual({
     securitySchemes: {
       AuthorizationHeader: {
         type: "apiKey",
@@ -55,10 +55,10 @@ test.concurrent("listenbox security", () => {
       },
     },
     security: [{ AuthorizationHeader: [] }, { TokenCookie: [] }],
-  })
+  } satisfies ParsedSecurity)
 })
 
-test.concurrent("youtube security", () => {
+test("youtube security", () => {
   expect(
     parseSecurity(
       parse(`
@@ -66,7 +66,7 @@ test.concurrent("youtube security", () => {
           query "key"
         }`).output[0],
     ),
-  ).toEqual(<ReturnType<typeof parseSecurity>>{
+  ).toEqual({
     securitySchemes: {
       KeyQuery: {
         type: "apiKey",
@@ -75,5 +75,25 @@ test.concurrent("youtube security", () => {
       },
     },
     security: [{ KeyQuery: [] }],
-  })
+  } satisfies ParsedSecurity)
+})
+
+test("listenbox security", () => {
+  expect(
+    parseSecurity(
+      parse(`
+        (?)security {
+          header "authorization"
+        }`).output[0],
+    ),
+  ).toEqual({
+    securitySchemes: {
+      AuthorizationHeader: {
+        type: "apiKey",
+        in: "header",
+        name: "authorization",
+      },
+    },
+    security: [{ AuthorizationHeader: [] }, {}],
+  } satisfies ParsedSecurity)
 })

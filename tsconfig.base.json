@@ -12,7 +12,7 @@
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
   },
   "exclude": ["node_modules/", "**/__tests__/*", "**/*.test.*"]
 }

@@ -7,7 +7,7 @@ info {
 }
 
 servers {
-    url "https://listenbox.app"
+    url "https://api.listenbox.app"
     url "http://localhost:8080"
 }
 
@@ -17,6 +17,10 @@ type "ShowID" "string" minLength=11 maxLength=12
 type "StripeCheckoutID" "string" minLength=1
 
 struct "SubmitReq" {
+    url "httpURL"
+}
+
+struct "UrlResp" {
     url "httpURL"
 }
 
@@ -93,6 +97,13 @@ struct "Show" {
     (?)website "httpURL"
 }
 
+struct "Show2" {
+    show "Show"
+    items "array" "JsonItem"
+    (?)user "UserResp"
+    pagination "PaginationResp"
+}
+
 struct "EditShowReq" {
     explicit "boolean"
     language "string"
@@ -125,9 +136,24 @@ struct "JsonItem" {
     (?)author "string"
 }
 
+struct "PaginationResp" {
+   // TODO redundant, newBefore is enough
+   hasBefore "boolean"
+   // TODO newAfter is enough
+   hasAfter "boolean"
+
+   (?)newBefore "ItemID"
+   (?)newAfter "ItemID"
+}
+
 struct "ItemsResp" {
     items "array" "JsonItem" minItems=0
     total "nat32"
+}
+
+struct "ItemsResp2" {
+    items "array" "JsonItem" minItems=0
+    pagination "PaginationResp"
 }
 
 struct "PreSignedUploadURL" {
@@ -157,7 +183,7 @@ struct "ReverseResp" {
 
 struct "LoginReq" {
     email "email"
-    host "hostname"
+    host "string" minLength=1
 }
 
 GET "/api/health" head=true {
@@ -190,10 +216,6 @@ scope "/japi" {
             "200..299" {
                 mime "application/json"
                 header "Content-Length" "int32" minimum=1
-            }
-
-            * {
-                header "X-Robots-Tag" "string" enum="noindex"
             }
         }
     }
@@ -238,10 +260,7 @@ scope "/japi" {
 
         req {
             (?)security {
-                OR {
-                    header "authorization"
-                    cookie "token"
-                }
+                header "authorization"
             }
 
             body "SubmitReq"
@@ -273,6 +292,42 @@ scope "/japi" {
 
             res {
                 "200" "Show"
+            }
+        }
+
+        // TODO remove v1
+        GET "/v2" {
+            name "getShow2"
+
+            req {
+                (?)security {
+                    header "authorization"
+                }
+
+                query {
+                    (?)before "ItemID"
+                    (?)after "ItemID"
+                }
+            }
+
+            res {
+                "200" "Show2"
+            }
+        }
+
+        // TODO remove v1
+        GET "/items2" {
+            name "getItems2"
+
+            req {
+                query {
+                    (?)before "ItemID"
+                    (?)after "ItemID"
+                }
+            }
+
+            res {
+                "200" "ItemsResp2"
             }
         }
 
@@ -319,10 +374,7 @@ scope "/japi" {
         * {
             req {
                 security {
-                    OR {
-                        header "authorization"
-                        cookie "token"
-                    }
+                    header "authorization"
                 }
             }
 
@@ -397,37 +449,31 @@ scope "/japi" {
             year
         }
 
-        GET "/checkout" {
-            name "checkoutRedirect"
+        POST "/checkout" {
+            name "stripeCheckout"
             description "Redirect to the checkout page or to billing if already subscribed"
 
-            req {
-                query {
-                    plan "Plan"
-                    interval "PlanInterval"
-                    success_url "httpURL"
-                    cancel_url "httpURL"
-                }
+            req "struct" {
+                plan "Plan"
+                interval "PlanInterval"
+                success_url "httpURL"
+                cancel_url "httpURL"
             }
 
             res {
-                "302" {
-                    header "location" "httpURL"
-                }
+                "200" "UrlResp"
             }
         }
 
         GET "/billing" {
-            name "billingRedirect"
+            name "stripeBilling"
 
-            req {
-                (?)query "return_url" "httpURL"
+            req "struct" {
+                return_url "httpURL"
             }
 
             res {
-                "302" {
-                    header "location" "httpURL"
-                }
+                "200" "UrlResp"
             }
         }
 
@@ -493,7 +539,22 @@ scope "/japi" {
                 name "getLater"
                 res {
                     "200" "Show"
-                    "404" "unknown"
+                }
+            }
+
+            // TODO remove v1
+            GET "/v2/v2" {
+                name "getLater2"
+
+                req {
+                    query {
+                        (?)before "ItemID"
+                        (?)after "ItemID"
+                    }
+                }
+
+                res {
+                    "200" "Show2"
                 }
             }
 
@@ -552,14 +613,6 @@ scope "/japi" {
 
 scope "/oauth/google" {
 
-    * {
-        res {
-            * {
-                header "X-Robots-Tag" "string" length=7
-            }
-        }
-    }
-
     GET {
         name "googleSlash"
 
@@ -586,30 +639,6 @@ scope "/oauth/google" {
     }
 }
 
-GET "/f/:show_id(ShowID)" head=true {
-    name "audioRSS"
-
-    res {
-        "302" {
-            header "Location" "httpURL"
-        }
-
-        "404" "unknown"
-    }
-}
-
-GET "/v/:show_id(ShowID)" head=true {
-    name "videoRSS"
-
-    res {
-        "302" {
-            header "Location" "httpURL"
-        }
-
-        "404" "unknown"
-    }
-}
-
 enum "AudioVideo" {
     audio
     video
@@ -629,9 +658,12 @@ GET "/rss/:show_id(ShowID)/:type(AudioVideo).rss" head=true {
             }
             body "application/rss+xml" "string" minLength=1
         }
+
+        // when show.video_redirect_url
         "302" {
             header "Location" "httpURL"
         }
+
         "403" "unknown"
         "404" "unknown"
     }
@@ -693,7 +725,7 @@ scope "/youtube/hooks" {
 
         req {
             (?)query "hub.challenge" "string" minLength=1
-            (?)query "hub.lease_seconds" "int32"
+            (?)query "hub.lease_seconds" "int32" minimum=1
         }
 
         res {

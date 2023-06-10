@@ -78,13 +78,12 @@ const parseSegment = (
 }
 
 /**
- * use String.indexOf in a loop
+ * TODO use String.indexOf in a loop
  */
-const parseSegment2 = (
-  s: string,
-): [segment: string, types: Record<string, string>] => {
-  throw new Error("implement")
-}
+// const parseSegment2 = (
+//   s: string,
+// ): [segment: string, types: Record<string, string>] => {
+// }
 
 export interface TypedPath {
   path: URLPath | ""

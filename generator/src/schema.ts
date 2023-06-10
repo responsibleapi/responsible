@@ -1,6 +1,6 @@
-import type { OpenAPIV3 } from "openapi-types"
+import { type kdljs } from "kdljs"
+import { type OpenAPIV3 } from "openapi-types"
 import { noUndef } from "./typescript"
-import type { kdljs } from "kdljs"
 
 export type SchemaOrRef = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 

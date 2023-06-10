@@ -1,7 +1,14 @@
-import type { kdljs } from "kdljs"
-import type { OpenAPIV3 } from "openapi-types"
 import { deepmerge } from "deepmerge-ts"
-
+import { type kdljs } from "kdljs"
+import { type OpenAPIV3 } from "openapi-types"
+import { parseOps } from "./operation"
+import {
+  isURLPath,
+  mergePaths,
+  parsePath,
+  type TypedPath,
+  type URLPath,
+} from "./path"
 import {
   isRequired,
   parseSchemaOrRef,
@@ -9,11 +16,8 @@ import {
   toStruct,
   typeName,
 } from "./schema"
-import type { TypedPath, URLPath } from "./path"
-import { isURLPath, mergePaths, parsePath } from "./path"
-import { isEmpty, noUndef } from "./typescript"
-import { parseOps } from "./operation"
 import { parseScope } from "./scope"
+import { isEmpty, noUndef } from "./typescript"
 
 export type Mime = `${string}/${string}`
 

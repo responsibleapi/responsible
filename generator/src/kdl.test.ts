@@ -1,35 +1,35 @@
-import OpenApiValidator from "openapi-schema-validator"
-import { OpenAPIV3 } from "openapi-types"
-import * as path from "path"
 import { readdir, readFile } from "fs/promises"
-import { expect, test } from "vitest"
+import * as path from "path"
 import { parse } from "kdljs"
-
+import { OpenAPIV3 } from "openapi-types"
+import { expect, test } from "vitest"
 import { parseOpenAPI } from "./kdl"
 import { yanicJSON } from "./yanic.test"
+
+const OpenAPISchemaValidator = require("openapi-schema-validator").default
 
 const toOpenAPI = (s: string): OpenAPIV3.Document => {
   const kdl = parse(s)
 
-  expect(kdl.errors, JSON.stringify(kdl.errors, null, 2)).to.be.empty
+  expect(kdl.errors, JSON.stringify(kdl.errors, null, 2)).toEqual([])
 
   const doc = parseOpenAPI(kdl.output)
 
-  const vld = new OpenApiValidator({ version: doc.openapi }).validate(doc)
-  expect(vld.errors, JSON.stringify(vld.errors, null, 2)).to.be.empty
+  const vld = new OpenAPISchemaValidator({ version: doc.openapi }).validate(doc)
+  expect(vld.errors, JSON.stringify(vld.errors, null, 2)).toEqual([])
 
   return doc
 }
 
 const EXAMPLES_DIR = "../examples/"
 
-test.concurrent("yanic JSON", async () => {
+test("yanic JSON", async () => {
   expect(
     toOpenAPI(await readFile(path.join(EXAMPLES_DIR, "yanic.kdl"), "utf8")),
   ).toEqual(yanicJSON)
 })
 
-test.concurrent("array", () => {
+test("array", () => {
   const openapi = toOpenAPI(`
 type "ShowID" "string"
 
@@ -90,7 +90,7 @@ GET "/user/:email(email)/shows" {
   })
 })
 
-test.concurrent("kdl parse no errors", async () => {
+test("kdl parse no errors", async () => {
   const files = await readdir(EXAMPLES_DIR)
   const texts = await Promise.all(
     files.map(file => readFile(path.join(EXAMPLES_DIR, file), "utf-8")),
@@ -101,7 +101,7 @@ test.concurrent("kdl parse no errors", async () => {
   }
 })
 
-test.concurrent("query param names", () => {
+test("query param names", () => {
   const { paths } = toOpenAPI(`
 GET "/youtube/v3/search" {
     req {
