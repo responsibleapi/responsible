@@ -1,6 +1,7 @@
 {
   "name": "@responsibleapi/cli",
   "version": "0.3.2",
+  "description": "Compiles responsibleapi .kdl files to openapi.json",
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
@@ -16,7 +17,7 @@
     "clean": "rm -rf dist/",
     "lint": "eslint src/ --fix",
     "prepack": "bun clean && bun bld",
-    "prepublishOnly": "bun test",
+    "prepublishOnly": "bun test && bun lint",
     "start": "bun bld && bun bin.mjs ../examples/listenbox.kdl | pbcopy",
     "start:watch": "bun bld && bun bin.mjs -w -o dist/openapi.json ../examples/listenbox.kdl",
     "tst": "bun test"
