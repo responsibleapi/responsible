@@ -7,4 +7,5 @@ await build({
   external: Object.keys(pkg.dependencies),
   target: "node",
   sourcemap: "external",
+  format: "esm",
 })
