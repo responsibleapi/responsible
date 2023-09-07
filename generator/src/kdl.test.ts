@@ -6,6 +6,7 @@ import { expect, test } from "vitest"
 import { parseOpenAPI } from "./kdl"
 import { yanicJSON } from "./yanic.test"
 
+
 const OpenAPISchemaValidator = require("openapi-schema-validator").default
 
 const toOpenAPI = (s: string): OpenAPIV3.Document => {

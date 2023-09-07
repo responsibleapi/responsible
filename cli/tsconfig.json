@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
     "module": "ES2022",
-    "target": "ES2022",
-    "types": ["bun-types"]
+    "target": "ES2022"
   },
   "extends": "../tsconfig.base.json",
   "include": ["src/", "bundle.ts"]

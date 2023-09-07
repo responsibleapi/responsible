@@ -7,7 +7,7 @@
   "scripts": {
     "build": "node ../build.js",
     "lint": "eslint src/",
-    "test": "vitest run src/",
+    "test": "bun test",
     "watch-test": "vitest"
   },
   "dependencies": {

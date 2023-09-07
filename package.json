@@ -11,7 +11,6 @@
     "@ianvs/prettier-plugin-sort-imports": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
-    "bun-types": "^0.8.1",
     "eslint": "^8.25.0",
     "eslint-plugin-ban": "^1.6.0",
     "fast-check": "^3.1.0",

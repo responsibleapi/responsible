@@ -57,33 +57,35 @@ struct "Channels" {
     kind "string"
     pageInfo "PageInfo"
 
-    struct "Item" {
-        id "string"
-        (?)contentDetails "ContentDetails"
-        (?)etag "string"
-        (?)kind "string"
-        (?)snippet "Snippet"
-    }
+// TODO struct nesting
 
-    struct "RelatedPlaylists" {
-        uploads "string"
-        (?)watchHistory "string"
-        (?)watchLater "string"
-    }
-
-    struct "ContentDetails" {
-        relatedPlaylists "RelatedPlaylists"
-    }
-
-    struct "Snippet" {
-        (?)country "string"
-        (?)customUrl "string"
-        (?)description "string"
-        (?)localized "Localized"
-        publishedAt "utcMillis"
-        (?)thumbnails "dict" "string" "Thumbnail"
-        title "string"
-    }
+//    struct "Item" {
+//        id "string"
+//        (?)contentDetails "ContentDetails"
+//        (?)etag "string"
+//        (?)kind "string"
+//        (?)snippet "Snippet"
+//    }
+//
+//    struct "RelatedPlaylists" {
+//        uploads "string"
+//        (?)watchHistory "string"
+//        (?)watchLater "string"
+//    }
+//
+//    struct "ContentDetails" {
+//        relatedPlaylists "RelatedPlaylists"
+//    }
+//
+//    struct "Snippet" {
+//        (?)country "string"
+//        (?)customUrl "string"
+//        (?)description "string"
+//        (?)localized "Localized"
+//        publishedAt "utcMillis"
+//        (?)thumbnails "dict" "string" "Thumbnail"
+//        title "string"
+//    }
 }
 
 scope "/videos" {

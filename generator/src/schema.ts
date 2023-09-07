@@ -17,7 +17,7 @@ export const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
   enum: node.children.map(x => x.name),
 })
 
-export const toStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject =>
+export const parseStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject =>
   noUndef({
     type: "object",
     properties: node.children.length
@@ -71,7 +71,7 @@ export const parseSchemaOrRef = (
       return toEnum(node)
 
     case "struct":
-      return toStruct(node)
+      return parseStruct(node)
 
     case "dateTime": {
       return {

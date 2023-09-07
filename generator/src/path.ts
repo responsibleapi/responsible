@@ -3,6 +3,9 @@ export type URLPath = `/${string}`
 export const isURLPath = (s: string): s is URLPath =>
   s.startsWith("/") && !s.includes(" ")
 
+/**
+ * TODO use String.indexOf in a loop
+ */
 const parseSegment = (
   input: string,
 ): [segment: string, types: Record<string, string>] => {
@@ -76,14 +79,6 @@ const parseSegment = (
 
   return [segment, types]
 }
-
-/**
- * TODO use String.indexOf in a loop
- */
-// const parseSegment2 = (
-//   s: string,
-// ): [segment: string, types: Record<string, string>] => {
-// }
 
 export interface TypedPath {
   path: URLPath | ""

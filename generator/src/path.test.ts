@@ -1,5 +1,5 @@
-import { mergePaths, parsePath, TypedPath } from "./path"
 import { expect, test } from "vitest"
+import { mergePaths, parsePath, TypedPath } from "./path"
 
 test("parse", () => {
   const ps: Record<`/${string}`, TypedPath> = {

@@ -17,7 +17,7 @@
     "bin.mjs"
   ],
   "scripts": {
-    "bld": "bun bundle.ts",
+    "bld": "bun build src/index.ts --outdir=dist/ --external arg --external chokidar --external deepmerge-ts --external kdljs --target=node --sourcemap=external --format=esm",
     "clean": "rm -rf dist/",
     "lint": "eslint src/ --fix",
     "prepack": "bun clean && bun bld",

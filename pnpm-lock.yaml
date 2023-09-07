@@ -17,9 +17,6 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^6.6.0
         version: 6.6.0(eslint@8.48.0)(typescript@5.2.2)
-      bun-types:
-        specifier: ^0.8.1
-        version: 0.8.1
       eslint:
         specifier: ^8.25.0
         version: 8.48.0
@@ -93,9 +90,6 @@ importers:
       '@remix-run/react':
         specifier: ^1.14.3
         version: 1.19.3(react-dom@18.2.0)(react@18.2.0)
-      '@responsibleapi/generator':
-        specifier: link:../generator
-        version: link:../generator
       clsx:
         specifier: ^1.2.1
         version: 1.2.1
@@ -3535,10 +3529,6 @@ packages:
     dependencies:
       base64-js: 1.5.1
       ieee754: 1.2.1
-    dev: true
-
-  /bun-types@0.8.1:
-    resolution: {integrity: sha512-VuCBox66P/3a8gVOffLCWIS6vdpXq4y3eJuF3VnsyC5HpykmIjkcr5wYDn22qQdeTUmOfCcBy1SZmtrZCeUr3A==}
     dev: true
 
   /bundle-name@3.0.0:

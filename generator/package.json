@@ -7,7 +7,7 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
-    "bld": "bun bundle.ts",
+    "bld": "bun build src/kdl.ts --outdir=dist/ --external 'kdljs' --external 'deepmerge-ts' --target=node --sourcemap=external --format=esm",
     "lint": "eslint src/ --fix",
     "test": "bun test",
     "watch:test": "vitest"

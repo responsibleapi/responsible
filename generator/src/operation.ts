@@ -88,21 +88,23 @@ export const parseOps = (
 
   const ret: OpenAPIV3.PathItemObject = { [method]: op }
 
-  if (node.properties.head) {
-    if (method !== "get") throw new Error(JSON.stringify(node))
+  if (!node.properties.head) return ret
 
-    op.operationId = operationId ? `get${capitalize(operationId)}` : undefined
+  if (method !== ("get" as OpenAPIV3.HttpMethods)) {
+    throw new Error(JSON.stringify(node))
+  }
 
-    ret.head = {
-      ...op,
-      operationId: operationId ? `head${capitalize(operationId)}` : undefined,
-      responses: Object.fromEntries(
-        Object.entries(op.responses).map(([k, v]) => [
-          k,
-          noUndef({ ...v, content: undefined }),
-        ]),
-      ),
-    }
+  op.operationId = operationId ? `get${capitalize(operationId)}` : undefined
+
+  ret.head = {
+    ...op,
+    operationId: operationId ? `head${capitalize(operationId)}` : undefined,
+    responses: Object.fromEntries(
+      Object.entries(op.responses).map(([k, v]) => [
+        k,
+        noUndef({ ...v, content: undefined }),
+      ]),
+    ),
   }
 
   return ret

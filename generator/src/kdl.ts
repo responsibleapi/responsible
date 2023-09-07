@@ -12,8 +12,8 @@ import {
 import {
   isRequired,
   parseSchemaOrRef,
+  parseStruct,
   toEnum,
-  toStruct,
   typeName,
 } from "./schema"
 import { parseScope } from "./scope"
@@ -224,7 +224,7 @@ const enterScope = (
         const name = typeName(node)
         if (schemas[name]) throw new Error(`type ${name} is already defined`)
 
-        schemas[name] = toStruct(node)
+        schemas[name] = parseStruct(node)
         break
       }
 
