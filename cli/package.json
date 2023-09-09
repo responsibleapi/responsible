@@ -4,11 +4,10 @@
   "description": "Compiles responsibleapi .kdl files to openapi.json",
   "license": "MIT",
   "sideEffects": [
-    "src/index.ts",
     "bin.mjs"
   ],
   "type": "module",
-  "main": "dist/index.js",
+  "main": "bin.mjs",
   "bin": {
     "responsible": "bin.mjs"
   },
@@ -23,8 +22,7 @@
     "prepack": "bun clean && bun bld",
     "start": "bun bld && bun bin.mjs ../examples/listenbox.kdl | pbcopy",
     "start:watch": "bun bld && bun bin.mjs -w -o dist/openapi.json ../examples/listenbox.kdl",
-    "tst": "bun test",
-    "preversion": "bun test && bun lint",
+    "preversion": "bun test && bun lint && bun tsc",
     "postversion": "git push --follow-tags"
   },
   "dependencies": {
@@ -32,5 +30,6 @@
     "chokidar": "^3.5.3",
     "deepmerge": "^4.3.1",
     "kdljs": "^0.1.5"
-  }
+  },
+  "devDependencies": {}
 }

@@ -42,6 +42,7 @@ export const SplitEditor: Component = () => {
 
         localStorage.setItem("kdl", kdl)
       } catch (e) {
+        // eslint-disable-next-line no-console
         console.error(e)
       }
     })

@@ -5,11 +5,12 @@
   "scripts": {
     "astro": "astro",
     "bld": "astro build",
-    "chk": "astro check",
+    "chk": "bun test && bun lint && astro check",
     "clean": "rm -rf dist/",
     "deploy": "bun chk && bun clean && bun bld && bun dpl",
     "dev": "astro dev",
     "dpl": "wrangler pages deploy dist/ --commit-dirty=true",
+    "lint": "eslint src/ --fix",
     "preview": "astro preview",
     "start": "astro dev"
   },
