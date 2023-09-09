@@ -7,13 +7,13 @@
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "scripts": {
-    "bld": "bun build src/kdl.ts --outdir=dist/ --external 'kdljs' --external 'deepmerge-ts' --target=node --sourcemap=external --format=esm",
+    "bld": "bun build src/kdl.ts --outdir=dist/ --external kdljs --external deepmerge --target=node --sourcemap=external --format=esm",
     "lint": "eslint src/ --fix",
     "test": "bun test",
     "watch:test": "vitest"
   },
   "dependencies": {
-    "deepmerge-ts": "^5.0.0",
+    "deepmerge": "^4.3.1",
     "kdljs": "^0.1.5"
   },
   "devDependencies": {

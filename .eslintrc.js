@@ -3,7 +3,6 @@ module.exports = {
   env: { node: true },
   plugins: ["ban"],
   parser: "@typescript-eslint/parser",
-  parserOptions: { project: "./tsconfig.json" },
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",

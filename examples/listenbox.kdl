@@ -137,13 +137,13 @@ struct "JsonItem" {
 }
 
 struct "PaginationResp" {
-   // TODO redundant, newBefore is enough
-   hasBefore "boolean"
-   // TODO newAfter is enough
-   hasAfter "boolean"
+// TODO redundant, newBefore is enough
+    hasBefore "boolean"
+// TODO newAfter is enough
+    hasAfter "boolean"
 
-   (?)newBefore "ItemID"
-   (?)newAfter "ItemID"
+    (?)newBefore "ItemID"
+    (?)newAfter "ItemID"
 }
 
 struct "ItemsResp" {
@@ -295,7 +295,7 @@ scope "/japi" {
             }
         }
 
-        // TODO remove v1
+    // TODO remove v1
         GET "/v2" {
             name "getShow2"
 
@@ -315,7 +315,7 @@ scope "/japi" {
             }
         }
 
-        // TODO remove v1
+    // TODO remove v1
         GET "/items2" {
             name "getItems2"
 
@@ -542,7 +542,7 @@ scope "/japi" {
                 }
             }
 
-            // TODO remove v1
+        // TODO remove v1
             GET "/v2/v2" {
                 name "getLater2"
 
@@ -659,7 +659,7 @@ GET "/rss/:show_id(ShowID)/:type(AudioVideo).rss" head=true {
             body "application/rss+xml" "string" minLength=1
         }
 
-        // when show.video_redirect_url
+    // when show.video_redirect_url
         "302" {
             header "Location" "httpURL"
         }

@@ -1,12 +1,12 @@
-import { parseBody, replaceStars } from "./operation"
+import deepmerge from "deepmerge"
+import type { kdljs } from "kdljs"
+import type { OpenAPIV3 } from "openapi-types"
 import type { Mime, StatusCodeStr } from "./kdl"
 import { getString, parseHeader } from "./kdl"
-import { isEmpty, noUndef } from "./typescript"
-import type { OpenAPIV3 } from "openapi-types"
-import { deepmerge } from "deepmerge-ts"
-import type { HasMime } from "./scope"
+import { parseBody, replaceStars } from "./operation"
 import { typeName } from "./schema"
-import type { kdljs } from "kdljs"
+import type { HasMime } from "./scope"
+import { isEmpty, noUndef } from "./typescript"
 
 const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
   if (n.values.length) {
@@ -194,7 +194,9 @@ export const parseCoreRes = (
         const status = Number(k)
         if (!status) throw new Error(k)
 
-        return [[k, deepmerge(...matchingReses(scope, status), v) as ScopeRes]]
+        return [
+          [k, deepmerge.all([...matchingReses(scope, status), v]) as ScopeRes],
+        ]
       },
     ),
   )

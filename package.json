@@ -11,14 +11,17 @@
     "@ianvs/prettier-plugin-sort-imports": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
-    "eslint": "^8.25.0",
+    "eslint": "^8.49.0",
+    "eslint-plugin-astro": "^0.29.0",
     "eslint-plugin-ban": "^1.6.0",
-    "fast-check": "^3.1.0",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "fast-check": "^3.13.0",
     "openapi-types": "^12.0.0",
     "prettier": "^3.0.3",
+    "prettier-plugin-astro": "^0.12.0",
     "prettier-plugin-packagejson": "^2.3.0",
     "prettier-plugin-tailwindcss": "^0.5.4",
     "typescript": "^5.0.2",
-    "vitest": "^0.34.3"
+    "vitest": "^0.34.4"
   }
 }

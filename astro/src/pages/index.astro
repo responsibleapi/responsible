@@ -1,0 +1,20 @@
+---
+import { SplitEditor } from "../components/SplitEditor.tsx"
+import Layout from "../layouts/Layout.astro"
+---
+
+<Layout title="ResponsibleAPI">
+  <main class="flex h-screen flex-col">
+    <div class="prose prose-sky m-6 max-w-prose flex-shrink-0">
+      <h1>ResponsibleAPI</h1>
+      <p>A small language that compiles to OpenAPI</p>
+      <a
+        href="https://github.com/responsibleapi/responsible#readme"
+        target="_blank"
+        rel="noreferrer">Docs</a
+      >
+    </div>
+
+    <SplitEditor client:only="solid-js" />
+  </main>
+</Layout>

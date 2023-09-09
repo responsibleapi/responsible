@@ -1,4 +1,4 @@
-import { deepmerge } from "deepmerge-ts"
+import deepmerge from "deepmerge"
 import { type kdljs } from "kdljs"
 import { type OpenAPIV3 } from "openapi-types"
 import { getString, isRef, parseParam, type Mime } from "./kdl"

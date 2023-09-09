@@ -53,7 +53,7 @@ export const parseSecurity = (parent: kdljs.Node): ParsedSecurity => {
   const node = parent.children[0]
   if (!node) return { securitySchemes: {}, security: [] }
 
-  switch (node.name) {
+  switch (node.name.toUpperCase()) {
     case "OR": {
       const securitySchemes = toRecord(parseSecurities(node))
       return {

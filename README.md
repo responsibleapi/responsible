@@ -2,17 +2,6 @@
 
 A small language that compiles to OpenAPI
 
-## Install
-
-Homebrew
-
-```shell
-brew tap responsibleapi/responsible
-brew install responsible
-```
-
-Or use the online editor https://responsibleapi.com/editor
-
 ## Quick language tutorial
 
 Responsible DSL is based on KDL language. Visit https://kdl.dev to learn more
@@ -296,15 +285,15 @@ brew install openapi-generator
 ### Typescript
 
 ```shell
-responsible file.kdl -o /tmp/out.json
-openapi-generator generate -g typescript-fetch -i /tmp/out.json -o gen/ --additional-properties=typescriptThreePlus=true,modelPropertyNaming=original,nullSafeAdditionalProps=true,enumPropertyNaming=original,supportsES6=true,useSingleRequestParameter=false
+bunx @responsibleapi/cli file.kdl -o /tmp/openapi.json
+openapi-generator generate -g typescript-fetch -i /tmp/openapi.json -o gen/ --additional-properties=typescriptThreePlus=true,modelPropertyNaming=original,nullSafeAdditionalProps=true,enumPropertyNaming=original,supportsES6=true,useSingleRequestParameter=false
 ```
 
 ### Kotlin
 
 ```shell
-responsible file.kdl -o /tmp/out.json
-openapi-generator generate -g kotlin -i /tmp/out.json -o gen/ --additional-properties=library=jvm-vertx
+bunx @responsibleapi/cli file.kdl -o /tmp/openapi.json
+openapi-generator generate -g kotlin -i /tmp/openapi.json -o gen/ --additional-properties=library=jvm-vertx
 ```
 
 ## Testing
