@@ -1,5 +1,6 @@
 import { edit } from "ace-builds"
 import "ace-builds/src-noconflict/mode-json"
+import "ace-builds/src-noconflict/ext-searchbox"
 import "./kdl.js"
 import { parse } from "kdljs"
 import { createEffect, type Component, type JSX } from "solid-js"
