@@ -11,6 +11,7 @@
     "@ianvs/prettier-plugin-sort-imports": "^4.0.0",
     "@typescript-eslint/eslint-plugin": "^6.6.0",
     "@typescript-eslint/parser": "^6.6.0",
+    "concurrently": "^8.2.1",
     "eslint": "^8.49.0",
     "eslint-plugin-astro": "^0.29.0",
     "eslint-plugin-ban": "^1.6.0",
