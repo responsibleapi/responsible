@@ -2,5 +2,5 @@
   "parserOptions": {
     "project": "./tsconfig.json"
   },
-  "ignorePatterns": ["src/components/kdl.js"]
+  "ignorePatterns": ["src/kdl.js"]
 }

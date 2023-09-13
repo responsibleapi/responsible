@@ -1,0 +1,30 @@
+{
+  "name": "vite-template-solid",
+  "version": "0.0.0",
+  "description": "",
+  "license": "MIT",
+  "scripts": {
+    "chk": "concurrently bun:chk:*",
+    "chk:lint": "eslint src/ --fix",
+    "chk:test": "bun test",
+    "chk:types": "tsc",
+    "dev": "vite",
+    "dpl": "bun chk && rm -rf dist/ && vite build && wrangler pages deploy dist/ --commit-dirty=true"
+  },
+  "dependencies": {
+    "ace-builds": "^1.24.2",
+    "kdljs": "^0.1.5",
+    "solid-js": "^1.7.11"
+  },
+  "devDependencies": {
+    "@tailwindcss/typography": "^0.5.10",
+    "autoprefixer": "^10.4.15",
+    "postcss": "^8.4.29",
+    "solid-devtools": "^0.27.3",
+    "tailwindcss": "^3.3.3",
+    "typescript": "^5.1.3",
+    "vite": "^4.3.9",
+    "vite-plugin-solid": "^2.7.0",
+    "wrangler": "^3.7.0"
+  }
+}

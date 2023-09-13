@@ -1,8 +1,0 @@
-{
-  "extends": "astro/tsconfigs/strictest",
-  "include": ["src/", "tailwind.config.ts"],
-  "compilerOptions": {
-    "jsx": "preserve",
-    "jsxImportSource": "solid-js"
-  }
-}

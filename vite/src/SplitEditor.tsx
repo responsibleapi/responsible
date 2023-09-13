@@ -4,8 +4,8 @@ import "ace-builds/src-noconflict/ext-searchbox"
 import "./kdl.js"
 import { parse } from "kdljs"
 import { createEffect, type Component, type JSX } from "solid-js"
-import { parseOpenAPI } from "../../../generator/src/kdl"
-import { exampleKDL } from "../app/examplekdl.ts"
+import { parseOpenAPI } from "../../generator/src/kdl"
+import { exampleKDL } from "./examplekdl"
 
 const Editor: Component<{
   id: string

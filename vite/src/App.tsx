@@ -1,12 +1,7 @@
----
-import { SplitEditor } from "../components/SplitEditor.tsx"
-import Layout from "../layouts/Layout.astro"
----
+import { type Component } from "solid-js"
+import { SplitEditor } from "./SplitEditor"
 
-<Layout
-  title="ResponsibleAPI"
-  description="A compact language that compiles to OpenAPI"
->
+export const App: Component = () => (
   <main class="flex h-screen flex-col">
     <div class="prose prose-sky m-6 max-w-prose flex-shrink-0">
       <h1>ResponsibleAPI</h1>
@@ -14,10 +9,12 @@ import Layout from "../layouts/Layout.astro"
       <a
         href="https://github.com/responsibleapi/responsible#readme"
         target="_blank"
-        rel="noreferrer noopener">Docs</a
+        rel="noreferrer noopener"
       >
+        Docs
+      </a>
     </div>
 
-    <SplitEditor client:only="solid-js" />
+    <SplitEditor />
   </main>
-</Layout>
+)
