@@ -1,27 +1,22 @@
-import { type Component } from "solid-js"
+import { type Component, type ParentComponent } from "solid-js"
 import { SplitEditor } from "./SplitEditor"
+
+const External: ParentComponent<{ href: string }> = props => (
+  <a href={props.href} target="_blank" rel="noreferrer noopener">
+    {props.children}
+  </a>
+)
 
 export const App: Component = () => (
   <main class="flex h-screen flex-col">
     <div class="prose prose-sky m-6 max-w-prose flex-shrink-0">
       <h1>ResponsibleAPI</h1>
       <p>A compact language that compiles to OpenAPI</p>
-
-      <a
-        href="https://github.com/responsibleapi/responsible#readme"
-        target="_blank"
-        rel="noreferrer noopener"
-      >
+      <External href="https://github.com/responsibleapi/responsible#readme">
         Docs
-      </a>
-      <span> </span>
-      <a
-        href="https://discord.gg/hDtq7C5uua"
-        target="_blank"
-        rel="noreferrer noopener"
-      >
-        Discord
-      </a>
+      </External>
+      <span> • </span>
+      <External href="https://discord.gg/hDtq7C5uua">Discord</External>
     </div>
 
     <SplitEditor />

@@ -8,7 +8,7 @@
     "chk:lint": "eslint src/ --fix",
     "chk:test": "bun test",
     "chk:types": "tsc",
-    "dev": "vite",
+    "dev": "vite --host",
     "dpl": "bun chk && rm -rf dist/ && vite build && wrangler pages deploy dist/ --commit-dirty=true"
   },
   "dependencies": {
