@@ -6,12 +6,21 @@ export const App: Component = () => (
     <div class="prose prose-sky m-6 max-w-prose flex-shrink-0">
       <h1>ResponsibleAPI</h1>
       <p>A compact language that compiles to OpenAPI</p>
+
       <a
         href="https://github.com/responsibleapi/responsible#readme"
         target="_blank"
         rel="noreferrer noopener"
       >
         Docs
+      </a>
+      <span> </span>
+      <a
+        href="https://discord.gg/hDtq7C5uua"
+        target="_blank"
+        rel="noreferrer noopener"
+      >
+        Discord
       </a>
     </div>
 
