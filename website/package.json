@@ -1,8 +1,7 @@
 {
-  "name": "vite-template-solid",
-  "version": "0.0.0",
-  "description": "",
-  "license": "MIT",
+  "name": "@responsibleapi/website",
+  "version": "0.0.1",
+  "sideEffects": false,
   "scripts": {
     "chk": "concurrently bun:chk:*",
     "chk:lint": "eslint src/ --fix",

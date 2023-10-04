@@ -2,4 +2,4 @@ packages:
   - cli
   - generator
   - testing
-  - vite
+  - website
