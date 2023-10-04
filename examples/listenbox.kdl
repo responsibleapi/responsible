@@ -137,11 +137,8 @@ struct "JsonItem" {
 }
 
 struct "PaginationResp" {
-// TODO redundant, newBefore is enough
-    hasBefore "boolean"
-// TODO newAfter is enough
-    hasAfter "boolean"
-
+    hasBefore "boolean" deprecated=true description="newBefore is enough"
+    hasAfter "boolean" deprecated=true description="newAfter is enough"
     (?)newBefore "ItemID"
     (?)newAfter "ItemID"
 }
@@ -287,15 +284,13 @@ scope "/japi" {
             }
         }
 
-        GET {
+        GET deprecated=true {
             name "getShow"
-
             res {
                 "200" "Show"
             }
         }
 
-    // TODO remove v1
         GET "/v2" {
             name "getShow2"
 
@@ -315,7 +310,6 @@ scope "/japi" {
             }
         }
 
-    // TODO remove v1
         GET "/items2" {
             name "getItems2"
 
@@ -331,7 +325,7 @@ scope "/japi" {
             }
         }
 
-        GET "/items" {
+        GET "/items" deprecated=true {
             name "getItems"
 
             req {
@@ -396,19 +390,6 @@ scope "/japi" {
             }
         }
 
-        GET "/user/:email(email)/shows" {
-            name "showsByEmail"
-
-            res {
-                "200" "array" {
-                    "struct" {
-                        id "ShowID"
-                        title "string" minLength=1
-                    }
-                }
-            }
-        }
-
         scope "/user" {
 
             GET {
@@ -433,6 +414,19 @@ scope "/japi" {
 
                 res {
                     "200" "unknown"
+                }
+            }
+
+            GET "/:email(email)/shows" {
+                name "showsByEmail"
+
+                res {
+                    "200" "array" {
+                        "struct" {
+                            id "ShowID"
+                            title "string" minLength=1
+                        }
+                    }
                 }
             }
         }
@@ -461,11 +455,11 @@ scope "/japi" {
             }
 
             res {
-                "200" "UrlResp"
+                "201" "UrlResp"
             }
         }
 
-        GET "/billing" {
+        POST "/billing" {
             name "stripeBilling"
 
             req "struct" {
@@ -473,7 +467,7 @@ scope "/japi" {
             }
 
             res {
-                "200" "UrlResp"
+                "201" "UrlResp"
             }
         }
 
@@ -535,14 +529,13 @@ scope "/japi" {
 
         scope "/later" {
 
-            GET {
+            GET deprecated=true {
                 name "getLater"
                 res {
                     "200" "Show"
                 }
             }
 
-        // TODO remove v1
             GET "/v2/v2" {
                 name "getLater2"
 
@@ -562,7 +555,7 @@ scope "/japi" {
                 name "submitLater"
                 req "SubmitReq"
                 res {
-                    "200" "ItemsResp"
+                    "200" "Show"
                     "402" "unknown"
                 }
             }
