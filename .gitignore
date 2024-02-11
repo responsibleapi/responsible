@@ -5,3 +5,4 @@ samples/
 dist/
 .vscode/
 .npmrc
+.wrangler/

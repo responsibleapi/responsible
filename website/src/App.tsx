@@ -16,7 +16,9 @@ export const App: Component = () => (
         Docs
       </External>
       <span> • </span>
-      <External href="https://discord.gg/hDtq7C5uua">Discord</External>
+      <External href="https://github.com/responsibleapi/responsible/discussions">
+        Help
+      </External>
     </div>
 
     <SplitEditor />
