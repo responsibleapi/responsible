@@ -1,11 +1,13 @@
-import { edit } from "ace-builds"
+import { config, edit } from "ace-builds"
 import "ace-builds/src-noconflict/mode-json"
 import "ace-builds/src-noconflict/ext-searchbox"
-import "./kdl.js"
 import { parse } from "kdljs"
 import { createEffect, type Component, type JSX } from "solid-js"
 import { parseOpenAPI } from "../../generator/src/kdl"
 import { exampleKDL } from "./examplekdl"
+import aceModeKDL from "./kdl.js?url"
+
+config.setModuleUrl("ace/mode/kdl", aceModeKDL)
 
 const Editor: Component<{
   id: string
