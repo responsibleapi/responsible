@@ -13,7 +13,7 @@
   "dependencies": {
     "ace-builds": "^1.32.6",
     "kdljs": "^0.2.0",
-    "solid-js": "^1.8.14"
+    "solid-js": "^1.8.15"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.10",
@@ -21,8 +21,8 @@
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
-    "vite": "^5.1.1",
-    "vite-plugin-solid": "^2.9.1",
-    "wrangler": "^3.28.1"
+    "vite": "^5.1.4",
+    "vite-plugin-solid": "^2.10.1",
+    "wrangler": "^3.30.0"
   }
 }

@@ -5,7 +5,7 @@ import { parse } from "kdljs"
 import { parseOpenAPI } from "../../generator/src/kdl"
 import { version } from "../package.json"
 
-const die = (s: string): never => {
+function die(s: string): never {
   console.error(s)
   return process.exit(1)
 }
@@ -49,7 +49,7 @@ Options:
   -w, --watch     Watch for changes. Requires --output
 `
 
-export const main = async (): Promise<void> => {
+export async function main(): Promise<void> {
   if (args["--version"]) {
     console.log(version)
     return
