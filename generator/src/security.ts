@@ -1,4 +1,4 @@
-import { type kdljs } from "kdljs"
+import type kdljs from "kdljs"
 import { type OpenAPIV3 } from "openapi-types"
 import { getString } from "./kdl"
 import { isRequired } from "./schema"

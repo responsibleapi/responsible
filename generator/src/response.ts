@@ -1,5 +1,5 @@
 import deepmerge from "deepmerge"
-import type { kdljs } from "kdljs"
+import type kdljs from "kdljs"
 import type { OpenAPIV3 } from "openapi-types"
 import type { Mime, StatusCodeStr } from "./kdl"
 import { getString, parseHeader } from "./kdl"

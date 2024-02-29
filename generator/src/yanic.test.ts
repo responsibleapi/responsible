@@ -1,4 +1,4 @@
-import { type OpenAPIV3 } from "openapi-types"
+import type { OpenAPIV3 } from "openapi-types"
 
 export const yanicJSON: Readonly<OpenAPIV3.Document> = {
   openapi: "3.0.1",
