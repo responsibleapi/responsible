@@ -1,6 +1,6 @@
 {
   "name": "@responsibleapi/cli",
-  "version": "0.3.9",
+  "version": "0.3.10",
   "description": "Compiles responsibleapi .kdl files to openapi.json",
   "license": "MIT",
   "type": "module",
