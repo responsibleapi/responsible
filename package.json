@@ -1,4 +1,6 @@
 {
+  "private": true,
+  "type": "module",
   "workspaces": [
     "cli",
     "generator",
@@ -6,20 +8,21 @@
     "website"
   ],
   "scripts": {
-    "deps": "bunx npm-check-updates -ws --root -i"
+    "deps": "npm-check-updates --workspaces --root --interactive --install always"
   },
   "devDependencies": {
-    "@ianvs/prettier-plugin-sort-imports": "^4.1.1",
-    "@typescript-eslint/eslint-plugin": "^7.1.0",
-    "@typescript-eslint/parser": "^7.1.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.2.1",
+    "@typescript-eslint/eslint-plugin": "^7.9.0",
+    "@typescript-eslint/parser": "^7.9.0",
     "concurrently": "^8.2.2",
     "eslint": "^8.57.0",
     "eslint-plugin-ban": "^1.6.0",
     "eslint-plugin-jsx-a11y": "^6.8.0",
+    "npm-check-updates": "^16.14.20",
     "prettier": "^3.2.5",
-    "prettier-plugin-packagejson": "^2.4.12",
-    "prettier-plugin-tailwindcss": "^0.5.11",
-    "typescript": "^5.3.3",
-    "vitest": "^1.3.1"
+    "prettier-plugin-packagejson": "^2.5.0",
+    "prettier-plugin-tailwindcss": "^0.5.14",
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0"
   }
 }

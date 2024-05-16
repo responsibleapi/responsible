@@ -1,6 +1,6 @@
 import deepmerge from "deepmerge"
 import type kdljs from "kdljs"
-import { type OpenAPIV3 } from "openapi-types"
+import type { OpenAPIV3 } from "openapi-types"
 import { getString, isRef, parseParam, type Mime } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
 import { typeName } from "./schema"
@@ -32,7 +32,7 @@ export const parseScopeReq = (parent: kdljs.Node): ScopeReq => {
   let mime: Mime | undefined
 
   const parameters = Array<OpenAPIV3.ParameterObject>()
-  const content: OpenAPIV3.RequestBodyObject["content"] = {}
+  const content: Record<string, OpenAPIV3.MediaTypeObject> = {}
   const security = Array<OpenAPIV3.SecurityRequirementObject>()
   const securitySchemes: Record<string, OpenAPIV3.SecuritySchemeObject> = {}
 
@@ -97,7 +97,7 @@ export const parseScopeReq = (parent: kdljs.Node): ScopeReq => {
   })
 }
 
-const cleanup = (scope: ScopeReq): Partial<OpenAPIV3.OperationObject> => {
+const toOpenAPI = (scope: ScopeReq): Partial<OpenAPIV3.OperationObject> => {
   const { requestBody } = scope
 
   if (isRef(requestBody)) {
@@ -121,4 +121,4 @@ export const parseCoreReq = (
   scope: ScopeReq,
   n: kdljs.Node,
 ): Partial<OpenAPIV3.OperationObject> =>
-  cleanup(deepmerge(scope, parseScopeReq(n)))
+  toOpenAPI(deepmerge(scope, parseScopeReq(n)))

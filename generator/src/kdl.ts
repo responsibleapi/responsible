@@ -1,6 +1,6 @@
 import deepmerge from "deepmerge"
 import type kdljs from "kdljs"
-import { type OpenAPIV3 } from "openapi-types"
+import type { OpenAPIV3 } from "openapi-types"
 import { parseOps } from "./operation"
 import {
   isURLPath,
