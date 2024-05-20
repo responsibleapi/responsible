@@ -6,7 +6,7 @@ import { capitalize } from "./typescript"
 
 const parseSecurities = (
   parent: kdljs.Node,
-): ReadonlyArray<OpenAPIV3.ApiKeySecurityScheme> => {
+): readonly OpenAPIV3.ApiKeySecurityScheme[] => {
   const ret = Array<OpenAPIV3.ApiKeySecurityScheme>()
 
   for (const node of parent.children) {
@@ -28,7 +28,7 @@ const parseSecurities = (
 }
 
 const toRecord = (
-  arr: ReadonlyArray<OpenAPIV3.ApiKeySecurityScheme>,
+  arr: readonly OpenAPIV3.ApiKeySecurityScheme[],
 ): Record<string, OpenAPIV3.ApiKeySecurityScheme> =>
   Object.fromEntries(
     arr.map(x => [`${capitalize(x.name)}${capitalize(x.in)}`, x]),
@@ -39,7 +39,8 @@ export interface ParsedSecurity {
   security: OpenAPIV3.SecurityRequirementObject[]
 }
 
-const addOptional = (
+/** adds empty object if prefixed with (?) */
+const respectOptionality = (
   node: kdljs.Node,
   security: Array<OpenAPIV3.SecurityRequirementObject>,
 ): Array<OpenAPIV3.SecurityRequirementObject> => {
@@ -55,12 +56,12 @@ export const parseSecurity = (parent: kdljs.Node): ParsedSecurity => {
 
   switch (node.name.toUpperCase()) {
     case "OR": {
-      const securitySchemes = toRecord(parseSecurities(node))
+      const parsed = toRecord(parseSecurities(node))
       return {
-        securitySchemes,
-        security: addOptional(
+        securitySchemes: parsed,
+        security: respectOptionality(
           parent,
-          Object.keys(securitySchemes).map(x => ({ [x]: [] })),
+          Object.keys(parsed).map(x => ({ [x]: [] })),
         ),
       }
     }
@@ -69,7 +70,7 @@ export const parseSecurity = (parent: kdljs.Node): ParsedSecurity => {
       const securitySchemes = toRecord(parseSecurities(node))
       return {
         securitySchemes,
-        security: addOptional(parent, [
+        security: respectOptionality(parent, [
           Object.fromEntries(Object.keys(securitySchemes).map(x => [x, []])),
         ]),
       }
@@ -84,7 +85,7 @@ export const parseSecurity = (parent: kdljs.Node): ParsedSecurity => {
 
       return {
         securitySchemes,
-        security: addOptional(parent, [{ [securityKeys[0]]: [] }]),
+        security: respectOptionality(parent, [{ [securityKeys[0]]: [] }]),
       }
     }
   }

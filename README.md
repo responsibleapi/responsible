@@ -58,31 +58,31 @@ scope "/users" {
 
     scope "/:id(UserID)" {
 
-       * {
-           res {
-               "404" "unknown"
-           }
-       }
+        * {
+            res {
+                "404" "unknown"
+            }
+        }
 
-       GET {
-           res {
-               "200" "User"
-           }
-       }
+        GET {
+            res {
+                "200" "User"
+            }
+        }
 
-       PUT {
-           req "User"
-           res {
-               "200" "User"
-           }
-       }
+        PUT {
+            req "User"
+            res {
+                "200" "User"
+            }
+        }
 
-       DELETE {
-           res {
-               "204" "unknown"
-           }
-       }
-   }
+        DELETE {
+            res {
+                "204" "unknown"
+            }
+        }
+    }
 }
 ```
 
@@ -273,6 +273,36 @@ generating documentation, client libraries, and server stubs, as well as perform
 ```
 
 </details>
+
+## Language Reference
+
+### Security
+
+https://swagger.io/docs/specification/authentication/
+
+```kdl
+/** required Authorization header */
+security {
+    header "Authorization"
+}
+
+/** optional Authorization header */
+security {
+    (?)header "Authorization"
+}
+
+/**
+ * multiple security options (AND/OR logic)
+ *
+ * https://swagger.io/docs/specification/authentication/#multiple
+ */
+security {
+    OR {
+        header "Authorization"
+        cookie "JSESSIONID"
+    }
+}
+```
 
 ## Generating a client:
 
