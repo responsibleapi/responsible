@@ -13,12 +13,14 @@ export const isValueOptional = (node: kdljs.Node, idx: number): boolean =>
   node.tags.values[idx] === TAG_OPTIONAL
 
 export const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
+  ...node.properties,
   type: "string",
   enum: node.children.map(x => x.name),
 })
 
 export const parseStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject =>
   noUndef({
+    ...node.properties,
     type: "object",
     properties: node.children.length
       ? Object.fromEntries(
@@ -28,7 +30,7 @@ export const parseStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject =>
     required: node.children.length
       ? node.children.flatMap(x => (isRequired(x) ? [x.name] : []))
       : undefined,
-  } as const)
+  } satisfies OpenAPIV3.NonArraySchemaObject)
 
 export const typeName = (n: kdljs.Node): string => {
   if (!n.values.length) return n.name
