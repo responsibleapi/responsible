@@ -1,4 +1,5 @@
 import type { OpenAPIV3 } from "openapi-types"
+import { expect, test } from "vitest"
 
 export const yanicJSON: Readonly<OpenAPIV3.Document> = {
   openapi: "3.0.1",
@@ -196,3 +197,7 @@ export const yanicJSON: Readonly<OpenAPIV3.Document> = {
     },
   },
 }
+
+test("yanic", () => {
+  expect(1).toEqual(1)
+})
