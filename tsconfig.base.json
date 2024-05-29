@@ -13,7 +13,8 @@
     "strict": true,
     "strictNullChecks": true,
     "resolveJsonModule": true,
-    "noEmit": true
+    "noEmit": true,
+    "verbatimModuleSyntax": true
   },
   "exclude": ["node_modules/", "**/__tests__/*", "**/*.test.*"]
 }

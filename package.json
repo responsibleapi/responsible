@@ -5,7 +5,8 @@
     "cli",
     "generator",
     "testing",
-    "website"
+    "website",
+    "elysia"
   ],
   "scripts": {
     "deps": "npm-check-updates --workspaces --root --interactive --install always"
