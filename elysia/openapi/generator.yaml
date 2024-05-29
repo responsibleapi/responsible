@@ -1,0 +1,38 @@
+# https://github.com/OpenAPITools/openapi-generator/blob/master/modules/openapi-generator-core/src/main/java/org/openapitools/codegen/config/WorkflowSettings.java
+
+# openapi-generator doesn't like trailing slashes for dirs
+
+generatorName: typescript-fetch
+cleanupOutput: true
+outputDir: gen/openapi
+inputSpec: openapi/back.json
+templateDir: openapi/templates
+
+openapiGeneratorIgnoreList:
+  - index.ts
+  - runtime.ts
+
+additionalProperties:
+  typescriptThreePlus: true
+  modelPropertyNaming: original
+  nullSafeAdditionalProps: true
+  enumPropertyNaming: original
+  supportsES6: true
+  useSingleRequestParameter: false
+  withoutRuntimeChecks: true
+  sortModelPropertiesByRequiredFlag: true
+
+schemaMappings:
+  FormID: true
+  WorkspaceID: true
+  UserID: true
+
+typeMappings:
+  string+email: EmailAddress
+
+importMappings:
+
+files:
+  elysia.ts.mustache:
+    templateType: API
+    destinationFilename: elysia.ts

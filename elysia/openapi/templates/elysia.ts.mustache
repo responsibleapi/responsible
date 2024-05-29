@@ -1,0 +1,26 @@
+import type { Handler, ELYSIA_RESPONSE } from "elysia"
+
+{{#imports.0}}
+  import type {
+    {{#imports}}
+      {{className}},
+    {{/imports}}
+  } from "../models"
+{{/imports.0}}
+
+interface Res<Status extends number> {
+  [ELYSIA_RESPONSE]: Status
+}
+
+export interface Handlers {
+  {{#operations}}
+    {{#operation}}
+      {{nickname}}: Handler<{
+      {{#hasBodyParam}}
+      body: {{#bodyParam}}{{{dataType}}}{{/bodyParam}}
+      {{/hasBodyParam}}
+      response: {{#responses}}{{#is2xx}}{{#returnType}}| {{{returnType}}}{{/returnType}}{{/is2xx}}{{^is2xx}} | Res<{{code}}>{{/is2xx}}{{/responses}}
+    }>
+    {{/operation}}
+  {{/operations}}
+}
