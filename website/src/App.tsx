@@ -1,4 +1,4 @@
-import { type Component, type ParentComponent } from "solid-js"
+import type { Component, ParentComponent } from "solid-js"
 import { SplitEditor } from "./SplitEditor"
 
 const External: ParentComponent<{ href: string }> = props => (
