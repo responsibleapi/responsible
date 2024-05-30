@@ -1,27 +1,29 @@
 import { Elysia, type Context, type Handler } from "elysia"
-import type ChowChow from "oas3-chow-chow"
-import type { ChowError } from "oas3-chow-chow"
+import type * as ChowChow from "oas3-chow-chow"
 import type { OpenAPIV3 } from "openapi-types"
 import { collectOps, openApiToColon } from "./operations"
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires,@typescript-eslint/no-unsafe-assignment
 const TheChowChow = require("oas3-chow-chow")
 
+/* TODO test */
 function validate(
-  cc: ChowChow,
-  { path, request, body, cookie, headers, query, error }: Context,
+  cc: ChowChow.default,
+  { path, request, body, cookie, headers, query, error, params }: Context,
 ) {
   try {
     cc.validateRequestByPath(path, request.method, {
-      path,
+      path: params,
       body,
-      cookie,
+      cookie: Object.fromEntries(
+        Object.entries(cookie).map(([k, v]) => [k, v.value]),
+      ),
       header: headers,
-      query,
+      query: query,
     })
   } catch (e) {
     if (e instanceof TheChowChow.ChowError) {
-      const json = (e as ChowError).toJSON()
+      const json = (e as ChowChow.ChowError).toJSON()
       return error(json.code, json)
     } else {
       throw e
@@ -67,7 +69,7 @@ export async function openAPIRouter({
   securityHandlers?: Record<string, Handler>
   handlers: Record<string, Handler>
 }): Promise<Elysia> {
-  const cc: ChowChow = await TheChowChow.default.create(doc, {})
+  const cc: ChowChow.default = await TheChowChow.default.create(doc, {})
 
   const ops = collectOps(doc.paths)
 

@@ -63,7 +63,7 @@ export class Responsible<HS extends Handlerz<HS>> {
     try {
       cc.validateResponseByOperationId(opID as string, {
         status: res.status,
-        header: res.headers,
+        header: Object.fromEntries(res.headers.entries()),
         body: res.headers.get("content-type")?.includes("json")
           ? await clone.json()
           : await clone.text(),

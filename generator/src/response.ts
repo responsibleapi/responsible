@@ -4,15 +4,15 @@ import type { OpenAPIV3 } from "openapi-types"
 import type { Mime, StatusCodeStr } from "./kdl"
 import { getString, parseHeader } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
-import { typeName } from "./schema"
+import { isRequired, typeName } from "./schema"
 import type { HasMime } from "./scope"
-import { isEmpty, noUndef } from "./typescript"
+import { isEmpty, clean } from "./typescript"
 
 const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
   if (n.values.length) {
     const [mime, schema] = parseBody(n)
 
-    return noUndef({
+    return clean({
       description: n.name,
       content: typeName(n) === "unknown" ? undefined : { [mime]: { schema } },
     })
@@ -56,7 +56,7 @@ const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
       case "cookie": {
         const cookieName = getString(c, 0)
         headers["Set-Cookie".toLowerCase()] = {
-          required: true,
+          required: isRequired(c),
           schema: {
             type: "string",
             pattern: `${cookieName}=[^;]+`,
@@ -78,7 +78,7 @@ const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
     }
   }
 
-  return noUndef({
+  return clean({
     description: description || n.name,
     headers: isEmpty(headers) ? undefined : headers,
     content: isEmpty(content) ? undefined : content,
@@ -219,7 +219,7 @@ export const parseCoreRes = (
 
       const mime = matchingReses(scope, status).find(x => x.mime)?.mime
 
-      const ret: ScopeRes = noUndef({
+      const ret: ScopeRes = clean({
         ...v,
         content: replaceStars(v.content, mime),
         mime: undefined,

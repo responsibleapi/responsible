@@ -8,13 +8,13 @@ export const checkNonNull = <T>(t: T | null | undefined): NonNullable<T> => {
   return t
 }
 
-export const noUndef = <T extends Record<string, unknown>>(t: T): T => {
+export const clean = <T extends object>(t: T): T => {
   for (const k in t) {
     if (t[k] === undefined) {
       delete t[k]
     }
   }
-  return t
+  return t as T
 }
 
 export const capitalize = <T extends string>(s: T): Capitalize<T> | "" =>

@@ -1,6 +1,6 @@
 import type kdljs from "kdljs"
 import { type OpenAPIV3 } from "openapi-types"
-import { noUndef } from "./typescript"
+import { clean } from "./typescript"
 
 export type SchemaOrRef = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 
@@ -19,7 +19,7 @@ export const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
 })
 
 export const parseStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject =>
-  noUndef({
+  clean({
     ...node.properties,
     type: "object",
     properties: node.children.length
@@ -86,7 +86,7 @@ export const parseSchemaOrRef = (
     case "string": {
       const parsedLen = Number(node.properties.length)
       const length = isNaN(parsedLen) ? undefined : parsedLen
-      return noUndef({
+      return clean({
         minLength: length,
         maxLength: length,
         ...node.properties,

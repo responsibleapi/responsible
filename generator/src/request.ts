@@ -3,9 +3,9 @@ import type kdljs from "kdljs"
 import type { OpenAPIV3 } from "openapi-types"
 import { getString, isRef, parseParam, type Mime } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
-import { typeName } from "./schema"
+import { isRequired, typeName } from "./schema"
 import { parseSecurity } from "./security"
-import { isEmpty, noUndef } from "./typescript"
+import { clean, isEmpty } from "./typescript"
 
 interface ReqScope {
   mime?: Mime
@@ -18,13 +18,13 @@ export const parseScopeReq = (parent: kdljs.Node): ScopeReq => {
   if (parent.values.length) {
     const [mime, schema] = parseBody(parent)
 
-    return noUndef({
+    return clean({
       requestBody:
         typeName(parent) === "unknown"
           ? undefined
           : {
               content: { [mime]: { schema } },
-              required: true,
+              required: isRequired(parent),
             },
     })
   }
@@ -88,7 +88,7 @@ export const parseScopeReq = (parent: kdljs.Node): ScopeReq => {
     }
   }
 
-  return noUndef({
+  return clean({
     mime,
     parameters: parameters.length ? parameters : undefined,
     requestBody: isEmpty(content) ? undefined : { content },
@@ -97,17 +97,17 @@ export const parseScopeReq = (parent: kdljs.Node): ScopeReq => {
   })
 }
 
-const toOpenAPI = (scope: ScopeReq): Partial<OpenAPIV3.OperationObject> => {
-  const { requestBody } = scope
+const toOpenAPI = (merged: ScopeReq): Partial<OpenAPIV3.OperationObject> => {
+  const { requestBody } = merged
 
   if (isRef(requestBody)) {
-    return noUndef({ ...scope, mime: undefined, responses: undefined })
+    return clean({ ...merged, mime: undefined, responses: undefined })
   }
 
-  const content = replaceStars(requestBody?.content, scope.mime)
+  const content = replaceStars(requestBody?.content, merged.mime)
 
-  return noUndef({
-    ...scope,
+  return clean({
+    ...merged,
     requestBody: content
       ? { ...requestBody, content, required: true }
       : undefined,
