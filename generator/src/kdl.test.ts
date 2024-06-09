@@ -7,7 +7,7 @@ import { expect, test } from "vitest"
 import { parseOpenAPI } from "./kdl"
 import { yanicJSON } from "./yanic.test"
 
-const toOpenAPI = (kdlStr: string): OpenAPIV3.Document => {
+export const toValidOpenAPI = (kdlStr: string): OpenAPIV3.Document => {
   const kdl = parse(kdlStr)
   expect(kdl.errors, JSON.stringify(kdl.errors, null, 2)).toEqual([])
 
@@ -22,12 +22,12 @@ const EXAMPLES_DIR = "../examples/"
 
 test("yanic JSON", async () => {
   expect(
-    toOpenAPI(await readFile(pathJoin(EXAMPLES_DIR, "yanic.kdl"), "utf8")),
+    toValidOpenAPI(await readFile(pathJoin(EXAMPLES_DIR, "yanic.kdl"), "utf8")),
   ).toEqual(yanicJSON)
 })
 
 test("array", () => {
-  const openapi = toOpenAPI(`
+  const openapi = toValidOpenAPI(`
 type "ShowID" "string"
 
 * {
@@ -94,12 +94,12 @@ test("kdl parse no errors", async () => {
   )
 
   for (const text of texts) {
-    toOpenAPI(text)
+    toValidOpenAPI(text)
   }
 })
 
 test("query param names", () => {
-  const { paths } = toOpenAPI(`
+  const { paths } = toValidOpenAPI(`
 GET "/youtube/v3/search" {
     req {
         query {

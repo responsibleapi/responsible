@@ -14,7 +14,7 @@ export const clean = <T extends object>(t: T): T => {
       delete t[k]
     }
   }
-  return t as T
+  return t
 }
 
 export const capitalize = <T extends string>(s: T): Capitalize<T> | "" =>

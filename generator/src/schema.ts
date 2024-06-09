@@ -18,9 +18,13 @@ export const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
   enum: node.children.map(x => x.name),
 })
 
-export const parseStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject =>
-  clean({
-    ...node.properties,
+export const parseStruct = (
+  node: kdljs.Node,
+): OpenAPIV3.NonArraySchemaObject => {
+  const { extends: es, ...rest } = node.properties
+
+  const schema: OpenAPIV3.NonArraySchemaObject = clean({
+    ...rest,
     type: "object",
     properties: node.children.length
       ? Object.fromEntries(
@@ -30,7 +34,20 @@ export const parseStruct = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject =>
     required: node.children.length
       ? node.children.flatMap(x => (isRequired(x) ? [x.name] : []))
       : undefined,
-  } satisfies OpenAPIV3.NonArraySchemaObject)
+  })
+
+  if (typeof es === "string") {
+    const extendsArr = es.split(",")
+    return {
+      allOf: [
+        ...extendsArr.map(x => ({ $ref: `#/components/schemas/${x}` })),
+        schema,
+      ],
+    }
+  } else {
+    return schema
+  }
+}
 
 export const typeName = (n: kdljs.Node): string => {
   if (!n.values.length) return n.name
