@@ -17,7 +17,7 @@ import {
   typeName,
 } from "./schema"
 import { parseScope } from "./scope"
-import { clean, isEmpty } from "./typescript"
+import { cleanObj, isEmpty } from "./typescript"
 
 export type Mime = `${string}/${string}`
 
@@ -300,7 +300,7 @@ const enterScope = (
     }
   }
 
-  return clean({
+  return cleanObj({
     paths,
     schemas: isEmpty(schemas) ? undefined : schemas,
     securitySchemes: isEmpty(securitySchemes) ? undefined : securitySchemes,
@@ -318,7 +318,7 @@ export const parseOpenAPI = (doc: kdljs.Document): OpenAPIV3.Document => {
     parentScope: {},
   })
 
-  return clean({
+  return cleanObj({
     openapi: "3.0.1",
     info,
     servers,

@@ -1,8 +1,8 @@
 import { expect, test } from "vitest"
-import { mergePaths, parsePath, TypedPath } from "./path"
+import { mergePaths, parsePath, type TypedPath, type URLPath } from "./path"
 
 test("parse", () => {
-  const ps: Record<`/${string}`, TypedPath> = {
+  const ps: Record<URLPath, TypedPath> = {
     "/later/:item_id(ItemID)": {
       path: "/later/{item_id}",
       types: { item_id: "ItemID" },
@@ -37,7 +37,9 @@ test("parse", () => {
     },
   }
 
-  expect(Object.keys(ps).map(parsePath)).toEqual(Object.values(ps))
+  expect(Object.keys(ps).map(x => parsePath(x as URLPath))).toEqual(
+    Object.values(ps),
+  )
 })
 
 test("merge", () => {

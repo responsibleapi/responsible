@@ -1,6 +1,6 @@
 import type kdljs from "kdljs"
-import { type OpenAPIV3 } from "openapi-types"
-import { clean } from "./typescript"
+import type { OpenAPIV3 } from "openapi-types"
+import { cleanObj } from "./typescript"
 
 export type SchemaOrRef = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
 
@@ -18,12 +18,15 @@ export const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
   enum: node.children.map(x => x.name),
 })
 
+const undefIfEmpty = <T>(arr: T[]): T[] | undefined =>
+  arr.length > 0 ? arr : undefined
+
 export const parseStruct = (
   node: kdljs.Node,
 ): OpenAPIV3.NonArraySchemaObject => {
-  const { extends: es, ...rest } = node.properties
+  const { extends: extendz, ...rest } = node.properties
 
-  const schema: OpenAPIV3.NonArraySchemaObject = clean({
+  const schema: OpenAPIV3.NonArraySchemaObject = cleanObj({
     ...rest,
     type: "object",
     properties: node.children.length
@@ -31,16 +34,16 @@ export const parseStruct = (
           node.children.map(x => [x.name, parseSchemaOrRef(x)]),
         )
       : undefined,
-    required: node.children.length
-      ? node.children.flatMap(x => (isRequired(x) ? [x.name] : []))
-      : undefined,
+    required: undefIfEmpty(
+      node.children.flatMap(x => (isRequired(x) ? [x.name] : [])),
+    ),
   })
 
-  if (typeof es === "string") {
-    const extendsArr = es.split(",")
+  if (typeof extendz === "string") {
+    const extendsArr = extendz.split(",")
     return {
       allOf: [
-        ...extendsArr.map(x => ({ $ref: `#/components/schemas/${x}` })),
+        ...extendsArr.map(x => ({ $ref: `#/components/schemas/${x.trim()}` })),
         schema,
       ],
     }
@@ -84,7 +87,7 @@ export const parseSchemaOrRef = (
 
   switch (typName) {
     case "unknown":
-      return { nullable: true }
+      return {}
 
     case "enum":
       return toEnum(node)
@@ -103,7 +106,7 @@ export const parseSchemaOrRef = (
     case "string": {
       const parsedLen = Number(node.properties.length)
       const length = isNaN(parsedLen) ? undefined : parsedLen
-      return clean({
+      return cleanObj({
         minLength: length,
         maxLength: length,
         ...node.properties,

@@ -7,14 +7,14 @@
     "incremental": true,
     "jsx": "preserve",
     "moduleResolution": "Node",
+    "noEmit": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
+    "resolveJsonModule": true,
+    "skipDefaultLibCheck": true,
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
-    "resolveJsonModule": true,
-    "noEmit": true,
     "verbatimModuleSyntax": true
-  },
-  "exclude": ["node_modules/", "**/__tests__/*", "**/*.test.*"]
+  }
 }

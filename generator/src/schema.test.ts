@@ -12,7 +12,7 @@ struct "LoginReq" {
 }
 `)
 
-  const struct = parseStruct(doc.output[0])
+  const struct = parseStruct(doc.output![0])
   const password = struct.properties?.password as OpenAPIV3.SchemaObject
   expect(password.description).toEqual("ISO 27001")
 })
@@ -37,7 +37,7 @@ struct "TeamMember" extends="User" {
 }
 `)
 
-  expect(doc.components.schemas["TeamMember"]).toEqual({
+  expect(doc.components!.schemas!["TeamMember"]).toEqual({
     allOf: [
       { $ref: "#/components/schemas/User" },
       {
@@ -49,4 +49,16 @@ struct "TeamMember" extends="User" {
       },
     ],
   } satisfies OpenAPIV3.NonArraySchemaObject)
+})
+
+/** TODO */
+test.todo("when all fields are optional required: should be omitted", () => {
+  const doc = toValidOpenAPI(`
+struct "User" {
+  (?)id "UserID"
+  (?)email "email"
+  (?)name "string" minLength=1
+  (?)avatar80 "httpURL"
+}
+`)
 })

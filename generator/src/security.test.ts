@@ -11,7 +11,7 @@ test("optional", () => {
                 header "authorization"
                 cookie "token"
             }
-        }`).output[0],
+        }`).output![0],
     ),
   ).toEqual({
     securitySchemes: {
@@ -39,7 +39,7 @@ test("old listenbox security", () => {
                 header "authorization"
                 cookie "token"
             }
-        }`).output[0],
+        }`).output![0],
     ),
   ).toEqual({
     securitySchemes: {
@@ -64,7 +64,7 @@ test("youtube security", () => {
       parse(`
         security {
           query "key"
-        }`).output[0],
+        }`).output![0],
     ),
   ).toEqual({
     securitySchemes: {
@@ -84,7 +84,7 @@ test("listenbox security", () => {
       parse(`
         (?)security {
           header "authorization"
-        }`).output[0],
+        }`).output![0],
     ),
   ).toEqual({
     securitySchemes: {

@@ -11,7 +11,7 @@ export const toValidOpenAPI = (kdlStr: string): OpenAPIV3.Document => {
   const kdl = parse(kdlStr)
   expect(kdl.errors, JSON.stringify(kdl.errors, null, 2)).toEqual([])
 
-  const doc = parseOpenAPI(kdl.output)
+  const doc = parseOpenAPI(kdl.output!)
   const vld = new OpenAPISchemaValidator({ version: doc.openapi }).validate(doc)
   expect(vld.errors, JSON.stringify(vld.errors, null, 2)).toEqual([])
 
@@ -126,9 +126,7 @@ GET "/youtube/v3/search" {
 }
 `)
 
-  expect(paths["/youtube/v3/search"].get.parameters).toEqual(<
-    OpenAPIV3.ParameterObject[]
-  >[
+  expect(paths["/youtube/v3/search"]!.get!.parameters).toEqual([
     {
       in: "query",
       name: "part",
@@ -177,5 +175,5 @@ GET "/youtube/v3/search" {
       required: false,
       schema: { type: "string", enum: ["completed", "live", "upcoming"] },
     },
-  ])
+  ] satisfies OpenAPIV3.ParameterObject[])
 })

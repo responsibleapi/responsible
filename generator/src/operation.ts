@@ -5,7 +5,7 @@ import { getString, isMime, mkNode, type Mime } from "./kdl"
 import { parseCoreReq } from "./request"
 import { parseCoreRes, type ScopeResponses } from "./response"
 import { parseSchemaOrRef } from "./schema"
-import { capitalize, checkNonNull, clean } from "./typescript"
+import { capitalize, checkNonNull, cleanObj } from "./typescript"
 
 export const replaceStars = (
   content: Record<string, OpenAPIV3.MediaTypeObject> | undefined,
@@ -79,7 +79,7 @@ export const parseOps = (
 
   const op: OpenAPIV3.OperationObject = deepmerge(
     req,
-    clean({
+    cleanObj({
       operationId,
       description,
       responses: res,
@@ -102,7 +102,7 @@ export const parseOps = (
     responses: Object.fromEntries(
       Object.entries(op.responses).map(([k, v]) => [
         k,
-        clean({ ...v, content: undefined }),
+        cleanObj({ ...v, content: undefined }),
       ]),
     ),
   }

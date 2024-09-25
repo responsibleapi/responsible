@@ -8,9 +8,9 @@ export const checkNonNull = <T>(t: T | null | undefined): NonNullable<T> => {
   return t
 }
 
-export const clean = <T extends object>(t: T): T => {
+export const cleanObj = <T extends object>(t: T): T => {
   for (const k in t) {
-    if (t[k] === undefined) {
+    if (t[k] === undefined || t[k] === null) {
       delete t[k]
     }
   }

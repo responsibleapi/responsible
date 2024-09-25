@@ -6,13 +6,13 @@ import { getString, parseHeader } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
 import { isRequired, typeName } from "./schema"
 import type { HasMime } from "./scope"
-import { isEmpty, clean } from "./typescript"
+import { cleanObj, isEmpty } from "./typescript"
 
 const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
   if (n.values.length) {
     const [mime, schema] = parseBody(n)
 
-    return clean({
+    return cleanObj({
       description: n.name,
       content: typeName(n) === "unknown" ? undefined : { [mime]: { schema } },
     })
@@ -78,7 +78,7 @@ const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
     }
   }
 
-  return clean({
+  return cleanObj({
     description: description || n.name,
     headers: isEmpty(headers) ? undefined : headers,
     content: isEmpty(content) ? undefined : content,
@@ -120,6 +120,9 @@ export const parseScopeRes = (node: kdljs.Node): ScopeResponses => {
         ret["*"] = parseStatus(c, true)
         break
       }
+
+      default:
+        break
     }
   }
 
@@ -219,7 +222,7 @@ export const parseCoreRes = (
 
       const mime = matchingReses(scope, status).find(x => x.mime)?.mime
 
-      const ret: ScopeRes = clean({
+      const ret: ScopeRes = cleanObj({
         ...v,
         content: replaceStars(v.content, mime),
         mime: undefined,
