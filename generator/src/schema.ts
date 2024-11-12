@@ -38,7 +38,7 @@ export const parseStruct = (node: kdljs.Node): oas31.SchemaObject => {
   })
 
   if (typeof extendz === "string") {
-    const extendsArr = extendz.split(",")
+    const extendsArr = extendz.split(",").map(x => x.trim())
     return {
       allOf: [
         ...extendsArr.map(x => ({ $ref: `#/components/schemas/${x.trim()}` })),
@@ -78,6 +78,19 @@ const toNode = (name: string): kdljs.Node => ({
 const strToSchema = (name: string): SchemaOrRef =>
   parseSchemaOrRef(toNode(name))
 
+function enumArr(enm: kdljs.Value): kdljs.Value[] | undefined {
+  switch (typeof enm) {
+    case "string":
+      return enm.split(",").map(x => x.trim())
+
+    case "undefined":
+      return undefined
+
+    default:
+      return [enm]
+  }
+}
+
 export const parseSchemaOrRef = (
   node: kdljs.Node,
 ): oas31.SchemaObject | oas31.ReferenceObject => {
@@ -110,8 +123,8 @@ export const parseSchemaOrRef = (
         ...node.properties,
         length: undefined,
         type: "string",
-        enum: node.properties.enum ? [node.properties.enum] : undefined,
-      } as const)
+        enum: enumArr(node.properties.enum),
+      } satisfies oas31.SchemaObject & { length?: undefined })
     }
 
     case "boolean":
