@@ -14,7 +14,3 @@ tasks:
       - generator:check
     cmds:
       - task: cli:publish
-    sources:
-      - generator/src/**/*
-      - cli/src/**/*
-      - bun.lockb
