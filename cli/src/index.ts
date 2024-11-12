@@ -1,8 +1,8 @@
 import arg from "arg"
 import { watch } from "chokidar"
 import { readFile, writeFile } from "fs/promises"
-import { parse } from "kdljs"
-import { parseOpenAPI } from "../../generator/src/kdl"
+import { parse as parseKDL } from "kdljs"
+import { toOpenAPI } from "../../generator/src/kdl"
 import { version } from "../package.json"
 
 function die(s: string): never {
@@ -15,12 +15,9 @@ const onKdlChange =
   async (kdlPath: string): Promise<void> => {
     console.time(`writing ${jsonPath}`)
 
-    const doc = parse(await readFile(kdlPath, "utf8"))
+    const doc = parseKDL(await readFile(kdlPath, "utf8"))
     if (doc.output) {
-      await writeFile(
-        jsonPath,
-        JSON.stringify(parseOpenAPI(doc.output), null, 2),
-      )
+      await writeFile(jsonPath, JSON.stringify(toOpenAPI(doc.output), null, 2))
       console.timeEnd(`writing ${jsonPath}`)
     } else {
       console.error(JSON.stringify(doc.errors, null, 2))
@@ -73,12 +70,12 @@ export async function main(): Promise<void> {
     return
   }
 
-  const doc = parse(await readFile(file, "utf8"))
+  const doc = parseKDL(await readFile(file, "utf8"))
   if (!doc.output) {
     return die(`kdl parse errors: ${JSON.stringify(doc.errors, null, 2)}`)
   }
 
-  const json = JSON.stringify(parseOpenAPI(doc.output), null, 2)
+  const json = JSON.stringify(toOpenAPI(doc.output), null, 2)
   if (out) {
     await writeFile(out, json)
   } else {

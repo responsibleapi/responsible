@@ -4,7 +4,7 @@ import { parse } from "kdljs"
 import type { oas31 } from "openapi3-ts"
 import { join as pathJoin } from "path"
 import { expect, test } from "vitest"
-import { parseOpenAPI } from "./kdl"
+import { toOpenAPI } from "./kdl"
 import { yanicJSON } from "./yanic.test"
 
 export const toValidOpenAPI = async (
@@ -13,7 +13,7 @@ export const toValidOpenAPI = async (
   const kdl = parse(kdlStr)
   expect(kdl.errors, JSON.stringify(kdl.errors, null, 2)).toEqual([])
 
-  const doc = parseOpenAPI(kdl.output!)
+  const doc = toOpenAPI(kdl.output!)
   const vld = await new Validator({}).validate(doc)
   expect(
     vld.valid,

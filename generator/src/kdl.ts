@@ -318,7 +318,7 @@ const enterScope = (
 /**
  * TODO return errors
  */
-export const parseOpenAPI = (doc: kdljs.Document): oas31.OpenAPIObject => {
+export const toOpenAPI = (doc: kdljs.Document): oas31.OpenAPIObject => {
   const { info, servers } = topLevel(doc)
 
   const { schemas, paths, securitySchemes } = enterScope(mkNode("", doc), {
@@ -332,5 +332,5 @@ export const parseOpenAPI = (doc: kdljs.Document): oas31.OpenAPIObject => {
     servers,
     components: { schemas, securitySchemes },
     paths,
-  } satisfies oas31.OpenAPIObject)
+  })
 }

@@ -1,9 +1,9 @@
 import { config, edit } from "ace-builds"
 import "ace-builds/src-noconflict/ext-searchbox"
 import "ace-builds/src-noconflict/mode-json"
-import { parse } from "kdljs"
+import { parse as kdlParse } from "kdljs"
 import { createEffect, type Component, type JSX } from "solid-js"
-import { parseOpenAPI } from "../../generator/src/kdl"
+import { toOpenAPI } from "../../generator/src/kdl"
 import { exampleKDL } from "./examplekdl"
 import aceModeKDL from "./kdl.js?url"
 
@@ -34,16 +34,16 @@ export const SplitEditor: Component = () => {
     })
 
     kdlEditor.on("change", () => {
-      const kdl = kdlEditor.getValue()
-      const pd = parse(kdl)
-      if (!pd.output) return
+      const kdlStr = kdlEditor.getValue()
+      const parsedKDL = kdlParse(kdlStr)
+      if (!parsedKDL.output) return
 
       try {
-        const openAPI = parseOpenAPI(pd.output)
+        const openAPI = toOpenAPI(parsedKDL.output)
         const json = JSON.stringify(openAPI, null, 2)
         jsonEditor.setValue(json, 1)
 
-        localStorage.setItem("kdl", kdl)
+        localStorage.setItem("kdl", kdlStr)
       } catch (e) {
         // eslint-disable-next-line no-console
         console.error(e)
