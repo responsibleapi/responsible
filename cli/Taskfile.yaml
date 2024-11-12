@@ -1,0 +1,48 @@
+version: 3
+
+tasks:
+  types:
+    cmd: bun tsc
+    sources:
+      - ../bun.lockb
+      - ../tsconfig.base.json
+      - tsconfig.json
+      - src/**/*
+    generates:
+      - tsconfig.tsbuildinfo
+
+  lint:
+    cmd: bun eslint src/ --fix
+    sources:
+      - src/**/*
+      - .eslintrc.json
+      - ../bun.lockb
+
+  test:
+    cmd: bun test
+    sources:
+      - src/**/*
+      - ../bun.lockb
+
+  build:
+    deps:
+      - types
+      - lint
+      - test
+    cmds:
+      - rm -rf dist/
+      - bun build src/bin.ts --outdir=dist/ --packages=external --target=node --sourcemap=external --format=esm
+    sources:
+      - ../generator/src/**/*
+      - src/**/*
+      - ../bun.lockb
+    generates:
+      - dist/**/*
+
+  publish:
+    deps:
+      - build
+    cmd: npm publish
+    sources:
+      - dist/**/*
+      - package.json

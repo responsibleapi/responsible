@@ -1,6 +1,6 @@
 {
   "name": "@responsibleapi/generator",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "license": "MIT",
   "sideEffects": false,
   "type": "module",
@@ -8,8 +8,7 @@
   "typings": "dist/index.d.ts",
   "scripts": {
     "bld": "bun build src/kdl.ts --outdir=dist/ --external kdljs --external deepmerge --target=node --sourcemap=external --format=esm",
-    "lint": "eslint src/ --fix",
-    "watch:test": "vitest"
+    "lint": "eslint src/ --fix"
   },
   "dependencies": {
     "deepmerge": "^4.3.1",

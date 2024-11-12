@@ -13,11 +13,6 @@ import { isRequired, typeName } from "./schema"
 import { parseSecurity } from "./security"
 import { cleanObj, isEmpty } from "./typescript"
 
-interface ReqScope {
-  mime?: Mime
-  securitySchemes: Record<string, SecuritySchemeObject>
-}
-
 type ScopeReq = Partial<OperationObject> & {
   mime?: Mime
 }

@@ -1,6 +1,6 @@
 {
   "name": "@responsibleapi/cli",
-  "version": "0.3.17",
+  "version": "0.3.18",
   "description": "Compiles responsibleapi .kdl files to openapi.json",
   "license": "MIT",
   "type": "module",
@@ -11,14 +11,7 @@
   "files": [
     "dist"
   ],
-  "scripts": {
-    "bld": "bun build src/bin.ts --outdir=dist/ --external arg --external chokidar --external deepmerge --external kdljs --target=node --sourcemap=external --format=esm",
-    "chk": "bun test && bun lint && bun tsc",
-    "clean": "rm -rf dist/",
-    "lint": "eslint src/ --fix",
-    "prepack": "bun chk && bun clean && bun bld",
-    "postversion": "git push --follow-tags"
-  },
+  "scripts": {},
   "dependencies": {
     "arg": "^5.0.2",
     "chokidar": "^3.6.0",

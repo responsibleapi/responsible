@@ -1,4 +1,20 @@
 version: 3
 
+includes:
+  generator:
+    taskfile: generator/Taskfile.yaml
+    dir: generator
+  cli:
+    taskfile: cli/Taskfile.yaml
+    dir: cli
+
 tasks:
-  publish
+  publish:
+    deps:
+      - generator:check
+    cmds:
+      - task: cli:publish
+    sources:
+      - generator/src/**/*
+      - cli/src/**/*
+      - bun.lockb
