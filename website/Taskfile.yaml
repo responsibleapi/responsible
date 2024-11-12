@@ -35,6 +35,7 @@ tasks:
     sources:
       - ../generator/src/**/*
       - src/**/*
+      - public/**/*
       - "*.config.ts"
       - index.html
       - .postcssrc.json
