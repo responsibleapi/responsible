@@ -1,8 +1,8 @@
 import type kdljs from "kdljs"
-import type { OpenAPIV3 } from "openapi-types"
+import type { oas31 } from "openapi3-ts"
 import { cleanObj } from "./typescript"
 
-export type SchemaOrRef = OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
+export type SchemaOrRef = oas31.SchemaObject | oas31.ReferenceObject
 
 const TAG_OPTIONAL = "?"
 
@@ -12,7 +12,7 @@ export const isRequired = (node: kdljs.Node): boolean =>
 export const isValueOptional = (node: kdljs.Node, idx: number): boolean =>
   node.tags.values[idx] === TAG_OPTIONAL
 
-export const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
+export const toEnum = (node: kdljs.Node): oas31.SchemaObject => ({
   ...node.properties,
   type: "string",
   enum: node.children.map(x => x.name),
@@ -21,12 +21,10 @@ export const toEnum = (node: kdljs.Node): OpenAPIV3.NonArraySchemaObject => ({
 const undefIfEmpty = <T>(arr: T[]): T[] | undefined =>
   arr.length > 0 ? arr : undefined
 
-export const parseStruct = (
-  node: kdljs.Node,
-): OpenAPIV3.NonArraySchemaObject => {
+export const parseStruct = (node: kdljs.Node): oas31.SchemaObject => {
   const { extends: extendz, ...rest } = node.properties
 
-  const schema: OpenAPIV3.NonArraySchemaObject = cleanObj({
+  const schema: oas31.SchemaObject = cleanObj({
     ...rest,
     type: "object",
     properties: node.children.length
@@ -82,7 +80,7 @@ const strToSchema = (name: string): SchemaOrRef =>
 
 export const parseSchemaOrRef = (
   node: kdljs.Node,
-): OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject => {
+): oas31.SchemaObject | oas31.ReferenceObject => {
   const typName = typeName(node)
 
   switch (typName) {
@@ -125,21 +123,18 @@ export const parseSchemaOrRef = (
 
     case "dict": {
       if (
-        typeof node.values[1] === "string" &&
-        typeof node.values[2] === "string"
+        typeof node.values[1] !== "string" ||
+        typeof node.values[2] !== "string"
       ) {
-        if (typeName(toNode(node.values[1])) !== "string") {
-          throw new Error("only string keys are supported")
-        }
-
-        return {
-          ...node.properties,
-          type: "object",
-          additionalProperties: strToSchema(node.values[2]),
-        }
-      } else {
         throw new Error(JSON.stringify(node))
       }
+
+      return cleanObj({
+        ...node.properties,
+        type: "object",
+        propertyNames: strToSchema(node.values[1]),
+        additionalProperties: strToSchema(node.values[2]),
+      })
     }
 
     case "array": {

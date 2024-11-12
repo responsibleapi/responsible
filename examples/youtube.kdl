@@ -50,42 +50,46 @@ struct "Thumbnail" {
     (?)width "int32"
 }
 
+// TODO struct nesting
+
+struct "Item" {
+    id "string"
+    (?)contentDetails "ContentDetails"
+    (?)etag "string"
+    (?)kind "string"
+    (?)snippet "Snippet"
+}
+
+struct "RelatedPlaylists" {
+    uploads "string"
+    (?)watchHistory "string"
+    (?)watchLater "string"
+}
+
+struct "ContentDetails" {
+    relatedPlaylists "RelatedPlaylists"
+}
+
+struct "Localized" {}
+
+struct "Snippet" {
+    (?)country "string"
+    (?)customUrl "string"
+    (?)description "string"
+    (?)localized "Localized"
+    publishedAt "utcMillis"
+    (?)thumbnails "dict" "string" "Thumbnail"
+    title "string"
+}
+
+struct "PageInfo" {}
+
 struct "Channels" {
 
     etag "string"
     items "array" "Item" minItems=0
     kind "string"
     pageInfo "PageInfo"
-
-// TODO struct nesting
-
-//    struct "Item" {
-//        id "string"
-//        (?)contentDetails "ContentDetails"
-//        (?)etag "string"
-//        (?)kind "string"
-//        (?)snippet "Snippet"
-//    }
-//
-//    struct "RelatedPlaylists" {
-//        uploads "string"
-//        (?)watchHistory "string"
-//        (?)watchLater "string"
-//    }
-//
-//    struct "ContentDetails" {
-//        relatedPlaylists "RelatedPlaylists"
-//    }
-//
-//    struct "Snippet" {
-//        (?)country "string"
-//        (?)customUrl "string"
-//        (?)description "string"
-//        (?)localized "Localized"
-//        publishedAt "utcMillis"
-//        (?)thumbnails "dict" "string" "Thumbnail"
-//        title "string"
-//    }
 }
 
 scope "/videos" {

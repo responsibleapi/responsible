@@ -1,19 +1,25 @@
+import { Validator } from "@seriousme/openapi-schema-validator"
 import { readdir, readFile } from "fs/promises"
 import { parse } from "kdljs"
-import OpenAPISchemaValidator from "openapi-schema-validator"
-import { OpenAPIV3 } from "openapi-types"
+import type { oas31 } from "openapi3-ts"
 import { join as pathJoin } from "path"
 import { expect, test } from "vitest"
 import { parseOpenAPI } from "./kdl"
 import { yanicJSON } from "./yanic.test"
 
-export const toValidOpenAPI = (kdlStr: string): OpenAPIV3.Document => {
+export const toValidOpenAPI = async (
+  kdlStr: string,
+): Promise<oas31.OpenAPIObject> => {
   const kdl = parse(kdlStr)
   expect(kdl.errors, JSON.stringify(kdl.errors, null, 2)).toEqual([])
 
   const doc = parseOpenAPI(kdl.output!)
-  const vld = new OpenAPISchemaValidator({ version: doc.openapi }).validate(doc)
-  expect(vld.errors, JSON.stringify(vld.errors, null, 2)).toEqual([])
+  const vld = await new Validator({}).validate(doc)
+  expect(
+    vld.valid,
+    `${JSON.stringify(vld.errors, null, 2)}:
+     ${JSON.stringify(doc, null, 2)}`,
+  ).toEqual(true)
 
   return doc
 }
@@ -22,12 +28,14 @@ const EXAMPLES_DIR = "../examples/"
 
 test("yanic JSON", async () => {
   expect(
-    toValidOpenAPI(await readFile(pathJoin(EXAMPLES_DIR, "yanic.kdl"), "utf8")),
+    await toValidOpenAPI(
+      await readFile(pathJoin(EXAMPLES_DIR, "yanic.kdl"), "utf8"),
+    ),
   ).toEqual(yanicJSON)
 })
 
-test("array", () => {
-  const openapi = toValidOpenAPI(`
+test("array", async () => {
+  const openapi = await toValidOpenAPI(`
 type "ShowID" "string"
 
 * {
@@ -45,8 +53,8 @@ GET "/user/:email(email)/shows" {
 }
 `)
 
-  expect(openapi).toEqual(<OpenAPIV3.Document>{
-    openapi: "3.0.1",
+  expect(openapi).toEqual({
+    openapi: "3.1.0",
     info: {
       title: "",
       version: "",
@@ -84,7 +92,7 @@ GET "/user/:email(email)/shows" {
         },
       },
     },
-  })
+  } satisfies oas31.OpenAPIObject)
 })
 
 test("kdl parse no errors", async () => {
@@ -94,12 +102,12 @@ test("kdl parse no errors", async () => {
   )
 
   for (const text of texts) {
-    toValidOpenAPI(text)
+    await toValidOpenAPI(text)
   }
 })
 
-test("query param names", () => {
-  const { paths } = toValidOpenAPI(`
+test("query param names", async () => {
+  const { paths } = await toValidOpenAPI(`
 GET "/youtube/v3/search" {
     req {
         query {
@@ -123,10 +131,13 @@ GET "/youtube/v3/search" {
             }
         }
     }
+    res {
+        "200" "unknown"
+    }
 }
 `)
 
-  expect(paths["/youtube/v3/search"]!.get!.parameters).toEqual([
+  expect(paths!["/youtube/v3/search"]!.get!.parameters).toEqual([
     {
       in: "query",
       name: "part",
@@ -175,5 +186,5 @@ GET "/youtube/v3/search" {
       required: false,
       schema: { type: "string", enum: ["completed", "live", "upcoming"] },
     },
-  ] satisfies OpenAPIV3.ParameterObject[])
+  ] satisfies oas31.ParameterObject[])
 })

@@ -1,6 +1,6 @@
 import deepmerge from "deepmerge"
 import type kdljs from "kdljs"
-import { type OpenAPIV3 } from "openapi-types"
+import type { OperationObject } from "openapi3-ts/oas31"
 import { type Mime } from "./kdl"
 import { parseScopeReq } from "./request"
 import { parseScopeRes, type ScopeResponses } from "./response"
@@ -9,8 +9,8 @@ export interface HasMime {
   mime?: Mime
 }
 
-export const parseScope = (n: kdljs.Node): OpenAPIV3.OperationObject => {
-  let req: Partial<OpenAPIV3.OperationObject> | undefined
+export const parseScope = (n: kdljs.Node): OperationObject => {
+  let req: Partial<OperationObject> | undefined
   let responses: ScopeResponses | undefined
 
   for (const c of n.children) {

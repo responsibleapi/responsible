@@ -1,6 +1,6 @@
-import { readFile, writeFile } from "fs/promises"
 import arg from "arg"
 import { watch } from "chokidar"
+import { readFile, writeFile } from "fs/promises"
 import { parse } from "kdljs"
 import { parseOpenAPI } from "../../generator/src/kdl"
 import { version } from "../package.json"

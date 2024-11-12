@@ -1,6 +1,12 @@
 import deepmerge from "deepmerge"
 import type kdljs from "kdljs"
-import type { OpenAPIV3 } from "openapi-types"
+import type {
+  MediaTypeObject,
+  OperationObject,
+  ParameterObject,
+  SecurityRequirementObject,
+  SecuritySchemeObject,
+} from "openapi3-ts/oas31"
 import { getString, isRef, parseParam, type Mime } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
 import { isRequired, typeName } from "./schema"
@@ -9,10 +15,12 @@ import { cleanObj, isEmpty } from "./typescript"
 
 interface ReqScope {
   mime?: Mime
-  securitySchemes: Record<string, OpenAPIV3.SecuritySchemeObject>
+  securitySchemes: Record<string, SecuritySchemeObject>
 }
 
-type ScopeReq = Partial<OpenAPIV3.OperationObject<ReqScope>>
+type ScopeReq = Partial<OperationObject> & {
+  mime?: Mime
+}
 
 export const parseScopeReq = (parent: kdljs.Node): ScopeReq => {
   if (parent.values.length) {
@@ -31,10 +39,10 @@ export const parseScopeReq = (parent: kdljs.Node): ScopeReq => {
 
   let mime: Mime | undefined
 
-  const parameters = Array<OpenAPIV3.ParameterObject>()
-  const content: Record<string, OpenAPIV3.MediaTypeObject> = {}
-  const security = Array<OpenAPIV3.SecurityRequirementObject>()
-  const securitySchemes: Record<string, OpenAPIV3.SecuritySchemeObject> = {}
+  const parameters = Array<ParameterObject>()
+  const content: Record<string, MediaTypeObject> = {}
+  const security = Array<SecurityRequirementObject>()
+  const securitySchemes: Record<string, SecuritySchemeObject> = {}
 
   for (const node of parent.children) {
     switch (node.name) {
@@ -97,7 +105,7 @@ export const parseScopeReq = (parent: kdljs.Node): ScopeReq => {
   })
 }
 
-const toOpenAPI = (merged: ScopeReq): Partial<OpenAPIV3.OperationObject> => {
+const toOpenAPI = (merged: ScopeReq): Partial<OperationObject> => {
   const { requestBody } = merged
 
   if (isRef(requestBody)) {
@@ -120,5 +128,4 @@ const toOpenAPI = (merged: ScopeReq): Partial<OpenAPIV3.OperationObject> => {
 export const parseCoreReq = (
   scope: ScopeReq,
   n: kdljs.Node,
-): Partial<OpenAPIV3.OperationObject> =>
-  toOpenAPI(deepmerge(scope, parseScopeReq(n)))
+): Partial<OperationObject> => toOpenAPI(deepmerge(scope, parseScopeReq(n)))

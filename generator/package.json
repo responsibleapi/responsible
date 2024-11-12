@@ -9,7 +9,6 @@
   "scripts": {
     "bld": "bun build src/kdl.ts --outdir=dist/ --external kdljs --external deepmerge --target=node --sourcemap=external --format=esm",
     "lint": "eslint src/ --fix",
-    "test": "bun test",
     "watch:test": "vitest"
   },
   "dependencies": {
@@ -17,7 +16,7 @@
     "kdljs": "^0.2.0"
   },
   "devDependencies": {
-    "openapi-schema-validator": "^12.1.3",
-    "openapi-types": "^12.1.3"
+    "@seriousme/openapi-schema-validator": "^2.2.3",
+    "ajv": "^8.17.1"
   }
 }

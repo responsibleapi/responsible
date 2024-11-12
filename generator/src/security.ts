@@ -1,26 +1,32 @@
 import type kdljs from "kdljs"
-import { type OpenAPIV3 } from "openapi-types"
+import type {
+  SecurityRequirementObject,
+  SecuritySchemeObject,
+} from "openapi3-ts/oas31"
 import { getString } from "./kdl"
 import { isRequired } from "./schema"
 import { capitalize } from "./typescript"
 
 const parseSecurities = (
   parent: kdljs.Node,
-): readonly OpenAPIV3.ApiKeySecurityScheme[] => {
-  const ret = Array<OpenAPIV3.ApiKeySecurityScheme>()
+): readonly SecuritySchemeObject[] => {
+  const ret = Array<SecuritySchemeObject>()
 
   for (const node of parent.children) {
     switch (node.name) {
       case "cookie":
       case "header":
       case "query": {
-        ret.push({ type: "apiKey", name: getString(node, 0), in: node.name })
+        ret.push({
+          type: "apiKey",
+          name: getString(node, 0),
+          in: node.name,
+        })
         break
       }
 
-      default: {
-        throw new Error(`unknown security type ${node.name}`)
-      }
+      default:
+        throw new Error(`Unknown security type: ${node.name}`)
     }
   }
 
@@ -28,22 +34,28 @@ const parseSecurities = (
 }
 
 const toRecord = (
-  arr: readonly OpenAPIV3.ApiKeySecurityScheme[],
-): Record<string, OpenAPIV3.ApiKeySecurityScheme> =>
+  arr: readonly SecuritySchemeObject[],
+): Record<string, SecuritySchemeObject> =>
   Object.fromEntries(
-    arr.map(x => [`${capitalize(x.name)}${capitalize(x.in)}`, x]),
+    arr.map(x => {
+      if (!x.name || !x.in) {
+        throw new Error(`Invalid security scheme: ${JSON.stringify(x)}`)
+      }
+
+      return [`${capitalize(x.name)}${capitalize(x.in)}`, x]
+    }),
   )
 
 export interface ParsedSecurity {
-  securitySchemes: Record<string, OpenAPIV3.SecuritySchemeObject>
-  security: OpenAPIV3.SecurityRequirementObject[]
+  securitySchemes: Record<string, SecuritySchemeObject>
+  security: SecurityRequirementObject[]
 }
 
 /** adds empty object if prefixed with (?) */
-const respectOptionality = (
+function respectOptionality(
   node: kdljs.Node,
-  security: Array<OpenAPIV3.SecurityRequirementObject>,
-): Array<OpenAPIV3.SecurityRequirementObject> => {
+  security: Array<SecurityRequirementObject>,
+): SecurityRequirementObject[] {
   if (!isRequired(node)) {
     security.push({})
   }

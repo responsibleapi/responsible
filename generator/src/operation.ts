@@ -1,6 +1,6 @@
 import deepmerge from "deepmerge"
 import type kdljs from "kdljs"
-import { type OpenAPIV3 } from "openapi-types"
+import type { oas31 } from "openapi3-ts"
 import { getString, isMime, mkNode, type Mime } from "./kdl"
 import { parseCoreReq } from "./request"
 import { parseCoreRes, type ScopeResponses } from "./response"
@@ -8,9 +8,9 @@ import { parseSchemaOrRef } from "./schema"
 import { capitalize, checkNonNull, cleanObj } from "./typescript"
 
 export const replaceStars = (
-  content: Record<string, OpenAPIV3.MediaTypeObject> | undefined,
+  content: Record<string, oas31.MediaTypeObject> | undefined,
   mime: Mime | undefined,
-): Record<string, OpenAPIV3.MediaTypeObject> | undefined => {
+): Record<string, oas31.MediaTypeObject> | undefined => {
   const entries = Object.entries(content ?? {})
   if (!entries.length) return
 
@@ -24,23 +24,23 @@ export const replaceStars = (
  */
 export const parseBody = (
   n: kdljs.Node,
-): [Mime | "*", OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject] => {
+): [Mime | "*", oas31.SchemaObject | oas31.ReferenceObject] => {
   const schema = parseSchemaOrRef(n)
   const mime = (n.values.find(x => isMime(x)) as Mime) ?? "*"
   return [mime, schema]
 }
 
 export const parseOps = (
-  scope: Partial<OpenAPIV3.OperationObject>,
+  scope: Partial<oas31.OperationObject>,
   node: kdljs.Node,
-): OpenAPIV3.PathItemObject => {
-  const method = node.name.toLowerCase() as OpenAPIV3.HttpMethods
+): oas31.PathItemObject => {
+  const method = node.name.toLowerCase()
 
   let operationId: string | undefined
   let description: string | undefined
 
-  let req: Partial<OpenAPIV3.OperationObject> | undefined
-  let res: OpenAPIV3.ResponsesObject | undefined
+  let req: Partial<oas31.OperationObject> | undefined
+  let res: oas31.ResponsesObject | undefined
 
   for (const c of node.children) {
     switch (c.name) {
@@ -77,7 +77,7 @@ export const parseOps = (
   req ??= parseCoreReq(scope, empty)
   res ??= parseCoreRes((scope.responses as ScopeResponses) ?? {}, empty)
 
-  const op: OpenAPIV3.OperationObject = deepmerge(
+  const op: oas31.OperationObject = deepmerge(
     req,
     cleanObj({
       operationId,
@@ -86,11 +86,11 @@ export const parseOps = (
     }),
   )
 
-  const ret: OpenAPIV3.PathItemObject = { [method]: op }
+  const ret: oas31.PathItemObject = { [method]: op }
 
   if (!node.properties.head) return ret
 
-  if (method !== ("get" as OpenAPIV3.HttpMethods)) {
+  if (method !== "get") {
     throw new Error(JSON.stringify(node))
   }
 
@@ -100,9 +100,12 @@ export const parseOps = (
     ...op,
     operationId: operationId ? `head${capitalize(operationId)}` : undefined,
     responses: Object.fromEntries(
-      Object.entries(op.responses).map(([k, v]) => [
+      Object.entries(op.responses ?? {}).map(([k, v]) => [
         k,
-        cleanObj({ ...v, content: undefined }),
+        cleanObj({
+          ...v,
+          content: undefined,
+        } satisfies oas31.ResponseObject | oas31.ReferenceObject),
       ]),
     ),
   }

@@ -1,6 +1,11 @@
 import deepmerge from "deepmerge"
 import type kdljs from "kdljs"
-import type { OpenAPIV3 } from "openapi-types"
+import type {
+  ContentObject,
+  HeadersObject,
+  ResponseObject,
+  ResponsesObject,
+} from "openapi3-ts/oas31"
 import type { Mime, StatusCodeStr } from "./kdl"
 import { getString, parseHeader } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
@@ -23,8 +28,8 @@ const parseStatus = (n: kdljs.Node, throwOnDefault: boolean): ScopeRes => {
   let mime: Mime | undefined
 
   let description: string | undefined
-  const headers: NonNullable<OpenAPIV3.ResponseObject["headers"]> = {}
-  const content: NonNullable<OpenAPIV3.ResponseObject["content"]> = {}
+  const headers: NonNullable<HeadersObject> = {}
+  const content: NonNullable<ContentObject> = {}
 
   for (const c of n.children) {
     switch (c.name) {
@@ -160,7 +165,7 @@ const matchingReses = (
 
 export type ScopeStatus = StatusCodeStr | "*" | `${string}..${string}`
 
-type ScopeRes = OpenAPIV3.ResponseObject & HasMime
+type ScopeRes = ResponseObject & HasMime
 
 export type ScopeResponses = Partial<Record<ScopeStatus, ScopeRes>>
 
@@ -173,7 +178,7 @@ export type ScopeResponses = Partial<Record<ScopeStatus, ScopeRes>>
 export const parseCoreRes = (
   scope: ScopeResponses,
   node: kdljs.Node,
-): OpenAPIV3.ResponsesObject => {
+): ResponsesObject => {
   // get statuses from the scope
   const scopeStatuses = Object.fromEntries(
     Object.entries(scope).flatMap(([k, v]) => (v && Number(k) ? [[k, v]] : [])),

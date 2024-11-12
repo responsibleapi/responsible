@@ -1,8 +1,8 @@
-import type { OpenAPIV3 } from "openapi-types"
+import type { OpenAPIObject } from "openapi3-ts/oas31"
 import { expect, test } from "vitest"
 
-export const yanicJSON: Readonly<OpenAPIV3.Document> = {
-  openapi: "3.0.1",
+export const yanicJSON: Readonly<OpenAPIObject> = {
+  openapi: "3.1.0",
   info: {
     title: "yanic",
     version: "1.0.0",

@@ -3,7 +3,7 @@ responsible syntax=1
 info {
     title "Listenbox"
     version "0.1"
-    termsOfService "/terms"
+    termsOfService "https://listenbox.app/terms"
 }
 
 servers {

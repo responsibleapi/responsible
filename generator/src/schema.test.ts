@@ -1,5 +1,5 @@
 import { parse } from "kdljs"
-import { OpenAPIV3 } from "openapi-types"
+import type { oas31 } from "openapi3-ts"
 import { expect, test } from "vitest"
 import { toValidOpenAPI } from "./kdl.test"
 import { parseStruct } from "./schema"
@@ -13,17 +13,19 @@ struct "LoginReq" {
 `)
 
   const struct = parseStruct(doc.output![0])
-  const password = struct.properties?.password as OpenAPIV3.SchemaObject
+  const password = struct.properties?.password as oas31.SchemaObject
   expect(password.description).toEqual("ISO 27001")
 })
 
-test("struct extends", () => {
-  const doc = toValidOpenAPI(`
+test("struct extends", async () => {
+  const doc = await toValidOpenAPI(`
 enum "MemberRole" {
   admin
   editor
   viewer
 }
+
+type "UserID" "string"
 
 struct "User" {
   id "UserID"
@@ -48,12 +50,14 @@ struct "TeamMember" extends="User" {
         required: ["role"],
       },
     ],
-  } satisfies OpenAPIV3.NonArraySchemaObject)
+  } satisfies oas31.SchemaObject)
 })
 
 /** TODO */
-test.todo("when all fields are optional required: should be omitted", () => {
-  const doc = toValidOpenAPI(`
+test.todo(
+  "when all fields are optional required: should be omitted",
+  async () => {
+    const doc = await toValidOpenAPI(`
 struct "User" {
   (?)id "UserID"
   (?)email "email"
@@ -61,4 +65,5 @@ struct "User" {
   (?)avatar80 "httpURL"
 }
 `)
-})
+  },
+)

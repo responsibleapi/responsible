@@ -1,6 +1,6 @@
 import deepmerge from "deepmerge"
 import type kdljs from "kdljs"
-import type { OpenAPIV3 } from "openapi-types"
+import type { oas31 } from "openapi3-ts"
 import { parseOps } from "./operation"
 import {
   isURLPath,
@@ -62,25 +62,25 @@ const toJSObj = <T>(n: kdljs.Node, keys?: Set<keyof T>): T =>
     }),
   ) as T
 
-const toInfo = (node: kdljs.Node): OpenAPIV3.InfoObject =>
+const toInfo = (node: kdljs.Node): oas31.InfoObject =>
   toJSObj(
     node,
     new Set(["title", "version", "termsOfService", "description", "license"]),
   )
 
-export const isRef = (x: unknown): x is OpenAPIV3.ReferenceObject =>
+export const isRef = (x: unknown): x is oas31.ReferenceObject =>
   !!x && typeof x === "object" && "$ref" in x
 
 interface TopLevel {
-  info: OpenAPIV3.InfoObject
-  servers?: Array<OpenAPIV3.ServerObject>
+  info: oas31.InfoObject
+  servers?: Array<oas31.ServerObject>
 }
 
 type Handlers = Partial<Record<string, (node: kdljs.Node) => void>>
 
 const topLevel = (doc: kdljs.Document): Readonly<TopLevel> => {
-  let info: OpenAPIV3.InfoObject | undefined
-  let servers: OpenAPIV3.ServerObject[] | undefined
+  let info: oas31.InfoObject | undefined
+  let servers: oas31.ServerObject[] | undefined
 
   const map: Handlers = {
     info(node) {
@@ -106,18 +106,26 @@ const topLevel = (doc: kdljs.Document): Readonly<TopLevel> => {
   return { info: info ?? { title: "", version: "" }, servers }
 }
 
+interface V3_1ParameterObject extends Omit<oas31.ParameterObject, "schema"> {
+  schema: oas31.SchemaObject | oas31.ReferenceObject
+}
+
+interface V3_1HeaderObject extends Omit<oas31.HeaderObject, "schema"> {
+  schema: oas31.SchemaObject | oas31.ReferenceObject
+}
+
 export const parseParam = (
   paramIn: "header" | "cookie" | "query",
   name: string,
   n: kdljs.Node,
-): OpenAPIV3.ParameterObject => ({
+): V3_1ParameterObject => ({
   name,
   in: paramIn,
   required: isRequired(n),
   schema: parseSchemaOrRef(n),
 })
 
-export const parseHeader = (n: kdljs.Node): OpenAPIV3.HeaderObject => ({
+export const parseHeader = (n: kdljs.Node): V3_1HeaderObject => ({
   required: isRequired(n),
   schema: parseSchemaOrRef(n),
 })
@@ -172,7 +180,7 @@ export const mkNode = (
 
 const pathParams = (
   types: Record<string, string>,
-): Array<OpenAPIV3.ParameterObject> =>
+): Array<oas31.ParameterObject> =>
   Object.entries(types).map(([name, type]) => ({
     name,
     in: "path",
@@ -181,12 +189,12 @@ const pathParams = (
   }))
 
 interface FishedScope {
-  schemas?: Record<string, OpenAPIV3.SchemaObject>
+  schemas?: Record<string, oas31.SchemaObject>
   securitySchemes?: Record<
     string,
-    OpenAPIV3.SecuritySchemeObject | OpenAPIV3.ReferenceObject
+    oas31.SecuritySchemeObject | oas31.ReferenceObject
   >
-  paths: OpenAPIV3.PathsObject
+  paths: oas31.PathsObject
 }
 
 const enterScope = (
@@ -196,19 +204,19 @@ const enterScope = (
     parentScope,
   }: {
     path: TypedPath
-    parentScope: Readonly<Partial<OpenAPIV3.OperationObject>>
+    parentScope: Readonly<Partial<oas31.OperationObject>>
   },
 ): FishedScope => {
-  const schemas: Record<string, OpenAPIV3.SchemaObject> = {}
+  const schemas: Record<string, oas31.SchemaObject> = {}
 
-  const paths: OpenAPIV3.PathsObject = {}
+  const paths: oas31.PathsObject = {}
 
   const securitySchemes: Record<
     string,
-    OpenAPIV3.SecuritySchemeObject | OpenAPIV3.ReferenceObject
-  > = (parentScope as OpenAPIV3.ComponentsObject).securitySchemes ?? {}
+    oas31.SecuritySchemeObject | oas31.ReferenceObject
+  > = (parentScope as oas31.ComponentsObject).securitySchemes ?? {}
 
-  let scope: Partial<OpenAPIV3.OperationObject> = parentScope
+  let scope: Partial<oas31.OperationObject> = parentScope
 
   // TODO fish for 'scope' first
 
@@ -262,7 +270,7 @@ const enterScope = (
           throw new Error(JSON.stringify(node) + "\n" + JSON.stringify(thePath))
         }
 
-        const methods: OpenAPIV3.PathItemObject = paths[thePath.path] ?? {}
+        const methods: oas31.PathItemObject = paths[thePath.path] ?? {}
         const tempScope = deepmerge(scope, {
           parameters: pathParams(thePath.types),
         })
@@ -310,7 +318,7 @@ const enterScope = (
 /**
  * TODO return errors
  */
-export const parseOpenAPI = (doc: kdljs.Document): OpenAPIV3.Document => {
+export const parseOpenAPI = (doc: kdljs.Document): oas31.OpenAPIObject => {
   const { info, servers } = topLevel(doc)
 
   const { schemas, paths, securitySchemes } = enterScope(mkNode("", doc), {
@@ -319,10 +327,10 @@ export const parseOpenAPI = (doc: kdljs.Document): OpenAPIV3.Document => {
   })
 
   return cleanObj({
-    openapi: "3.0.1",
+    openapi: "3.1.0",
     info,
     servers,
     components: { schemas, securitySchemes },
     paths,
-  })
+  } satisfies oas31.OpenAPIObject)
 }

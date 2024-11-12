@@ -1,8 +1,0 @@
-{
-  "compilerOptions": {
-    "lib": ["ESNext"],
-    "target": "ES6"
-  },
-  "extends": "../tsconfig.base.json",
-  "include": ["src/"]
-}
