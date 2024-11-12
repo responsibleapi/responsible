@@ -97,6 +97,9 @@ export const parseSchemaOrRef = (
   const typName = typeName(node)
 
   switch (typName) {
+    case "oneOf":
+      return { oneOf: node.children.map(parseSchemaOrRef) }
+
     case "unknown":
       return {}
 

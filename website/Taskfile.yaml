@@ -1,0 +1,51 @@
+version: 3
+
+tasks:
+  types:
+    cmd: bun tsc
+    sources:
+      - ../bun.lockb
+      - ../tsconfig.base.json
+      - tsconfig.json
+      - src/**/*
+    generates:
+      - tsconfig.tsbuildinfo
+
+  lint:
+    cmd: bun eslint src/ --fix
+    sources:
+      - src/**/*
+      - .eslintrc.json
+      - ../bun.lockb
+
+  test:
+    cmd: bun test
+    sources:
+      - src/**/*
+      - ../bun.lockb
+
+  build:
+    deps:
+      - types
+      - lint
+      - test
+    cmds:
+      - rm -rf dist/
+      - bun vite build
+    sources:
+      - ../generator/src/**/*
+      - src/**/*
+      - "*.config.ts"
+      - index.html
+      - .postcssrc.json
+      - ../bun.lockb
+    generates:
+      - dist/**/*
+
+  deploy:
+    deps:
+      - build
+    cmd: bun wrangler pages deploy dist/ --commit-dirty=true
+    sources:
+      - ../bun.lockb
+      - dist/**/*

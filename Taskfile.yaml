@@ -7,6 +7,9 @@ includes:
   cli:
     taskfile: cli/Taskfile.yaml
     dir: cli
+  website:
+    taskfile: website/Taskfile.yaml
+    dir: website
 
 tasks:
   publish:
@@ -14,3 +17,9 @@ tasks:
       - generator:check
     cmds:
       - task: cli:publish
+
+  deploy:
+    deps:
+      - generator:check
+    cmds:
+      - task: website:deploy

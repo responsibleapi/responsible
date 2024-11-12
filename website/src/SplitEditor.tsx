@@ -1,6 +1,6 @@
 import { config, edit } from "ace-builds"
-import "ace-builds/src-noconflict/mode-json"
 import "ace-builds/src-noconflict/ext-searchbox"
+import "ace-builds/src-noconflict/mode-json"
 import { parse } from "kdljs"
 import { createEffect, type Component, type JSX } from "solid-js"
 import { parseOpenAPI } from "../../generator/src/kdl"
