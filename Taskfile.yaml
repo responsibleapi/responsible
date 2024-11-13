@@ -23,3 +23,8 @@ tasks:
       - generator:check
     cmds:
       - task: website:deploy
+
+  release:
+    deps:
+      - publish
+      - deploy
