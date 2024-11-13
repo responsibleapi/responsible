@@ -8,9 +8,7 @@ includes:
 tasks:
   build:
     deps:
-      - types
-      - lint
-      - test
+      - check
     cmds:
       - rm -rf dist/
       - bun build src/bin.ts --outdir=dist/ --packages=external --target=node --sourcemap=external --format=esm

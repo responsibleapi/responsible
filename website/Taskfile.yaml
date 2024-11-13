@@ -8,9 +8,7 @@ includes:
 tasks:
   build:
     deps:
-      - types
-      - lint
-      - test
+      - check
     cmds:
       - rm -rf dist/
       - bun vite build
