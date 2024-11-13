@@ -65,7 +65,14 @@ const toJSObj = <T>(n: kdljs.Node, keys?: Set<keyof T>): T =>
 const toInfo = (node: kdljs.Node): oas31.InfoObject =>
   toJSObj(
     node,
-    new Set(["title", "version", "termsOfService", "description", "license"]),
+    new Set([
+      "title",
+      "version",
+      "termsOfService",
+      "description",
+      "license",
+      "contact",
+    ]),
   )
 
 export const isRef = (x: unknown): x is oas31.ReferenceObject =>

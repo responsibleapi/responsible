@@ -5,16 +5,21 @@ import type { oas31 } from "openapi3-ts"
 import { join as pathJoin } from "path"
 import { expect, test } from "vitest"
 import { toOpenAPI } from "./kdl"
-import { yanicJSON } from "./yanic.test"
+
+const openApiValidator = new Validator()
 
 export const toValidOpenAPI = async (
   kdlStr: string,
 ): Promise<oas31.OpenAPIObject> => {
   const kdl = parse(kdlStr)
-  expect(kdl.errors, JSON.stringify(kdl.errors, null, 2)).toEqual([])
+  expect(
+    kdl.errors,
+    `${JSON.stringify(kdl.errors, null, 2)}:
+    ${kdlStr}`,
+  ).toEqual([])
 
   const doc = toOpenAPI(kdl.output!)
-  const vld = await new Validator({}).validate(doc)
+  const vld = await openApiValidator.validate(doc)
   expect(
     vld.valid,
     `${JSON.stringify(vld.errors, null, 2)}:
@@ -24,15 +29,7 @@ export const toValidOpenAPI = async (
   return doc
 }
 
-const EXAMPLES_DIR = "../examples/"
-
-test("yanic JSON", async () => {
-  expect(
-    await toValidOpenAPI(
-      await readFile(pathJoin(EXAMPLES_DIR, "yanic.kdl"), "utf8"),
-    ),
-  ).toEqual(yanicJSON)
-})
+export const EXAMPLES_DIR = "../examples/"
 
 test("array", async () => {
   const openapi = await toValidOpenAPI(`
@@ -111,9 +108,11 @@ test("query param names", async () => {
 GET "/youtube/v3/search" {
     req {
         query {
-            part "string" enum="snippet"
+            part "enum" {
+                snippet
+            }
 
-        // Filters (specify 0 or 1 of the following parameters)
+            // Filters (specify 0 or 1 of the following parameters)
             (?)forContentOwner "boolean"
             (?)forDeveloper "boolean"
             (?)forMine "boolean"

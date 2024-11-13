@@ -1,5 +1,8 @@
+import { readFile } from "fs/promises"
 import type { OpenAPIObject } from "openapi3-ts/oas31"
+import { join as pathJoin } from "path"
 import { expect, test } from "vitest"
+import { EXAMPLES_DIR, toValidOpenAPI } from "./kdl.test"
 
 export const yanicJSON: Readonly<OpenAPIObject> = {
   openapi: "3.1.0",
@@ -198,6 +201,10 @@ export const yanicJSON: Readonly<OpenAPIObject> = {
   },
 }
 
-test("yanic", () => {
-  expect(1).toEqual(1)
+test("yanic JSON", async () => {
+  expect(
+    await toValidOpenAPI(
+      await readFile(pathJoin(EXAMPLES_DIR, "yanic.kdl"), "utf8"),
+    ),
+  ).toEqual(yanicJSON)
 })

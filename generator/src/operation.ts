@@ -5,7 +5,7 @@ import { getString, isMime, mkNode, type Mime } from "./kdl"
 import { parseCoreReq } from "./request"
 import { parseCoreRes, type ScopeResponses } from "./response"
 import { parseSchemaOrRef } from "./schema"
-import { capitalize, checkNonNull, cleanObj } from "./typescript"
+import { capitalize, checkNonNull, cleanObj, mapValues } from "./typescript"
 
 export const replaceStars = (
   content: Record<string, oas31.MediaTypeObject> | undefined,
@@ -28,6 +28,21 @@ export const parseBody = (
   const schema = parseSchemaOrRef(n)
   const mime = (n.values.find(x => isMime(x)) as Mime) ?? "*"
   return [mime, schema]
+}
+
+function headOp(getOp: oas31.OperationObject): oas31.OperationObject {
+  const operationId = getOp.operationId
+
+  /** TODO don't rewrite GET operationID */
+  getOp.operationId = operationId ? `get${capitalize(operationId)}` : undefined
+
+  return {
+    ...getOp,
+    operationId: operationId ? `head${capitalize(operationId)}` : undefined,
+    responses: mapValues(getOp.responses ?? {}, v =>
+      cleanObj({ ...v, content: undefined }),
+    ),
+  }
 }
 
 export const parseOps = (
@@ -88,26 +103,8 @@ export const parseOps = (
 
   const ret: oas31.PathItemObject = { [method]: op }
 
-  if (!node.properties.head) return ret
-
-  if (method !== "get") {
-    throw new Error(JSON.stringify(node))
-  }
-
-  op.operationId = operationId ? `get${capitalize(operationId)}` : undefined
-
-  ret.head = {
-    ...op,
-    operationId: operationId ? `head${capitalize(operationId)}` : undefined,
-    responses: Object.fromEntries(
-      Object.entries(op.responses ?? {}).map(([k, v]) => [
-        k,
-        cleanObj({
-          ...v,
-          content: undefined,
-        } satisfies oas31.ResponseObject | oas31.ReferenceObject),
-      ]),
-    ),
+  if (node.properties.head && method === "get") {
+    ret.head = headOp(op)
   }
 
   return ret

@@ -19,3 +19,14 @@ export const cleanObj = <T extends object>(t: T): T => {
 
 export const capitalize = <T extends string>(s: T): Capitalize<T> | "" =>
   (s ? `${s[0].toUpperCase()}${s.slice(1)}` : "") as Capitalize<T>
+
+export function mapValues<T extends object>(
+  obj: T,
+  fn: (v: T[keyof T]) => T[keyof T],
+): T {
+  const ret = {} as T
+  for (const k in obj) {
+    ret[k as keyof T] = fn(obj[k])
+  }
+  return ret
+}

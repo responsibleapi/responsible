@@ -1,31 +1,6 @@
 version: 3
 
-tasks:
-  types:
-    cmd: bun tsc
-    sources:
-      - ../bun.lockb
-      - ../tsconfig.base.json
-      - tsconfig.json
-      - src/**/*
-    generates:
-      - tsconfig.tsbuildinfo
-
-  lint:
-    cmd: bun eslint src/ --fix
-    sources:
-      - .eslintrc.json
-      - src/**/*
-      - ../bun.lockb
-
-  test:
-    cmd: bun test
-    sources:
-      - src/**/*
-      - ../bun.lockb
-
-  check:
-    deps:
-      - types
-      - lint
-      - test
+includes:
+  common:
+    taskfile: ../Taskfile.common.yaml
+    flatten: true
