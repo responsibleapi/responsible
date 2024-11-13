@@ -3,7 +3,8 @@ import { readdir, readFile } from "fs/promises"
 import { parse } from "kdljs"
 import type { oas31 } from "openapi3-ts"
 import { join as pathJoin } from "path"
-import { expect, test } from "vitest"
+import { describe, expect, test } from "vitest"
+import yanicJSON from "./__tests__/yanic.json"
 import { toOpenAPI } from "./kdl"
 
 const openApiValidator = new Validator()
@@ -29,10 +30,13 @@ export const toValidOpenAPI = async (
   return doc
 }
 
-export const EXAMPLES_DIR = "../examples/"
+export const kdl = (strings: TemplateStringsArray) => parse(strings.join(""))
 
-test("array", async () => {
-  const openapi = await toValidOpenAPI(`
+describe("kdl", () => {
+  const EXAMPLES_DIR = "../examples/"
+
+  test("array", async () => {
+    const openapi = await toValidOpenAPI(`
 type "ShowID" "string"
 
 * {
@@ -50,61 +54,69 @@ GET "/user/:email(email)/shows" {
 }
 `)
 
-  expect(openapi).toEqual({
-    openapi: "3.1.0",
-    info: {
-      title: "",
-      version: "",
-    },
-    components: {
-      schemas: {
-        ShowID: { type: "string" },
+    expect(openapi).toEqual({
+      openapi: "3.1.0",
+      info: {
+        title: "",
+        version: "",
       },
-    },
-    paths: {
-      "/user/{email}/shows": {
-        get: {
-          operationId: "showsByEmail",
-          parameters: [
-            {
-              in: "path",
-              name: "email",
-              required: true,
-              schema: { type: "string", format: "email" },
-            },
-          ],
-          responses: {
-            "200": {
-              content: {
-                "application/json": {
-                  schema: {
-                    type: "array",
-                    items: { $ref: "#/components/schemas/ShowID" },
+      components: {
+        schemas: {
+          ShowID: { type: "string" },
+        },
+      },
+      paths: {
+        "/user/{email}/shows": {
+          get: {
+            operationId: "showsByEmail",
+            parameters: [
+              {
+                in: "path",
+                name: "email",
+                required: true,
+                schema: { type: "string", format: "email" },
+              },
+            ],
+            responses: {
+              "200": {
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "array",
+                      items: { $ref: "#/components/schemas/ShowID" },
+                    },
                   },
                 },
+                description: "200",
               },
-              description: "200",
             },
           },
         },
       },
-    },
-  } satisfies oas31.OpenAPIObject)
-})
+    } satisfies oas31.OpenAPIObject)
+  })
 
-test("kdl parse no errors", async () => {
-  const files = await readdir(EXAMPLES_DIR)
-  const texts = await Promise.all(
-    files.map(file => readFile(pathJoin(EXAMPLES_DIR, file), "utf-8")),
-  )
+  test("check all examples", async () => {
+    const files = await readdir(EXAMPLES_DIR)
+    const texts = await Promise.all(
+      files.map(file => readFile(pathJoin(EXAMPLES_DIR, file), "utf-8")),
+    )
 
-  for (const text of texts) {
-    await toValidOpenAPI(text)
-  }
-})
+    for (const text of texts) {
+      await toValidOpenAPI(text)
+    }
+  })
 
-test("query param names", async () => {
-  const { paths } = await toValidOpenAPI(`
+  test("yanic JSON", async () => {
+    expect(
+      await toValidOpenAPI(
+        await readFile(pathJoin(EXAMPLES_DIR, "yanic.kdl"), "utf8"),
+      ),
+    ).toEqual(yanicJSON)
+  })
+
+  test("query param names", async () => {
+    const { paths } = await toValidOpenAPI(`
 GET "/youtube/v3/search" {
     req {
         query {
@@ -136,54 +148,55 @@ GET "/youtube/v3/search" {
 }
 `)
 
-  expect(paths!["/youtube/v3/search"]!.get!.parameters).toEqual([
-    {
-      in: "query",
-      name: "part",
-      required: true,
-      schema: { type: "string", enum: ["snippet"] },
-    },
-    {
-      in: "query",
-      name: "forContentOwner",
-      required: false,
-      schema: { type: "boolean" },
-    },
-    {
-      in: "query",
-      name: "forDeveloper",
-      required: false,
-      schema: { type: "boolean" },
-    },
-    {
-      in: "query",
-      name: "forMine",
-      required: false,
-      schema: { type: "boolean" },
-    },
-    {
-      in: "query",
-      name: "relatedToVideoId",
-      required: false,
-      schema: { type: "string", minLength: 1 },
-    },
-    {
-      in: "query",
-      name: "channelId",
-      required: false,
-      schema: { type: "string", minLength: 1 },
-    },
-    {
-      in: "query",
-      name: "channelType",
-      required: false,
-      schema: { type: "string", enum: ["any", "show"] },
-    },
-    {
-      in: "query",
-      name: "eventType",
-      required: false,
-      schema: { type: "string", enum: ["completed", "live", "upcoming"] },
-    },
-  ] satisfies oas31.ParameterObject[])
+    expect(paths!["/youtube/v3/search"]!.get!.parameters).toEqual([
+      {
+        in: "query",
+        name: "part",
+        required: true,
+        schema: { type: "string", enum: ["snippet"] },
+      },
+      {
+        in: "query",
+        name: "forContentOwner",
+        required: false,
+        schema: { type: "boolean" },
+      },
+      {
+        in: "query",
+        name: "forDeveloper",
+        required: false,
+        schema: { type: "boolean" },
+      },
+      {
+        in: "query",
+        name: "forMine",
+        required: false,
+        schema: { type: "boolean" },
+      },
+      {
+        in: "query",
+        name: "relatedToVideoId",
+        required: false,
+        schema: { type: "string", minLength: 1 },
+      },
+      {
+        in: "query",
+        name: "channelId",
+        required: false,
+        schema: { type: "string", minLength: 1 },
+      },
+      {
+        in: "query",
+        name: "channelType",
+        required: false,
+        schema: { type: "string", enum: ["any", "show"] },
+      },
+      {
+        in: "query",
+        name: "eventType",
+        required: false,
+        schema: { type: "string", enum: ["completed", "live", "upcoming"] },
+      },
+    ] satisfies oas31.ParameterObject[])
+  })
 })

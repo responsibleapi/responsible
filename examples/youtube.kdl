@@ -85,7 +85,6 @@ struct "Snippet" {
 struct "PageInfo" {}
 
 struct "Channels" {
-
     etag "string"
     items "array" "Item" minItems=0
     kind "string"

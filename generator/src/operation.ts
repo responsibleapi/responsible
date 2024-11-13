@@ -39,8 +39,8 @@ function headOp(getOp: oas31.OperationObject): oas31.OperationObject {
   return {
     ...getOp,
     operationId: operationId ? `head${capitalize(operationId)}` : undefined,
-    responses: mapValues(getOp.responses ?? {}, v =>
-      cleanObj({ ...v, content: undefined }),
+    responses: mapValues(getOp.responses ?? {}, (r: oas31.ResponseObject) =>
+      cleanObj({ ...r, content: undefined }),
     ),
   }
 }

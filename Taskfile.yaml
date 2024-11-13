@@ -12,6 +12,12 @@ includes:
     dir: website
 
 tasks:
+  check:
+    deps:
+      - generator:check
+      - cli:check
+      - website:check
+
   publish:
     deps:
       - generator:check

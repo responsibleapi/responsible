@@ -1,99 +1,90 @@
-import { parse } from "kdljs"
-import { expect, test } from "vitest"
+import { describe, expect, test } from "vitest"
+import { kdl } from "./kdl.test"
 import { parseSecurity, type ParsedSecurity } from "./security"
 
-test("optional", () => {
-  expect(
-    parseSecurity(
-      parse(`
+describe("security", () => {
+  test("optional", () => {
+    expect(
+      parseSecurity(
+        kdl`
         (?)security {
             OR {
                 header "authorization"
                 cookie "token"
             }
-        }`).output![0],
-    ),
-  ).toEqual({
-    securitySchemes: {
-      AuthorizationHeader: {
-        type: "apiKey",
-        in: "header",
-        name: "authorization",
+        }
+        `.output![0],
+      ),
+    ).toEqual({
+      securitySchemes: {
+        AuthorizationHeader: {
+          type: "apiKey",
+          in: "header",
+          name: "authorization",
+        },
+        TokenCookie: {
+          type: "apiKey",
+          in: "cookie",
+          name: "token",
+        },
       },
-      TokenCookie: {
-        type: "apiKey",
-        in: "cookie",
-        name: "token",
-      },
-    },
-    security: [{ AuthorizationHeader: [] }, { TokenCookie: [] }, {}],
-  } satisfies ParsedSecurity)
-})
+      security: [{ AuthorizationHeader: [] }, { TokenCookie: [] }, {}],
+    } satisfies ParsedSecurity)
+  })
 
-test("old listenbox security", () => {
-  expect(
-    parseSecurity(
-      parse(`
+  test("old listenbox security", () => {
+    expect(
+      parseSecurity(
+        kdl`
         security {
             OR {
                 header "authorization"
                 cookie "token"
             }
-        }`).output![0],
-    ),
-  ).toEqual({
-    securitySchemes: {
-      AuthorizationHeader: {
-        type: "apiKey",
-        in: "header",
-        name: "authorization",
+        }`.output![0],
+      ),
+    ).toEqual({
+      securitySchemes: {
+        AuthorizationHeader: {
+          type: "apiKey",
+          in: "header",
+          name: "authorization",
+        },
+        TokenCookie: {
+          type: "apiKey",
+          in: "cookie",
+          name: "token",
+        },
       },
-      TokenCookie: {
-        type: "apiKey",
-        in: "cookie",
-        name: "token",
-      },
-    },
-    security: [{ AuthorizationHeader: [] }, { TokenCookie: [] }],
-  } satisfies ParsedSecurity)
-})
+      security: [{ AuthorizationHeader: [] }, { TokenCookie: [] }],
+    } satisfies ParsedSecurity)
+  })
 
-test("youtube security", () => {
-  expect(
-    parseSecurity(
-      parse(`
-        security {
-          query "key"
-        }`).output![0],
-    ),
-  ).toEqual({
-    securitySchemes: {
-      KeyQuery: {
-        type: "apiKey",
-        in: "query",
-        name: "key",
+  test("youtube security", () => {
+    expect(parseSecurity(kdl`security { query "key"; }`.output![0])).toEqual({
+      securitySchemes: {
+        KeyQuery: {
+          type: "apiKey",
+          in: "query",
+          name: "key",
+        },
       },
-    },
-    security: [{ KeyQuery: [] }],
-  } satisfies ParsedSecurity)
-})
+      security: [{ KeyQuery: [] }],
+    } satisfies ParsedSecurity)
+  })
 
-test("listenbox security", () => {
-  expect(
-    parseSecurity(
-      parse(`
-        (?)security {
-          header "authorization"
-        }`).output![0],
-    ),
-  ).toEqual({
-    securitySchemes: {
-      AuthorizationHeader: {
-        type: "apiKey",
-        in: "header",
-        name: "authorization",
+  test("listenbox security", () => {
+    expect(
+      parseSecurity(kdl`(?)security {  header "authorization"; }`.output![0]),
+    ).toEqual({
+      securitySchemes: {
+        AuthorizationHeader: {
+          type: "apiKey",
+          in: "header",
+          name: "authorization",
+        },
       },
-    },
-    security: [{ AuthorizationHeader: [] }, {}],
-  } satisfies ParsedSecurity)
+      security: [{ AuthorizationHeader: [] }, {}],
+    } satisfies ParsedSecurity)
+  })
 })

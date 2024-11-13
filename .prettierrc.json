@@ -5,6 +5,7 @@
   "plugins": [
     "prettier-plugin-packagejson",
     "prettier-plugin-organize-imports",
-    "prettier-plugin-tailwindcss"
+    "prettier-plugin-tailwindcss",
+    "@bgotink/prettier-plugin-kdl"
   ]
 }

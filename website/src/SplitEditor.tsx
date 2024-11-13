@@ -19,6 +19,8 @@ const Editor: Component<{
   </div>
 )
 
+const CURSOR_POS = 1
+
 export const SplitEditor: Component = () => {
   createEffect(() => {
     const kdlEditor = edit("editor1", {
@@ -41,7 +43,7 @@ export const SplitEditor: Component = () => {
       try {
         const openAPI = toOpenAPI(parsedKDL.output)
         const json = JSON.stringify(openAPI, null, 2)
-        jsonEditor.setValue(json, 1)
+        jsonEditor.setValue(json, CURSOR_POS)
 
         localStorage.setItem("kdl", kdlStr)
       } catch (e) {
@@ -51,7 +53,7 @@ export const SplitEditor: Component = () => {
     })
 
     const kdl = localStorage.getItem("kdl")
-    kdlEditor.setValue(kdl ?? exampleKDL, 1)
+    kdlEditor.setValue(kdl ?? exampleKDL, CURSOR_POS)
   })
 
   return (
