@@ -148,7 +148,8 @@ export const parseSchemaOrRef = (
       return cleanObj({
         ...node.properties,
         type: "object",
-        propertyNames: strToSchema(node.values[1]),
+        propertyNames:
+          node.values[1] === "string" ? undefined : strToSchema(node.values[1]),
         additionalProperties: strToSchema(node.values[2]),
       })
     }
