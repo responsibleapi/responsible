@@ -10,9 +10,19 @@ export const checkNonNull = <T>(t: T | null | undefined): NonNullable<T> => {
   return t
 }
 
-export const cleanObj = <T extends object>(t: T): T => {
+const isAbsent = (
+  v: unknown,
+): v is null | undefined | "" | Array<never> | Record<string, never> =>
+  v === undefined ||
+  v === null ||
+  v === "" ||
+  (Array.isArray(v) && v.length === 0) ||
+  (isObject(v) && isEmpty(v))
+
+/** OpenAPI does not allow nulls, empty arrays and objects */
+export const removeAbsent = <T extends object>(t: T): T => {
   for (const k in t) {
-    if (t[k] === undefined || t[k] === null) {
+    if (isAbsent(t[k])) {
       // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
       delete t[k]
     }

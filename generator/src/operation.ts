@@ -5,7 +5,7 @@ import { getString, isMime, mkNode, type Mime } from "./kdl"
 import { parseCoreReq } from "./request"
 import { parseCoreRes } from "./response"
 import { parseSchemaOrRef } from "./schema"
-import { capitalize, checkNonNull, cleanObj, mapValues } from "./typescript"
+import { capitalize, checkNonNull, removeAbsent, mapValues } from "./typescript"
 
 export const replaceStars = (
   content: Record<string, oas31.MediaTypeObject> | undefined,
@@ -40,7 +40,7 @@ function headOp(getOp: oas31.OperationObject): oas31.OperationObject {
     ...getOp,
     operationId: operationId ? `head${capitalize(operationId)}` : undefined,
     responses: mapValues(getOp.responses ?? {}, (r: oas31.ResponseObject) =>
-      cleanObj({ ...r, content: undefined }),
+      removeAbsent({ ...r, content: undefined }),
     ),
   }
 }
@@ -94,7 +94,7 @@ export const parseOps = (
 
   const op: oas31.OperationObject = deepmerge(
     req,
-    cleanObj({
+    removeAbsent({
       operationId,
       description,
       responses: res,

@@ -1,6 +1,6 @@
 import type kdljs from "kdljs"
 import type { oas31 } from "openapi3-ts"
-import { cleanObj } from "./typescript"
+import { removeAbsent } from "./typescript"
 
 export type SchemaOrRef = oas31.SchemaObject | oas31.ReferenceObject
 
@@ -18,23 +18,16 @@ export const toEnum = (node: kdljs.Node): oas31.SchemaObject => ({
   enum: node.children.map(x => x.name),
 })
 
-const undefIfEmpty = <T>(arr: T[]): T[] | undefined =>
-  arr.length > 0 ? arr : undefined
-
 export const parseStruct = (node: kdljs.Node): oas31.SchemaObject => {
   const { extends: extendz, ...rest } = node.properties
 
-  const schema: oas31.SchemaObject = cleanObj({
+  const schema: oas31.SchemaObject = removeAbsent({
     ...rest,
     type: "object",
-    properties: node.children.length
-      ? Object.fromEntries(
-          node.children.map(x => [x.name, parseSchemaOrRef(x)]),
-        )
-      : undefined,
-    required: undefIfEmpty(
-      node.children.flatMap(x => (isRequired(x) ? [x.name] : [])),
+    properties: Object.fromEntries(
+      node.children.map(x => [x.name, parseSchemaOrRef(x)]),
     ),
+    required: node.children.flatMap(x => (isRequired(x) ? [x.name] : [])),
   })
 
   if (typeof extendz === "string") {
@@ -120,7 +113,7 @@ export const parseSchemaOrRef = (
     case "string": {
       const parsedLen = Number(node.properties.length)
       const length = isNaN(parsedLen) ? undefined : parsedLen
-      return cleanObj({
+      return removeAbsent({
         minLength: length,
         maxLength: length,
         ...node.properties,
@@ -145,7 +138,7 @@ export const parseSchemaOrRef = (
         throw new Error(JSON.stringify(node))
       }
 
-      return cleanObj({
+      return removeAbsent({
         ...node.properties,
         type: "object",
         propertyNames:

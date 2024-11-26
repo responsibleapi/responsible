@@ -11,7 +11,7 @@ import { getString, isRef, parseParam, type Mime } from "./kdl"
 import { parseBody, replaceStars } from "./operation"
 import { isRequired, typeName } from "./schema"
 import { parseSecurity } from "./security"
-import { cleanObj, isEmpty } from "./typescript"
+import { isEmpty, removeAbsent } from "./typescript"
 
 type ScopeReq = Partial<OperationObject> & {
   mime?: Mime
@@ -21,7 +21,7 @@ export const parseScopeReq = (parent: kdl.Node): ScopeReq => {
   if (parent.values.length) {
     const [mime, schema] = parseBody(parent)
 
-    return cleanObj({
+    return removeAbsent({
       requestBody:
         typeName(parent) === "unknown"
           ? undefined
@@ -91,25 +91,30 @@ export const parseScopeReq = (parent: kdl.Node): ScopeReq => {
     }
   }
 
-  return cleanObj({
+  return removeAbsent({
     mime,
-    parameters: parameters.length ? parameters : undefined,
+    parameters,
     requestBody: isEmpty(content) ? undefined : { content },
-    security: security.length ? security : undefined,
-    securitySchemes: isEmpty(securitySchemes) ? undefined : securitySchemes,
+    security,
+    securitySchemes,
   })
 }
 
-const toOpenAPI = (merged: ScopeReq): Partial<OperationObject> => {
+const partialOp = (merged: ScopeReq): Partial<OperationObject> => {
   const { requestBody } = merged
 
   if (isRef(requestBody)) {
-    return cleanObj({ ...merged, mime: undefined, responses: undefined })
+    return removeAbsent({
+      ...merged,
+      mime: undefined,
+      responses: undefined,
+      securitySchemes: undefined,
+    })
   }
 
   const content = replaceStars(requestBody?.content, merged.mime)
 
-  return cleanObj({
+  return removeAbsent({
     ...merged,
     requestBody: content
       ? { ...requestBody, content, required: true }
@@ -123,4 +128,4 @@ const toOpenAPI = (merged: ScopeReq): Partial<OperationObject> => {
 export const parseCoreReq = (
   scope: ScopeReq,
   n: kdl.Node,
-): Partial<OperationObject> => toOpenAPI(deepmerge(scope, parseScopeReq(n)))
+): Partial<OperationObject> => partialOp(deepmerge(scope, parseScopeReq(n)))

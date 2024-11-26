@@ -17,7 +17,7 @@ import {
   typeName,
 } from "./schema"
 import { parseScope } from "./scope"
-import { cleanObj, isEmpty, isObject } from "./typescript"
+import { isEmpty, isObject, removeAbsent } from "./typescript"
 
 export type Mime = `${string}/${string}`
 
@@ -307,7 +307,7 @@ const enterScope = ({
     }
   }
 
-  return cleanObj({
+  return removeAbsent({
     paths,
     schemas: isEmpty(schemas) ? undefined : (schemas as oas31.SchemasObject),
     securitySchemes: isEmpty(securitySchemes) ? undefined : securitySchemes,
@@ -326,7 +326,7 @@ export const toOpenAPI = (doc: kdl.Document): oas31.OpenAPIObject => {
     parentScope: {},
   })
 
-  return cleanObj({
+  return removeAbsent({
     openapi: "3.1.0",
     info,
     servers,
