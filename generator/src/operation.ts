@@ -3,7 +3,7 @@ import type kdljs from "kdljs"
 import type { oas31 } from "openapi3-ts"
 import { getString, isMime, mkNode, type Mime } from "./kdl"
 import { parseCoreReq } from "./request"
-import { parseCoreRes, type ScopeResponses } from "./response"
+import { parseCoreRes } from "./response"
 import { parseSchemaOrRef } from "./schema"
 import { capitalize, checkNonNull, cleanObj, mapValues } from "./typescript"
 
@@ -25,8 +25,8 @@ export const replaceStars = (
 export const parseBody = (
   n: kdljs.Node,
 ): [Mime | "*", oas31.SchemaObject | oas31.ReferenceObject] => {
+  const mime = n.values.find(x => isMime(x)) ?? "*"
   const schema = parseSchemaOrRef(n)
-  const mime = (n.values.find(x => isMime(x)) as Mime) ?? "*"
   return [mime, schema]
 }
 
@@ -75,7 +75,7 @@ export const parseOps = (
       }
 
       case "res": {
-        res = parseCoreRes((scope.responses as ScopeResponses) ?? {}, c)
+        res = parseCoreRes(scope.responses ?? {}, c)
         break
       }
 
@@ -90,7 +90,7 @@ export const parseOps = (
 
   const empty = mkNode("")
   req ??= parseCoreReq(scope, empty)
-  res ??= parseCoreRes((scope.responses as ScopeResponses) ?? {}, empty)
+  res ??= parseCoreRes(scope.responses ?? {}, empty)
 
   const op: oas31.OperationObject = deepmerge(
     req,

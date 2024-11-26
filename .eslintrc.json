@@ -1,13 +1,11 @@
 {
   "root": true,
-  "plugins": ["ban"],
-  "parser": "@typescript-eslint/parser",
   "extends": [
     "eslint:recommended",
-    "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking"
+    "plugin:@typescript-eslint/strict-type-checked"
   ],
+  "plugins": ["ban", "@typescript-eslint"],
+  "parser": "@typescript-eslint/parser",
   "ignorePatterns": ["**/*.test.ts", "**/build.js", "**/dist/*"],
   "rules": {
     "@typescript-eslint/ban-ts-comment": [
@@ -29,13 +27,13 @@
     ],
     "@typescript-eslint/explicit-module-boundary-types": "error",
     "@typescript-eslint/no-for-in-array": "error",
-    "@typescript-eslint/no-inferrable-types": "off",
     "@typescript-eslint/no-misused-promises": [
       "error",
       {
         "checksVoidReturn": false
       }
     ],
+    "@typescript-eslint/no-non-null-assertion": "warn",
     "@typescript-eslint/no-shadow": "error",
     "@typescript-eslint/no-unsafe-argument": "warn",
     "@typescript-eslint/no-unsafe-assignment": "warn",
@@ -49,7 +47,12 @@
       }
     ],
     "@typescript-eslint/restrict-template-expressions": "warn",
-    "@typescript-eslint/switch-exhaustiveness-check": "error",
+    "@typescript-eslint/switch-exhaustiveness-check": [
+      "error",
+      {
+        "considerDefaultExhaustiveForUnions": true
+      }
+    ],
     "ban/ban": [
       "error",
       {
@@ -59,7 +62,6 @@
     ],
     "eqeqeq": "error",
     "no-console": "error",
-    "no-shadow": "off",
     "no-throw-literal": "error"
   }
 }

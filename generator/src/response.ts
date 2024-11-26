@@ -6,8 +6,13 @@ import type {
   ResponseObject,
   ResponsesObject,
 } from "openapi3-ts/oas31"
-import type { Mime, StatusCodeStr } from "./kdl"
-import { getString, parseHeader } from "./kdl"
+import {
+  getString,
+  isStatusCodeStr,
+  type Mime,
+  parseHeader,
+  type StatusCodeStr,
+} from "./kdl"
 import { parseBody, replaceStars } from "./operation"
 import { isRequired, typeName } from "./schema"
 import type { HasMime } from "./scope"
@@ -101,22 +106,18 @@ export const parseScopeRes = (node: kdljs.Node): ScopeResponses => {
 
   for (const c of node.children) {
     switch (true) {
-      case Boolean(Number(c.name)): {
-        ret[c.name as StatusCodeStr] = parseStatus(c, true)
+      case isStatusCodeStr(c.name): {
+        ret[c.name] = parseStatus(c, true)
         break
       }
 
       case c.name.includes(".."): {
         const split = c.name.split("..")
-        if (split.length !== 2) {
+        if (split.length !== 2 || split.some(x => !isStatusCodeStr(x))) {
           throw new Error(JSON.stringify(c))
         }
 
-        const [start, end] = split.map(Number)
-        if (!(start && end)) {
-          throw new Error(JSON.stringify(c))
-        }
-
+        const [start, end] = split
         ret[`${start}..${end}`] = parseStatus(c, true)
         break
       }
@@ -152,7 +153,7 @@ const matches = (k: ScopeStatus, status: number): boolean => {
 /**
  * has mime: "*"
  */
-const matchingReses = (
+const matchingResponses = (
   scope: ScopeResponses,
   status: number,
 ): ReadonlyArray<ScopeRes> => {
@@ -180,60 +181,63 @@ export const parseCoreRes = (
   node: kdljs.Node,
 ): ResponsesObject => {
   // get statuses from the scope
-  const scopeStatuses = Object.fromEntries(
-    Object.entries(scope).flatMap(([k, v]) => (v && Number(k) ? [[k, v]] : [])),
+  const scopeStatuses: ScopeResponses = Object.fromEntries(
+    Object.entries(scope).flatMap(([k, v]) =>
+      v && isStatusCodeStr(k) ? [[k, v]] : [],
+    ),
   )
 
   // get empty responses for operation statuses
-  const emptyOpStatuses = Object.fromEntries(
+  const emptyOpStatuses: ScopeResponses = Object.fromEntries(
     node.children.map(c => {
-      if (!Number(c.name)) throw new Error(JSON.stringify(c))
+      if (!isStatusCodeStr(c.name)) throw new Error(JSON.stringify(c))
 
       return [c.name, {} as ScopeRes]
     }),
   )
 
   // apply scope to the responses
-  const allMerged = Object.fromEntries(
-    Object.entries(deepmerge(scopeStatuses, emptyOpStatuses)).flatMap(
-      ([k, v]) => {
-        if (!v) return []
+  const allMerged: ScopeResponses = Object.fromEntries(
+    Object.entries(
+      deepmerge<ScopeResponses>(scopeStatuses, emptyOpStatuses),
+    ).flatMap(([k, v]) => {
+      if (!v) return []
+      if (!isStatusCodeStr(k)) throw new Error(k)
 
-        const status = Number(k)
-        if (!status) throw new Error(k)
-
-        return [
-          [k, deepmerge.all([...matchingReses(scope, status), v]) as ScopeRes],
-        ]
-      },
-    ),
+      return [
+        [
+          k,
+          deepmerge.all<ScopeRes>([...matchingResponses(scope, Number(k)), v]),
+        ],
+      ]
+    }),
   )
 
   // get real responses
   const real = Object.fromEntries(
     node.children.map(c => {
-      if (!Number(c.name)) throw new Error(JSON.stringify(c))
+      if (!isStatusCodeStr(c.name)) throw new Error(JSON.stringify(c))
 
       return [c.name, parseStatus(c, true)]
     }),
   )
 
   return Object.fromEntries(
-    Object.entries(deepmerge(allMerged, real)).flatMap(([k, v]) => {
-      if (!v) return []
+    Object.entries(deepmerge<ScopeResponses>(allMerged, real)).flatMap(
+      ([k, v]) => {
+        if (!v) return []
+        if (!isStatusCodeStr(k)) throw new Error(k)
 
-      const status = Number(k)
-      if (!status) throw new Error(k)
+        const mime = matchingResponses(scope, Number(k)).find(x => x.mime)?.mime
 
-      const mime = matchingReses(scope, status).find(x => x.mime)?.mime
+        const ret: ScopeRes = cleanObj({
+          ...v,
+          content: replaceStars(v.content, mime),
+          mime: undefined,
+        })
 
-      const ret: ScopeRes = cleanObj({
-        ...v,
-        content: replaceStars(v.content, mime),
-        mime: undefined,
-      })
-
-      return [[k, ret]]
-    }),
+        return [[k, ret]]
+      },
+    ),
   )
 }

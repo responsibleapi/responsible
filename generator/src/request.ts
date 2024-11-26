@@ -1,5 +1,5 @@
 import deepmerge from "deepmerge"
-import type kdljs from "kdljs"
+import type kdl from "kdljs"
 import type {
   MediaTypeObject,
   OperationObject,
@@ -17,7 +17,7 @@ type ScopeReq = Partial<OperationObject> & {
   mime?: Mime
 }
 
-export const parseScopeReq = (parent: kdljs.Node): ScopeReq => {
+export const parseScopeReq = (parent: kdl.Node): ScopeReq => {
   if (parent.values.length) {
     const [mime, schema] = parseBody(parent)
 
@@ -122,5 +122,5 @@ const toOpenAPI = (merged: ScopeReq): Partial<OperationObject> => {
 
 export const parseCoreReq = (
   scope: ScopeReq,
-  n: kdljs.Node,
+  n: kdl.Node,
 ): Partial<OperationObject> => toOpenAPI(deepmerge(scope, parseScopeReq(n)))

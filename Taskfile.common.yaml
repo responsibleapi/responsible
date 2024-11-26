@@ -1,10 +1,13 @@
 version: 3
 
+vars:
+  LOCKFILE: ../bun.lockb
+
 tasks:
   types:
     cmd: bun tsc
     sources:
-      - ../bun.lockb
+      - "{{.LOCKFILE}}"
       - ../tsconfig.base.json
       - tsconfig.json
       - src/**/*
@@ -14,15 +17,16 @@ tasks:
   lint:
     cmd: bun eslint src/ --fix
     sources:
+      - "{{.LOCKFILE}}"
+      - ../.eslintrc.json
       - src/**/*
       - .eslintrc.json
-      - ../bun.lockb
 
   test:
     cmd: bun test
     sources:
+      - "{{.LOCKFILE}}"
       - src/**/*
-      - ../bun.lockb
 
   check:
     deps:

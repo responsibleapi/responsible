@@ -80,6 +80,7 @@ const parseSegment = (
   return [segment, types]
 }
 
+/** "/foo/:bar(Type)" */
 export interface TypedPath {
   path: URLPath | ""
   types: Record<string, string>
