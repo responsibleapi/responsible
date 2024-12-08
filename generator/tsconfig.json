@@ -1,9 +1,0 @@
-{
-  "compilerOptions": {
-    "lib": ["ES2022"],
-    "module": "ES2022",
-    "target": "ES2022"
-  },
-  "extends": "../tsconfig.base.json",
-  "include": ["src/"]
-}

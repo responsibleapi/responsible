@@ -1,0 +1,8 @@
+{
+  "name": "@responsibleapi/hono",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "hono": "^4.6.13"
+  }
+}

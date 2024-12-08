@@ -1,0 +1,11 @@
+{
+  "name": "@responsibleapi/polka",
+  "version": "0.4.1",
+  "type": "module",
+  "dependencies": {
+    "polka": "^0.5.2"
+  },
+  "devDependencies": {
+    "@types/polka": "^0.5.7"
+  }
+}

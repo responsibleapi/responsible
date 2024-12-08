@@ -1,14 +1,14 @@
 version: 3
 
 vars:
-  LOCKFILE: ../bun.lockb
+  LOCKFILE: ../../bun.lockb
 
 tasks:
   types:
     cmd: bun tsc
     sources:
       - "{{.LOCKFILE}}"
-      - ../tsconfig.base.json
+      - ../../tsconfig.base.json
       - tsconfig.json
       - src/**/*
     generates:
@@ -18,7 +18,7 @@ tasks:
     cmd: bun eslint src/ --fix
     sources:
       - "{{.LOCKFILE}}"
-      - ../.eslintrc.json
+      - ../../.eslintrc.json
       - src/**/*
       - .eslintrc.json
 

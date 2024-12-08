@@ -1,0 +1,8 @@
+{
+  "name": "@responsibleapi/http-jsonschema",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "ajv-formats": "^3.0.1"
+  }
+}
