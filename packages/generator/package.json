@@ -15,7 +15,7 @@
     "kdljs": "^0.2.0"
   },
   "devDependencies": {
-    "@seriousme/openapi-schema-validator": "^2.2.3",
+    "@seriousme/openapi-schema-validator": "^2.3.0",
     "ajv": "^8.17.1"
   }
 }
