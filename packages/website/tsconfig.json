@@ -1,20 +1,11 @@
 {
+  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
-    "incremental": true,
-    "isolatedModules": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "module": "ESNext",
-    "moduleResolution": "node",
-    "noEmit": true,
-    "strict": true,
     "target": "ESNext",
     "types": ["vite/client"]
   },
-  "include": ["src/", "*.config.ts"],
-  "exclude": [
-    "vite.config.ts"
-  ]
+  "include": ["src/", "*.config.ts"]
 }

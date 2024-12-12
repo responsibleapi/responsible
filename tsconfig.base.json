@@ -5,8 +5,9 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
+    "isolatedModules": true,
     "jsx": "preserve",
-    "moduleResolution": "Node",
+    "moduleResolution": "Bundler",
     "noEmit": true,
     "noImplicitAny": true,
     "noImplicitThis": true,
@@ -15,6 +16,6 @@
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": true
   }
 }

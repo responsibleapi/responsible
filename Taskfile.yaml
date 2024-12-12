@@ -3,13 +3,16 @@ version: 3
 includes:
   generator:
     taskfile: packages/generator/Taskfile.yaml
-    dir: generator
+    dir: packages/generator
   cli:
     taskfile: packages/cli/Taskfile.yaml
-    dir: cli
+    dir: packages/cli
   website:
     taskfile: packages/website/Taskfile.yaml
-    dir: website
+    dir: packages/website
+  hono:
+    taskfile: packages/hono/Taskfile.yaml
+    dir: packages/hono
 
 tasks:
   check:
@@ -17,6 +20,7 @@ tasks:
       - generator:check
       - cli:check
       - website:check
+      - hono:check
 
   publish:
     deps:

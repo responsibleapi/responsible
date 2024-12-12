@@ -5,7 +5,7 @@ import { getString, isMime, mkNode, type Mime } from "./kdl"
 import { parseCoreReq } from "./request"
 import { parseCoreRes } from "./response"
 import { parseSchemaOrRef } from "./schema"
-import { capitalize, checkNonNull, removeAbsent, mapValues } from "./typescript"
+import { capitalize, checkNonNull, mapValues, removeAbsent } from "./typescript"
 
 export const replaceStars = (
   content: Record<string, oas31.MediaTypeObject> | undefined,
@@ -21,6 +21,8 @@ export const replaceStars = (
 
 /**
  * merge back to be single parsecontent
+ *
+ * ↑ WTF did I mean by this?
  */
 export const parseBody = (
   n: kdljs.Node,

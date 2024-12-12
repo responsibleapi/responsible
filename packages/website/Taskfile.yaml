@@ -2,7 +2,7 @@ version: 3
 
 includes:
   common:
-    taskfile: ../Taskfile.common.yaml
+    taskfile: ../../Taskfile.common.yaml
     flatten: true
 
 tasks:

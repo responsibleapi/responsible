@@ -1,8 +1,8 @@
 import { Validator } from "@seriousme/openapi-schema-validator"
 import { readdir, readFile } from "fs/promises"
 import { parse } from "kdljs"
+import * as path from "node:path"
 import type { oas31 } from "openapi3-ts"
-import { join as pathJoin } from "src/path"
 import { describe, expect, test } from "vitest"
 import yanicJSON from "./__tests__/yanic.json"
 import { toOpenAPI } from "./kdl"
@@ -33,7 +33,7 @@ export const toValidOpenAPI = async (
 export const kdl = (strings: TemplateStringsArray) => parse(strings.join(""))
 
 describe("kdl", () => {
-  const EXAMPLES_DIR = "../examples/"
+  const EXAMPLES_DIR = "../../examples/"
 
   test("array", async () => {
     const openapi = await toValidOpenAPI(`
@@ -99,7 +99,7 @@ GET "/user/:email(email)/shows" {
   test("check all examples", async () => {
     const files = await readdir(EXAMPLES_DIR)
     const texts = await Promise.all(
-      files.map(file => readFile(pathJoin(EXAMPLES_DIR, file), "utf-8")),
+      files.map(file => readFile(path.join(EXAMPLES_DIR, file), "utf-8")),
     )
 
     for (const text of texts) {
@@ -110,7 +110,7 @@ GET "/user/:email(email)/shows" {
   test("yanic JSON", async () => {
     expect(
       await toValidOpenAPI(
-        await readFile(pathJoin(EXAMPLES_DIR, "yanic.kdl"), "utf8"),
+        await readFile(path.join(EXAMPLES_DIR, "yanic.kdl"), "utf8"),
       ),
     ).toEqual(yanicJSON)
   })
