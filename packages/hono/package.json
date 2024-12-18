@@ -1,8 +1,14 @@
 {
   "name": "@responsibleapi/hono",
   "version": "1.0.0",
+  "description": "OpenAPI router and testing helpers for Hono",
+  "license": "MIT",
   "type": "module",
+  "main": "src/index.ts",
   "dependencies": {
     "hono": "^4.6.13"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

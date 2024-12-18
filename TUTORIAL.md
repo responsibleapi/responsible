@@ -11,74 +11,72 @@ system. Responsible API documents consist of various elements such as types, str
 responsible syntax=1
 
 info {
-    title "User Management API"
-    version "1.0.0"
+   title "User Management API"
+   version "1.0.0"
 }
 
 type "UserID" "string" minLength=1
 
 struct "User" {
-    id "UserID"
-    name "string" minLength=1
+   id "UserID"
+   name "string" minLength=1
 }
 
 struct "UserList" {
-    users "array" "User"
+   users "array" "User"
 }
 
 * {
-    req {
-        mime "application/json"
-    }
+   req {
+      mime "application/json"
+   }
 
-    res {
-        mime "application/json"
-    }
+   res {
+      mime "application/json"
+   }
 }
 
 scope "/users" {
+   GET {
+      res {
+         "200" "UserList"
+      }
+   }
 
-    GET {
-        res {
-            "200" "UserList"
-        }
-    }
+   POST {
+      req "User"
 
-    POST {
-        req "User"
+      res {
+         "201" "User"
+      }
+   }
 
-        res {
-            "201" "User"
-        }
-    }
+   scope "/:id(UserID)" {
+      * {
+         res {
+            "404" "unknown"
+         }
+      }
 
-    scope "/:id(UserID)" {
+      GET {
+         res {
+            "200" "User"
+         }
+      }
 
-        * {
-            res {
-                "404" "unknown"
-            }
-        }
+      PUT {
+         req "User"
+         res {
+            "200" "User"
+         }
+      }
 
-        GET {
-            res {
-                "200" "User"
-            }
-        }
-
-        PUT {
-            req "User"
-            res {
-                "200" "User"
-            }
-        }
-
-        DELETE {
-            res {
-                "204" "unknown"
-            }
-        }
-    }
+      DELETE {
+         res {
+            "204" "unknown"
+         }
+      }
+   }
 }
 ```
 
