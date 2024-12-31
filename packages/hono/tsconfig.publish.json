@@ -1,10 +1,9 @@
 {
   "compilerOptions": {
     "declaration": true,
-    //    "emitDeclarationOnly": true,
     "outDir": "dist/",
     "noEmit": false,
-    "incremental": false,
+    "incremental": false
   },
   "extends": "./tsconfig.json"
 }

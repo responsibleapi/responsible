@@ -2,9 +2,7 @@ import * as fs from "fs/promises"
 import * as path from "path"
 
 async function main() {
-  const dir = process.argv[2]
-  console.log("walking", dir)
-
+  const dir = process.argv.length > 2 ? process.argv[2] : "dist/"
   const files = await fs.readdir(dir, { recursive: true })
   for (const name of files) {
     if (!name.endsWith(".js")) continue
