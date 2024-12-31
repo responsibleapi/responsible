@@ -1,19 +1,18 @@
 import * as fs from "fs/promises"
 import * as path from "path"
 
-async function main() {
-  const dir = process.argv.length > 2 ? process.argv[2] : "dist/"
-  const files = await fs.readdir(dir, { recursive: true })
-  for (const name of files) {
+async function walk(dir: string) {
+  const names = await fs.readdir(dir, { recursive: true })
+  for (const name of names) {
     if (!name.endsWith(".js")) continue
 
-    const filePath = path.join(dir, name)
-    const s = await fs.readFile(filePath, "utf8")
+    const absPath = path.join(dir, name)
+    const s = await fs.readFile(absPath, "utf-8")
     await fs.writeFile(
-      filePath,
-      s.replace(/from "(\..*)"/g, (_, p1) => `from "${p1}.js"`),
+      absPath,
+      s.replace(/from "(\..+)"/g, (_, p1) => `from "${p1}.js"`),
     )
   }
 }
 
-void main()
+void walk(process.argv.length > 2 ? process.argv[2] : "dist/")
