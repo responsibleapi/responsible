@@ -1,11 +1,8 @@
-import {
-  asyncEvery,
-  asyncSome,
-} from "@responsibleapi/http-jsonschema/src/common"
-import type { HttpMethod } from "@responsibleapi/http-jsonschema/src/operations"
 import type { Context, Env, MiddlewareHandler } from "hono"
 import { HTTPException } from "hono/http-exception"
 import type { oas31 } from "openapi3-ts"
+import { asyncEvery, asyncSome } from "../../http-jsonschema/src/common"
+import type { HttpMethod } from "../../http-jsonschema/src/operations"
 
 async function succeeds<E extends Env, P extends string>(
   handler: MiddlewareHandler<E, P>,

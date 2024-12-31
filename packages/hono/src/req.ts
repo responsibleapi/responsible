@@ -1,21 +1,7 @@
-import {
-  lowerCaseKeys,
-  memoize,
-  mkAjv,
-} from "@responsibleapi/http-jsonschema/src/common"
-import { JsonResolver } from "@responsibleapi/http-jsonschema/src/jsonresolver"
-import {
-  type FullOperation,
-  type HttpMethod,
-  operationLookup,
-} from "@responsibleapi/http-jsonschema/src/operations"
-import {
-  type ReqBuf,
-  requestToSchema,
-} from "@responsibleapi/http-jsonschema/src/reqcompiler"
 import type { ErrorObject } from "ajv"
 import {
   type Context,
+  type Env,
   type Handler,
   Hono,
   type HonoRequest,
@@ -23,6 +9,17 @@ import {
 } from "hono"
 import { getCookie } from "hono/cookie"
 import type { oas31 } from "openapi3-ts"
+import { lowerCaseKeys, memoize, mkAjv } from "../../http-jsonschema/src/common"
+import { JsonResolver } from "../../http-jsonschema/src/jsonresolver"
+import {
+  type FullOperation,
+  type HttpMethod,
+  operationLookup,
+} from "../../http-jsonschema/src/operations"
+import {
+  type ReqBuf,
+  requestToSchema,
+} from "../../http-jsonschema/src/reqcompiler"
 import { securityMiddleware } from "./security"
 
 function getBody(req: HonoRequest): Promise<unknown> {
@@ -106,18 +103,22 @@ function validateMiddleware<OpID extends string>({
   }
 }
 
-export function openApiRouter<OpID extends string, SecScheme extends string>({
+export function openApiRouter<
+  OpID extends string,
+  SecScheme extends string,
+  AppEnv extends Env,
+>({
   doc,
   handlers,
   securityHandlers,
   onErrors,
 }: {
   doc: Readonly<oas31.OpenAPIObject>
-  handlers: Readonly<Partial<Record<OpID, Handler>>>
-  securityHandlers: Readonly<Record<SecScheme, MiddlewareHandler>>
+  handlers: Readonly<Partial<Record<OpID, Handler<AppEnv>>>>
+  securityHandlers: Readonly<Record<SecScheme, MiddlewareHandler<AppEnv>>>
   onErrors: (ctx: Context, errors: ErrorObject[]) => Response
-}): Hono {
-  const hono = new Hono({})
+}): Hono<AppEnv> {
+  const hono = new Hono<AppEnv>({})
   if (!doc.paths) return hono
 
   const { ops, openApiPaths, colonPaths } = operationLookup<OpID>(doc.paths)

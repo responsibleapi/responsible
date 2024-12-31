@@ -4,3 +4,12 @@ includes:
   common:
     taskfile: ../../Taskfile.common.yaml
     flatten: true
+
+tasks:
+  build:
+    cmds:
+      - rm -rf dist/
+#      - mkdir -p dist/
+#      - bun build --no-bundle src/ --outdir dist/
+      - bun tsc --p tsconfig.publish.json
+      - bun ts-hack.ts dist/

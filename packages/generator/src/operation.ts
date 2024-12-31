@@ -29,7 +29,7 @@ export const parseBody = (
 ): [Mime | "*", oas31.SchemaObject | oas31.ReferenceObject] => {
   const mime = n.values.find(x => isMime(x)) ?? "*"
   const schema = parseSchemaOrRef(n)
-  return [mime, schema]
+  return [mime as Mime, schema]
 }
 
 function headOp(getOp: oas31.OperationObject): oas31.OperationObject {

@@ -1,19 +1,19 @@
-import { memoize, mkAjv } from "@responsibleapi/http-jsonschema/src/common"
-import { JsonResolver } from "@responsibleapi/http-jsonschema/src/jsonresolver"
-import {
-  type FullOperation,
-  type HttpMethod,
-  operationLookup,
-} from "@responsibleapi/http-jsonschema/src/operations"
-import {
-  type ReqBuf,
-  requestToSchema,
-} from "@responsibleapi/http-jsonschema/src/reqcompiler"
 import type { ErrorObject } from "ajv"
 import type { ServerResponse } from "node:http"
 import type { oas31 } from "openapi3-ts"
 import type { Polka, Request } from "polka"
 import type * as Trouter from "trouter"
+import { memoize, mkAjv } from "../../http-jsonschema/src/common"
+import { JsonResolver } from "../../http-jsonschema/src/jsonresolver"
+import {
+  type FullOperation,
+  type HttpMethod,
+  operationLookup,
+} from "../../http-jsonschema/src/operations"
+import {
+  type ReqBuf,
+  requestToSchema,
+} from "../../http-jsonschema/src/reqcompiler"
 
 function noDuplicates<T>(
   obj: Partial<Record<string, T | T[]>>,

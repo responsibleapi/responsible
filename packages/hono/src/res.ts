@@ -1,21 +1,21 @@
+import type { Ajv } from "ajv"
+import type { Hono } from "hono"
+import type { oas31 } from "openapi3-ts"
 import {
   isObject,
   lowerCaseKeys,
   memoize,
   mkAjv,
-} from "@responsibleapi/http-jsonschema/src/common"
-import { JsonResolver } from "@responsibleapi/http-jsonschema/src/jsonresolver"
+} from "../../http-jsonschema/src/common"
+import { JsonResolver } from "../../http-jsonschema/src/jsonresolver"
 import {
   type FullOperation,
   operationLookup,
-} from "@responsibleapi/http-jsonschema/src/operations"
+} from "../../http-jsonschema/src/operations"
 import {
   type ResBuf,
   responsesToSchema,
-} from "@responsibleapi/http-jsonschema/src/rescompiler"
-import type { Ajv } from "ajv"
-import type { Hono } from "hono"
-import type { oas31 } from "openapi3-ts"
+} from "../../http-jsonschema/src/rescompiler"
 
 type ReqBody = object | FormData | string
 
