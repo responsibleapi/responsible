@@ -10,5 +10,18 @@ tasks:
     cmds:
       - rm -rf dist/
       - bun tsc --p tsconfig.publish.json
-#      - bun ts-hack.ts dist/
       - find dist/ -type f -name "*.js" -exec perl -pi -e 's/from "(\..+?)"/from "\1.js"/g' {} +
+    sources:
+      - ../../bun.lockb
+      - tsconfig*.json
+      - src/**/*
+    generates:
+      - dist/**/*
+
+  publish:
+    deps:
+      - build
+    cmd: bun publish
+    sources:
+      - dist/**/*
+      - package.json

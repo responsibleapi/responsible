@@ -1,5 +1,6 @@
 import type { Ajv } from "ajv"
 import type { Hono } from "hono"
+import type { StatusCode } from "hono/utils/http-status"
 import type { oas31 } from "openapi3-ts"
 import {
   isObject,
@@ -74,7 +75,7 @@ function toReq(
 
 interface Check {
   req?: ReqSchema
-  status: number
+  status: StatusCode
 }
 
 function resBody(res: Response): Promise<object | FormData | string | Blob> {
