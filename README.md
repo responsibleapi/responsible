@@ -1,6 +1,6 @@
 # ResponsibleAPI
 
-A small language that compiles to [OpenAPI](https://www.openapis.org) 3.1.0.
+A small language that compiles to OpenAPI 3.1.0.
 
 ## Language
 
