@@ -1,5 +1,5 @@
 import type { Ajv } from "ajv"
-import type { Hono } from "hono"
+import type { Env, Hono } from "hono"
 import type { StatusCode } from "hono/utils/http-status"
 import type { oas31 } from "openapi3-ts"
 import {
@@ -105,14 +105,14 @@ const inMemRes = (res: Response, body: unknown): ResBuf => ({
   },
 })
 
-export class Responsible<OpID extends string> {
+export class Responsible<OpID extends string, AppEnv extends Env> {
   private readonly ops: Readonly<Record<OpID, FullOperation>>
   private readonly refs: JsonResolver<oas31.OpenAPIObject>
   private readonly ajv: Ajv
 
   constructor(
     doc: Readonly<oas31.OpenAPIObject>,
-    private readonly app: Hono,
+    private readonly app: Hono<AppEnv>,
   ) {
     this.ops = operationLookup(doc.paths ?? {}).ops
     this.refs = new JsonResolver(doc)

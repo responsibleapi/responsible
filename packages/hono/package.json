@@ -1,6 +1,6 @@
 {
   "name": "@responsibleapi/hono",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "OpenAPI router and testing helpers for Hono",
   "license": "MIT",
   "type": "module",
