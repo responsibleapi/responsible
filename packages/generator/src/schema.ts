@@ -1,4 +1,4 @@
-import type kdljs from "kdljs"
+import type * as kdljs from "kdljs"
 import type { oas31 } from "openapi3-ts"
 import { removeAbsent } from "./typescript"
 

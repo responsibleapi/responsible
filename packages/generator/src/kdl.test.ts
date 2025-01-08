@@ -1,6 +1,6 @@
 import { Validator } from "@seriousme/openapi-schema-validator"
 import { readdir, readFile } from "fs/promises"
-import { parse } from "kdljs"
+import * as kdljs from "kdljs"
 import * as path from "node:path"
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
@@ -12,25 +12,19 @@ const openApiValidator = new Validator()
 export const toValidOpenAPI = async (
   kdlStr: string,
 ): Promise<oas31.OpenAPIObject> => {
-  const kdl = parse(kdlStr)
-  expect(
-    kdl.errors,
-    `${JSON.stringify(kdl.errors, null, 2)}:
-    ${kdlStr}`,
-  ).toEqual([])
+  const kdl = kdljs.parse(kdlStr)
+  expect(kdl.errors).toEqual([])
 
   const doc = toOpenAPI(kdl.output!)
+
   const vld = await openApiValidator.validate(doc)
-  expect(
-    vld.valid,
-    `${JSON.stringify(vld.errors, null, 2)}:
-     ${JSON.stringify(doc, null, 2)}`,
-  ).toEqual(true)
+  expect(vld.valid, JSON.stringify(vld.errors, null, 2)).toEqual(true)
 
   return doc
 }
 
-export const kdl = (strings: TemplateStringsArray) => parse(strings.join(""))
+export const kdl = (strings: TemplateStringsArray) =>
+  kdljs.parse(strings.join(""))
 
 describe("kdl", () => {
   const EXAMPLES_DIR = "../../examples/"

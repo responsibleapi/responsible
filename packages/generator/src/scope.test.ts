@@ -3,6 +3,28 @@ import { describe, expect, test } from "vitest"
 import { toValidOpenAPI } from "./kdl.test"
 
 describe("scope", () => {
+  test("type inside scope", async () => {
+    const doc = await toValidOpenAPI(`
+scope "/forms" {
+  type "FormID" "string" minLength=1
+  GET "/:id(FormID)" {}
+}
+`)
+
+    expect(doc.paths?.["/forms/{id}"].get).toEqual({
+      parameters: [
+        {
+          name: "id",
+          in: "path",
+          required: true,
+          schema: {
+            $ref: "#/components/schemas/FormID",
+          },
+        },
+      ],
+    } satisfies oas31.OperationObject)
+  })
+
   test("* is applied", async () => {
     const doc = await toValidOpenAPI(`
 * {

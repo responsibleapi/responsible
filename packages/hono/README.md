@@ -1,16 +1,18 @@
-# OpenAPI tooling for [Hono](https://hono.dev)
-
-```sh
-brew install openapi-generator bun
-```
-
-TODO: describe generating handler types from OpenAPI
+# OpenAPI request and response validators for [Hono](https://hono.dev)
 
 ![Responsible Hono version](https://img.shields.io/npm/v/@responsibleapi/hono)
 
 ```sh
 bun install @responsibleapi/hono
 ```
+
+## Validate requests
+
+```sh
+brew install openapi-generator
+```
+
+TODO: describe generating handler types from OpenAPI
 
 ```typescript
 import { type Env, Hono, type MiddlewareHandler } from "hono"
@@ -32,3 +34,5 @@ new Hono().route(
   }),
 )
 ```
+
+## Validate responses

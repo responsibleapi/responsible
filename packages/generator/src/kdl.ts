@@ -1,5 +1,5 @@
 import deepmerge from "deepmerge"
-import type kdl from "kdljs"
+import type * as k from "kdljs"
 import type { oas31 } from "openapi3-ts"
 import { parseOps } from "./operation"
 import {
@@ -34,13 +34,13 @@ const isStatusCode = (code: number): boolean =>
 export const isStatusCodeStr = (x: unknown): x is StatusCodeStr =>
   typeof x === "string" && isStatusCode(Number(x))
 
-export const getString = (node: kdl.Node, idx: number): string => {
+export const getString = (node: k.Node, idx: number): string => {
   const v = node.values[idx]
   if (typeof v !== "string") throw new Error(JSON.stringify({ node, idx }))
   return v
 }
 
-const toJSObj = <T>(n: kdl.Node, keys?: Set<keyof T>): T =>
+const toJSObj = <T>(n: k.Node, keys?: Set<keyof T>): T =>
   Object.fromEntries(
     n.children.map(c => {
       const k = c.name as keyof T
@@ -52,7 +52,7 @@ const toJSObj = <T>(n: kdl.Node, keys?: Set<keyof T>): T =>
     }),
   ) as T
 
-const toInfo = (node: kdl.Node): oas31.InfoObject =>
+const toInfo = (node: k.Node): oas31.InfoObject =>
   toJSObj(
     node,
     new Set([
@@ -73,9 +73,9 @@ interface TopLevel {
   servers?: Array<oas31.ServerObject>
 }
 
-type Handlers = Partial<Record<string, (node: kdl.Node) => void>>
+type Handlers = Partial<Record<string, (node: k.Node) => void>>
 
-const topLevel = (doc: kdl.Document): Readonly<TopLevel> => {
+const topLevel = (doc: k.Document): Readonly<TopLevel> => {
   let info: oas31.InfoObject | undefined
   let servers: oas31.ServerObject[] | undefined
 
@@ -114,7 +114,7 @@ interface V3_1HeaderObject extends Omit<oas31.HeaderObject, "schema"> {
 export const parseParam = (
   paramIn: "header" | "cookie" | "query",
   name: string,
-  n: kdl.Node,
+  n: k.Node,
 ): V3_1ParameterObject => ({
   name,
   in: paramIn,
@@ -122,15 +122,15 @@ export const parseParam = (
   schema: parseSchemaOrRef(n),
 })
 
-export const parseHeader = (n: kdl.Node): V3_1HeaderObject => ({
+export const parseHeader = (n: k.Node): V3_1HeaderObject => ({
   required: isRequired(n),
   schema: parseSchemaOrRef(n),
 })
 
 export const mkNode = (
   name: string,
-  children?: kdl.Node[],
-): Readonly<kdl.Node> => ({
+  children?: k.Node[],
+): Readonly<k.Node> => ({
   name,
   values: [],
   properties: {},
@@ -201,7 +201,7 @@ const enterScope = ({
   path,
   parentScope,
 }: {
-  kdlScope: kdl.Node
+  kdlScope: k.Node
   path: TypedPath
   parentScope: ResponsibleScope
 }): FishedScope => {
@@ -317,7 +317,7 @@ const enterScope = ({
 /**
  * TODO return errors
  */
-export const toOpenAPI = (doc: kdl.Document): oas31.OpenAPIObject => {
+export const toOpenAPI = (doc: k.Document): oas31.OpenAPIObject => {
   const { info, servers } = topLevel(doc)
 
   const { schemas, paths, securitySchemes } = enterScope({
