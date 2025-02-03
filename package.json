@@ -4,9 +4,6 @@
   "workspaces": [
     "packages/*"
   ],
-  "scripts": {
-    "deps": "npm-check-updates --workspaces --root --interactive --install always"
-  },
   "devDependencies": {
     "@bgotink/prettier-plugin-kdl": "^0.2.0-next.0",
     "@typescript-eslint/eslint-plugin": "^8.19.1",

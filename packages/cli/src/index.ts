@@ -30,20 +30,14 @@ const program = new Command(packageJSON.name)
   .description(packageJSON.description)
   .version(packageJSON.version)
   .helpCommand(true)
-  .argument("file", "Responsible .kdl file", x =>
-    x.endsWith(".kdl") ? x : undefined,
-  )
-  .option("-o, --output <*.json>", "Output OpenAPI .json file", (x?: string) =>
-    x?.endsWith(".json") ? x : undefined,
-  )
+  .argument("file", "Responsible .kdl file")
+  .option("-o, --output <file>", "Output OpenAPI .json file")
   .option("-w, --watch", "Watch for changes", false)
   .action(
     async (
       file: string,
       { watch, output }: { watch: boolean; output?: string },
     ) => {
-      console.log(file, watch, output)
-
       if (watch) {
         if (!output) return die("Must specify --output when using --watch")
 
