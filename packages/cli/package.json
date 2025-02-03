@@ -1,6 +1,6 @@
 {
   "name": "@responsibleapi/cli",
-  "version": "0.4.1",
+  "version": "0.4.6",
   "description": "Compiles responsibleapi .kdl files to openapi.json",
   "license": "MIT",
   "type": "module",
@@ -12,8 +12,7 @@
     "dist"
   ],
   "dependencies": {
-    "arg": "^5.0.2",
-    "chokidar": "^4.0.1",
+    "commander": "^13.1.0",
     "deepmerge": "^4.3.1",
     "kdljs": "~0.2.0"
   }

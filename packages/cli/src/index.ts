@@ -1,7 +1,6 @@
-import arg from "arg"
-import { watch } from "chokidar"
-import { readFile, writeFile } from "fs/promises"
+import { Command } from "commander"
 import { parse as parseKDL } from "kdljs"
+import * as fs from "node:fs/promises"
 import { toOpenAPI } from "../../generator/src/kdl"
 import { version } from "../package.json"
 
@@ -15,70 +14,59 @@ const onKdlChange =
   async (kdlPath: string): Promise<void> => {
     console.time(`writing ${jsonPath}`)
 
-    const doc = parseKDL(await readFile(kdlPath, "utf8"))
+    const doc = parseKDL(await fs.readFile(kdlPath, "utf8"))
     if (doc.output) {
-      await writeFile(jsonPath, JSON.stringify(toOpenAPI(doc.output), null, 2))
+      await fs.writeFile(
+        jsonPath,
+        JSON.stringify(toOpenAPI(doc.output), null, 2),
+      )
       console.timeEnd(`writing ${jsonPath}`)
     } else {
       console.error(JSON.stringify(doc.errors, null, 2))
     }
   }
 
-const args = arg({
-  "--help": Boolean,
-  "--output": String,
-  "--version": Boolean,
-  "--watch": Boolean,
+const program = new Command("responsible")
+  .description("Converts Responsible .kdl files to OpenAPI .json")
+  .version(version)
+  .helpCommand(true)
+  .argument("file", "Responsible .kdl file", x =>
+    x.endsWith(".kdl") ? x : undefined,
+  )
+  .option("-o, --output <*.json>", "Output OpenAPI .json file", (x?: string) =>
+    x?.endsWith(".json") ? x : undefined,
+  )
+  .option("-w, --watch", "Watch for changes", false)
+  .action(
+    async (
+      file: string,
+      { watch, output }: { watch: boolean; output?: string },
+    ) => {
+      console.log(file, watch, output)
 
-  "-h": "--help",
-  "-o": "--output",
-  "-v": "--version",
-  "-w": "--watch",
-})
+      if (watch) {
+        if (!output) return die("Must specify --output when using --watch")
 
-const help = `
-Usage: responsible [file]
+        for await (const { filename, eventType } of fs.watch(file)) {
+          if (!filename?.endsWith(".kdl")) continue
+          console.log(eventType, filename)
+          await onKdlChange(output)(file)
+        }
+        return
+      }
 
-Options:
-  -h, --help      Show this help
-  -o, --output    Output file
-  -v, --version   Show version
-  -w, --watch     Watch for changes. Requires --output
-`
+      const doc = parseKDL(await fs.readFile(file, "utf8"))
+      if (!doc.output) {
+        return die(`kdl parse errors: ${JSON.stringify(doc.errors, null, 2)}`)
+      }
 
-export async function main(): Promise<void> {
-  if (args["--version"]) {
-    console.log(version)
-    return
-  }
+      const json = JSON.stringify(toOpenAPI(doc.output), null, 2)
+      if (output) {
+        await fs.writeFile(output, json)
+      } else {
+        console.log(json)
+      }
+    },
+  )
 
-  if (args["--help"]) {
-    console.log(help)
-    return
-  }
-
-  const file = args._[0]
-  if (!file) return die("Specify a .kdl file")
-  if (!file.endsWith(".kdl")) return die(`expected .kdl file, got ${file}`)
-
-  const out = args["--output"]
-  if (args["--watch"]) {
-    if (!out) return die("Must specify --output with --watch")
-
-    await onKdlChange(out)(file)
-    watch(file).on("change", onKdlChange(out))
-    return
-  }
-
-  const doc = parseKDL(await readFile(file, "utf8"))
-  if (!doc.output) {
-    return die(`kdl parse errors: ${JSON.stringify(doc.errors, null, 2)}`)
-  }
-
-  const json = JSON.stringify(toOpenAPI(doc.output), null, 2)
-  if (out) {
-    await writeFile(out, json)
-  } else {
-    console.log(json)
-  }
-}
+export const main = (): Promise<Command> => program.parseAsync()
