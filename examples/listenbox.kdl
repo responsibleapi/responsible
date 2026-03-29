@@ -359,6 +359,7 @@ scope "/japi" {
 
         res {
             "201" {
+            // wtf is this
                 (?)header "Content-Length" "int32" minimum=0 maximum=0
             }
         }
@@ -417,7 +418,7 @@ scope "/japi" {
                 }
             }
 
-            GET "/:email(email)/shows" {
+            GET "/:email(email)/shows" deprecated=true {
                 name "showsByEmail"
 
                 res {
