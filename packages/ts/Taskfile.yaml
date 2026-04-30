@@ -1,0 +1,66 @@
+version: "3"
+
+tasks:
+  reindex:
+    cmd: uvx code-review-graph build
+    sources:
+      - "src/**/*"
+      - "scripts/**/*.ts"
+
+  check:
+    desc: Run publish-safe repo validation
+    cmd: bun check
+    sources:
+      - "src/**/*.ts"
+      - "scripts/**/*.ts"
+      - "package.json"
+      - "tsconfig.json"
+      - "tsconfig.build.json"
+      - ".oxfmtrc.jsonc"
+      - "oxlint.config.ts"
+      - "bunfig.toml"
+
+  fmt:
+    cmd: bun run fmt
+    sources:
+      - "src/**/*.ts"
+      - "scripts/**/*.ts"
+      - ".oxfmtrc.jsonc"
+
+  fmt:check:
+    cmd: bun run fmt:check
+    sources:
+      - "src/**/*.ts"
+      - "scripts/**/*.ts"
+      - ".oxfmtrc.jsonc"
+
+  build:
+    desc: Emit publish artifacts into dist/
+    deps: [check]
+    cmd: bun run build
+    sources:
+      - "src/**/*.ts"
+      - "scripts/**/*.ts"
+      - "package.json"
+      - "tsconfig.json"
+      - "tsconfig.build.json"
+      - ".oxfmtrc.jsonc"
+      - "oxlint.config.ts"
+      - "bunfig.toml"
+    generates:
+      - "dist/**/*"
+
+  publish:dry-run:
+    desc: Build and inspect publish payload
+    deps: [build]
+    cmd: bun publish --dry-run --access public
+
+  publish:
+    desc: Publish current version to npm latest
+    deps: [build]
+    vars:
+      PACKAGE_VERSION:
+        sh: jq -r .version package.json
+    cmds:
+      - bun publish --access public
+      - git tag -a "ts-v{{.PACKAGE_VERSION}}" -m "ts-v{{.PACKAGE_VERSION}}"

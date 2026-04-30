@@ -27,7 +27,7 @@ export const kdl = (strings: TemplateStringsArray) =>
   kdljs.parse(strings.join(""))
 
 describe("kdl", () => {
-  const EXAMPLES_DIR = "../../examples/"
+  const EXAMPLES_DIR = "../cli/examples/"
 
   test("array", async () => {
     const openapi = await toValidOpenAPI(`

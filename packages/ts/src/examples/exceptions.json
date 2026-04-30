@@ -1,0 +1,189 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Exceptions API",
+    "version": "1",
+    "description": "Sentry.io clone"
+  },
+  "paths": {
+    "/app_errors/{appID}": {
+      "parameters": [
+        {
+          "name": "appID",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/AppID"
+          }
+        }
+      ],
+      "post": {
+        "operationId": "newError",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewErr"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "201"
+          },
+          "400": {
+            "description": "400"
+          }
+        }
+      },
+      "get": {
+        "operationId": "appErrors",
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OneErr"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400"
+          }
+        }
+      }
+    },
+    "/errors/{errID}": {
+      "get": {
+        "operationId": "errorOccurrences",
+        "parameters": [
+          {
+            "name": "errID",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ErrID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "200",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrLog"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AppID": {
+        "type": "string",
+        "examples": ["app_123"],
+        "pattern": "^app_\\w+$"
+      },
+      "ErrID": {
+        "type": "string",
+        "examples": ["err_123"],
+        "pattern": "^err_\\w+$"
+      },
+      "NonEmptyStr": {
+        "type": "string",
+        "minLength": 1
+      },
+      "NewErr": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "stack": {
+                "$ref": "#/components/schemas/NonEmptyStr"
+              },
+              "message": {
+                "$ref": "#/components/schemas/NonEmptyStr"
+              }
+            },
+            "required": ["stack", "message"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "stack": {
+                "$ref": "#/components/schemas/NonEmptyStr"
+              }
+            },
+            "required": ["stack"]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "message": {
+                "$ref": "#/components/schemas/NonEmptyStr"
+              }
+            },
+            "required": ["message"]
+          }
+        ]
+      },
+      "UnixMillis": {
+        "description": "UNIX epoch milliseconds",
+        "type": "integer",
+        "format": "int64",
+        "examples": [1739982555384]
+      },
+      "OneErr": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/ErrID"
+          },
+          "stack": {
+            "$ref": "#/components/schemas/NonEmptyStr"
+          },
+          "message": {
+            "$ref": "#/components/schemas/NonEmptyStr"
+          },
+          "resolvedAt": {
+            "$ref": "#/components/schemas/UnixMillis"
+          }
+        },
+        "required": ["id"]
+      },
+      "ErrLog": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "errID": {
+            "$ref": "#/components/schemas/ErrID"
+          },
+          "ts": {
+            "$ref": "#/components/schemas/UnixMillis"
+          }
+        },
+        "required": ["id", "errID", "ts"]
+      }
+    }
+  }
+}

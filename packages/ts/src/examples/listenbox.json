@@ -1,0 +1,3342 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Listenbox",
+    "version": "0.1",
+    "termsOfService": "https://listenbox.app/terms"
+  },
+  "servers": [
+    {
+      "url": "https://api.listenbox.app"
+    },
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "components": {
+    "schemas": {
+      "FeedID": {
+        "minLength": 11,
+        "maxLength": 11,
+        "type": "string"
+      },
+      "ItemID": {
+        "minLength": 11,
+        "maxLength": 11,
+        "type": "string"
+      },
+      "ShowID": {
+        "minLength": 11,
+        "maxLength": 12,
+        "type": "string"
+      },
+      "StripeCheckoutID": {
+        "minLength": 1,
+        "type": "string"
+      },
+      "SubmitReq": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          }
+        },
+        "required": ["url"]
+      },
+      "UrlResp": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          }
+        },
+        "required": ["url"]
+      },
+      "Plan": {
+        "type": "string",
+        "enum": ["free", "basic", "creator"]
+      },
+      "UserResp": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/Plan"
+          },
+          "trialed": {
+            "type": "boolean"
+          },
+          "updates": {
+            "type": "boolean"
+          }
+        },
+        "required": ["email", "plan", "trialed", "updates"]
+      },
+      "RecentResp": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "$ref": "#/components/schemas/ShowID"
+                },
+                "feed_id": {
+                  "$ref": "#/components/schemas/FeedID"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "episodes": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 0
+                },
+                "image": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https?:\\/\\/\\S+$"
+                },
+                "refreshed_utc": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "author": {
+                  "type": "string"
+                },
+                "owner": {
+                  "type": "string"
+                }
+              },
+              "required": ["id", "feed_id", "title", "episodes"]
+            }
+          },
+          "plan": {
+            "$ref": "#/components/schemas/Plan"
+          }
+        },
+        "required": ["list", "plan"]
+      },
+      "ErrorStruct": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "message": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "causeType": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "causeMessage": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": ["type", "message"]
+      },
+      "ITunesCategory": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "subcategory": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": ["category"]
+      },
+      "YouTubeFeedType": {
+        "type": "string",
+        "enum": ["video", "playlist", "channel"]
+      },
+      "Show": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/ShowID"
+          },
+          "feed_id": {
+            "$ref": "#/components/schemas/FeedID"
+          },
+          "audioFeedURL": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "description": {
+            "type": "string"
+          },
+          "episodes": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          },
+          "language": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "type": {
+            "$ref": "#/components/schemas/YouTubeFeedType"
+          },
+          "videoFeedURL": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "youtubeURL": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "analyticsPrefix": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "author": {
+            "type": "string"
+          },
+          "copyright": {
+            "type": "string"
+          },
+          "explicit": {
+            "type": "boolean"
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "keywords": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "primaryCategory": {
+            "$ref": "#/components/schemas/ITunesCategory"
+          },
+          "secondaryCategory": {
+            "$ref": "#/components/schemas/ITunesCategory"
+          },
+          "refreshedUTC": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "reverse": {
+            "type": "boolean"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          }
+        },
+        "required": [
+          "id",
+          "feed_id",
+          "audioFeedURL",
+          "description",
+          "episodes",
+          "language",
+          "title",
+          "videoFeedURL",
+          "youtubeURL"
+        ]
+      },
+      "Show2": {
+        "type": "object",
+        "properties": {
+          "show": {
+            "$ref": "#/components/schemas/Show"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonItem"
+            }
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResp"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationResp"
+          }
+        },
+        "required": ["show", "items", "pagination"]
+      },
+      "EditShowReq": {
+        "type": "object",
+        "properties": {
+          "explicit": {
+            "type": "boolean"
+          },
+          "language": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "ownerEmail": {
+            "type": "string",
+            "format": "email"
+          },
+          "analyticsPrefix": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "author": {
+            "type": "string"
+          },
+          "category1": {
+            "type": "string"
+          },
+          "category2": {
+            "type": "string"
+          },
+          "copyright": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "keywords": {
+            "type": "string"
+          },
+          "subcategory1": {
+            "type": "string"
+          },
+          "subcategory2": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          }
+        },
+        "required": ["explicit", "language", "owner", "ownerEmail"]
+      },
+      "JsonItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/ItemID"
+          },
+          "title": {
+            "type": "string"
+          },
+          "webpage_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "pub_date_utc": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "audio_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "mime": {
+            "type": "string",
+            "pattern": "^[a-z]+/.+$"
+          },
+          "duration_seconds": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "image": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "author": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "webpage_url",
+          "pub_date_utc",
+          "audio_url",
+          "mime"
+        ]
+      },
+      "PaginationResp": {
+        "type": "object",
+        "properties": {
+          "hasBefore": {
+            "deprecated": true,
+            "description": "newBefore is enough",
+            "type": "boolean"
+          },
+          "hasAfter": {
+            "deprecated": true,
+            "description": "newAfter is enough",
+            "type": "boolean"
+          },
+          "newBefore": {
+            "$ref": "#/components/schemas/ItemID"
+          },
+          "newAfter": {
+            "$ref": "#/components/schemas/ItemID"
+          }
+        }
+      },
+      "ItemsResp": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonItem"
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 0
+          }
+        },
+        "required": ["items", "total"]
+      },
+      "ItemsResp2": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonItem"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/PaginationResp"
+          }
+        },
+        "required": ["items", "pagination"]
+      },
+      "PreSignedUploadURL": {
+        "type": "object",
+        "properties": {
+          "fileUrl": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "uploadUrl": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "headers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["fileUrl", "uploadUrl", "headers"]
+      },
+      "DownloadsChart": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "minItems": 0,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "day": {
+                  "type": "integer",
+                  "format": "int64"
+                },
+                "downloads": {
+                  "type": "integer",
+                  "format": "int32",
+                  "minimum": 0
+                }
+              },
+              "required": ["day", "downloads"]
+            }
+          },
+          "total": {
+            "type": "integer",
+            "format": "int64",
+            "minimum": 0
+          }
+        },
+        "required": ["list", "total"]
+      },
+      "ReverseReq": {
+        "type": "object",
+        "properties": {
+          "showID": {
+            "$ref": "#/components/schemas/ShowID"
+          },
+          "value": {
+            "type": "boolean"
+          }
+        },
+        "required": ["showID", "value"]
+      },
+      "ReverseResp": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "boolean"
+          }
+        },
+        "required": ["value"]
+      },
+      "LoginReq": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "host": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "required": ["email", "host"]
+      },
+      "WorkerEvent": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?:\\/\\/\\S+$"
+          },
+          "headers": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "timestamp": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "required": ["url", "headers", "timestamp"]
+      },
+      "PlanInterval": {
+        "type": "string",
+        "enum": ["month", "year"]
+      },
+      "AudioVideo": {
+        "type": "string",
+        "enum": ["audio", "video"]
+      },
+      "NonEmptyString": {
+        "minLength": 1,
+        "type": "string"
+      }
+    },
+    "securitySchemes": {
+      "AuthorizationHeader": {
+        "type": "apiKey",
+        "name": "authorization",
+        "in": "header"
+      }
+    }
+  },
+  "paths": {
+    "/api/health": {
+      "get": {
+        "operationId": "getHealth",
+        "responses": {
+          "200": {
+            "description": "200"
+          }
+        }
+      },
+      "head": {
+        "operationId": "headHealth",
+        "responses": {
+          "200": {
+            "description": "200"
+          }
+        }
+      }
+    },
+    "/status/info": {
+      "head": {
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?:\\/\\/\\S+$"
+            }
+          }
+        ],
+        "operationId": "infoStatus",
+        "responses": {
+          "200": {
+            "description": "200"
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500"
+          }
+        }
+      }
+    },
+    "/status/download": {
+      "head": {
+        "parameters": [
+          {
+            "name": "url",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?:\\/\\/\\S+$"
+            }
+          }
+        ],
+        "operationId": "downloadStatus",
+        "responses": {
+          "200": {
+            "description": "200"
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "500"
+          }
+        }
+      }
+    },
+    "/japi/login": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "operationId": "requestOtp",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "login": {
+                      "type": "string",
+                      "enum": ["NEW", "EXISTING"]
+                    }
+                  },
+                  "required": ["login"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/otp": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "otp": {
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "updates": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["email", "otp"]
+              }
+            }
+          },
+          "required": true
+        },
+        "operationId": "submitOtp",
+        "responses": {
+          "201": {
+            "description": "201",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jwt": {
+                      "minLength": 1,
+                      "type": "string"
+                    }
+                  },
+                  "required": ["jwt"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Incorrect OTP"
+          }
+        }
+      }
+    },
+    "/japi/submit": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "security": [
+          {
+            "AuthorizationHeader": []
+          },
+          {}
+        ],
+        "operationId": "submitUrl",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "showID": {
+                      "$ref": "#/components/schemas/ShowID"
+                    },
+                    "plan": {
+                      "$ref": "#/components/schemas/Plan"
+                    }
+                  },
+                  "required": ["showID"]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Submitting playlists requires a login"
+          },
+          "403": {
+            "description": "403"
+          },
+          "404": {
+            "description": "404"
+          }
+        }
+      }
+    },
+    "/japi/show/{show_id}": {
+      "get": {
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ShowID"
+            }
+          }
+        ],
+        "operationId": "getShow",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Show"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404"
+          }
+        }
+      }
+    },
+    "/japi/show/{show_id}/v2": {
+      "get": {
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ShowID"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID"
+            }
+          }
+        ],
+        "security": [
+          {
+            "AuthorizationHeader": []
+          },
+          {}
+        ],
+        "operationId": "getShow2",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Show2"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404"
+          }
+        }
+      }
+    },
+    "/japi/show/{show_id}/items2": {
+      "get": {
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ShowID"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID"
+            }
+          }
+        ],
+        "operationId": "getItems2",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemsResp2"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404"
+          }
+        }
+      }
+    },
+    "/japi/show/{show_id}/items": {
+      "get": {
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ShowID"
+            }
+          },
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "operationId": "getItems",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ItemsResp"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404"
+          }
+        }
+      }
+    },
+    "/japi/cdn_log": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkerEvent"
+              }
+            },
+            "text/plain": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkerEvent"
+              }
+            }
+          },
+          "required": true
+        },
+        "operationId": "logCDN",
+        "responses": {
+          "201": {
+            "description": "201",
+            "headers": {
+              "content-length": {
+                "required": false,
+                "schema": {
+                  "minimum": 0,
+                  "type": "integer",
+                  "format": "int32",
+                  "maximum": 0
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/japi/auth/unsubscribe": {
+      "post": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "required": ["email"]
+              }
+            }
+          },
+          "required": true
+        },
+        "operationId": "unsubscribe",
+        "description": "Unsubscribe the email from product updates",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          }
+        }
+      }
+    },
+    "/japi/auth/user": {
+      "get": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "operationId": "getUser",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResp"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "updates": {
+                    "type": "boolean"
+                  }
+                },
+                "required": ["updates"]
+              }
+            }
+          },
+          "required": true
+        },
+        "operationId": "patchUser",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResp"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "operationId": "deleteUser",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          }
+        }
+      }
+    },
+    "/japi/auth/user/{email}/shows": {
+      "get": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "email"
+            }
+          }
+        ],
+        "operationId": "showsByEmail",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "$ref": "#/components/schemas/ShowID"
+                      },
+                      "title": {
+                        "minLength": 1,
+                        "type": "string"
+                      }
+                    },
+                    "required": ["id", "title"]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          }
+        }
+      }
+    },
+    "/japi/auth/recent": {
+      "get": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "operationId": "recentFeeds",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecentResp"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          }
+        }
+      }
+    },
+    "/japi/auth/checkout": {
+      "post": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plan": {
+                    "$ref": "#/components/schemas/Plan"
+                  },
+                  "interval": {
+                    "$ref": "#/components/schemas/PlanInterval"
+                  },
+                  "success_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/\\S+$"
+                  },
+                  "cancel_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/\\S+$"
+                  }
+                },
+                "required": ["plan", "interval", "success_url", "cancel_url"]
+              }
+            }
+          },
+          "required": true
+        },
+        "operationId": "stripeCheckout",
+        "description": "Redirect to the checkout page or to billing if already subscribed",
+        "responses": {
+          "201": {
+            "description": "201",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UrlResp"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          }
+        }
+      }
+    },
+    "/japi/auth/billing": {
+      "post": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "return_url": {
+                    "type": "string",
+                    "format": "uri",
+                    "pattern": "^https?:\\/\\/\\S+$"
+                  }
+                },
+                "required": ["return_url"]
+              }
+            }
+          },
+          "required": true
+        },
+        "operationId": "stripeBilling",
+        "responses": {
+          "201": {
+            "description": "201",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UrlResp"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          }
+        }
+      }
+    },
+    "/japi/auth/show/{show_id}": {
+      "put": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ShowID"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditShowReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "operationId": "editShow",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Show"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          },
+          "403": {
+            "description": "403"
+          },
+          "404": {
+            "description": "404"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ShowID"
+            }
+          }
+        ],
+        "operationId": "deleteFeed",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          },
+          "403": {
+            "description": "403"
+          },
+          "404": {
+            "description": "404"
+          }
+        }
+      }
+    },
+    "/japi/auth/show/{show_id}/downloads": {
+      "get": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ShowID"
+            }
+          },
+          {
+            "name": "timezone",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "operationId": "getDownloads",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DownloadsChart"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          },
+          "403": {
+            "description": "403"
+          },
+          "404": {
+            "description": "404"
+          }
+        }
+      }
+    },
+    "/japi/auth/show/{show_id}/episode_downloads": {
+      "get": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ShowID"
+            }
+          }
+        ],
+        "operationId": "episodeDownloads",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "url": {
+                        "type": "string",
+                        "format": "uri",
+                        "pattern": "^https?:\\/\\/\\S+$"
+                      },
+                      "downloads": {
+                        "type": "integer",
+                        "format": "int32",
+                        "minimum": 0
+                      }
+                    },
+                    "required": ["title", "url", "downloads"]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          },
+          "403": {
+            "description": "403"
+          },
+          "404": {
+            "description": "404"
+          }
+        }
+      }
+    },
+    "/japi/auth/later": {
+      "get": {
+        "deprecated": true,
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "operationId": "getLater",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Show"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          }
+        }
+      },
+      "post": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubmitReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "operationId": "submitLater",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Show"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          },
+          "402": {
+            "description": "402"
+          },
+          "403": {
+            "description": "403"
+          }
+        }
+      }
+    },
+    "/japi/auth/later/v2/v2": {
+      "get": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "before",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID"
+            }
+          }
+        ],
+        "operationId": "getLater2",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Show2"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          }
+        }
+      }
+    },
+    "/japi/auth/later/{item_id}": {
+      "post": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID"
+            }
+          }
+        ],
+        "operationId": "addLater",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          },
+          "402": {
+            "description": "402"
+          }
+        }
+      },
+      "delete": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID"
+            }
+          }
+        ],
+        "operationId": "removeLater",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          }
+        }
+      }
+    },
+    "/japi/auth/s3_presign_image": {
+      "get": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "filename",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "operationId": "preSignedImageUploadURL",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PreSignedUploadURL"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          },
+          "402": {
+            "description": "402"
+          }
+        }
+      }
+    },
+    "/japi/auth/reverse": {
+      "post": {
+        "security": [
+          {
+            "AuthorizationHeader": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReverseReq"
+              }
+            }
+          },
+          "required": true
+        },
+        "operationId": "reversePlaylist",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReverseResp"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "401"
+          },
+          "403": {
+            "description": "403"
+          }
+        }
+      }
+    },
+    "/oauth/google": {
+      "get": {
+        "operationId": "googleSlash",
+        "responses": {
+          "302": {
+            "description": "302",
+            "headers": {
+              "location": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https?:\\/\\/\\S+$"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oauth/google/callback": {
+      "get": {
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "operationId": "googleCallback",
+        "responses": {
+          "302": {
+            "description": "302",
+            "headers": {
+              "location": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https?:\\/\\/\\S+$"
+                }
+              },
+              "set-cookie": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "pattern": "token=[^;]+"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rss/{show_id}/{type}.rss": {
+      "get": {
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ShowID"
+            }
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AudioVideo"
+            }
+          }
+        ],
+        "operationId": "getRss",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "etag": {
+                "required": true,
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "cache-control": {
+                "required": true,
+                "schema": {
+                  "const": "no-cache",
+                  "type": "string"
+                }
+              },
+              "cdn-cache-control": {
+                "required": true,
+                "schema": {
+                  "const": "max-age=2147483647",
+                  "type": "string"
+                }
+              },
+              "last-modified": {
+                "required": false,
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/rss+xml": {
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "302",
+            "headers": {
+              "location": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https?:\\/\\/\\S+$"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403"
+          },
+          "404": {
+            "description": "404"
+          }
+        }
+      },
+      "head": {
+        "parameters": [
+          {
+            "name": "show_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ShowID"
+            }
+          },
+          {
+            "name": "type",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/AudioVideo"
+            }
+          }
+        ],
+        "operationId": "headRss",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              },
+              "etag": {
+                "required": true,
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "cache-control": {
+                "required": true,
+                "schema": {
+                  "const": "no-cache",
+                  "type": "string"
+                }
+              },
+              "cdn-cache-control": {
+                "required": true,
+                "schema": {
+                  "const": "max-age=2147483647",
+                  "type": "string"
+                }
+              },
+              "last-modified": {
+                "required": false,
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "302": {
+            "description": "302",
+            "headers": {
+              "location": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https?:\\/\\/\\S+$"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "403"
+          },
+          "404": {
+            "description": "404"
+          }
+        }
+      }
+    },
+    "/a/{item_id}.{ext}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID"
+            }
+          },
+          {
+            "name": "ext",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/NonEmptyString"
+            }
+          },
+          {
+            "name": "cf-connecting-ip",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "operationId": "getAudio",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "cache-control": {
+                "required": true,
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "audio/*": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404"
+          },
+          "429": {
+            "description": "429"
+          },
+          "503": {
+            "description": "503"
+          }
+        }
+      },
+      "head": {
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID"
+            }
+          },
+          {
+            "name": "ext",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/NonEmptyString"
+            }
+          },
+          {
+            "name": "cf-connecting-ip",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "operationId": "headAudio",
+        "responses": {
+          "200": {
+            "description": "200",
+            "headers": {
+              "cache-control": {
+                "required": true,
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404"
+          },
+          "429": {
+            "description": "429"
+          },
+          "503": {
+            "description": "503"
+          }
+        }
+      }
+    },
+    "/w/{item_id}.{ext}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID"
+            }
+          },
+          {
+            "name": "ext",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/NonEmptyString"
+            }
+          },
+          {
+            "name": "cf-connecting-ip",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "operationId": "getVideo",
+        "responses": {
+          "302": {
+            "description": "302",
+            "headers": {
+              "location": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https?:\\/\\/\\S+$"
+                }
+              },
+              "cache-control": {
+                "required": true,
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404"
+          },
+          "429": {
+            "description": "429"
+          }
+        }
+      },
+      "head": {
+        "parameters": [
+          {
+            "name": "item_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ItemID"
+            }
+          },
+          {
+            "name": "ext",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/NonEmptyString"
+            }
+          },
+          {
+            "name": "cf-connecting-ip",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "operationId": "headVideo",
+        "responses": {
+          "302": {
+            "description": "302",
+            "headers": {
+              "location": {
+                "required": true,
+                "schema": {
+                  "type": "string",
+                  "format": "uri",
+                  "pattern": "^https?:\\/\\/\\S+$"
+                }
+              },
+              "cache-control": {
+                "required": true,
+                "schema": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "404"
+          },
+          "429": {
+            "description": "429"
+          }
+        }
+      }
+    },
+    "/stripe/hooks": {
+      "post": {
+        "parameters": [
+          {
+            "name": "stripe-signature",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "operationId": "stripeWebhook",
+        "responses": {
+          "200": {
+            "description": "200"
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/youtube/hooks": {
+      "get": {
+        "parameters": [
+          {
+            "name": "hub.challenge",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          },
+          {
+            "name": "hub.lease_seconds",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "minimum": 1,
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "operationId": "verifyYouTubeHook",
+        "responses": {
+          "200": {
+            "description": "200"
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "parameters": [
+          {
+            "name": "link",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "*/*": {
+              "schema": {}
+            }
+          },
+          "required": true
+        },
+        "operationId": "postYouTubeHook",
+        "responses": {
+          "200": {
+            "description": "200"
+          },
+          "400": {
+            "description": "400",
+            "headers": {
+              "content-length": {
+                "required": true,
+                "schema": {
+                  "minimum": 1,
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorStruct"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

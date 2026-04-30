@@ -19,7 +19,7 @@ tasks:
       - "*.config.ts"
       - index.html
       - .postcssrc.json
-      - ../bun.lockb
+      - ../../bun.lock
     generates:
       - dist/**/*
 
@@ -28,5 +28,5 @@ tasks:
       - build
     cmd: bun wrangler pages deploy dist/ --commit-dirty=true
     sources:
-      - ../bun.lockb
+      - ../../bun.lock
       - dist/**/*

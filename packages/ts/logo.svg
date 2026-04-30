@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-labelledby="title desc">
+  <title id="title">ResponsibleAPI logo</title>
+  <desc id="desc">Stylized braces around an API document with a check badge.</desc>
+  <rect x="24" y="24" width="208" height="208" rx="48" fill="#0f172a" />
+  <g id="braces" transform="translate(0 -10)">
+    <path
+      d="M76 78c-12 7-18 18-18 31v12c0 10-5 16-14 18 9 2 14 8 14 18v12c0 13 6 24 18 31"
+      fill="none"
+      stroke="#2dd4bf"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="10"
+    />
+    <path
+      d="M180 78c12 7 18 18 18 31v12c0 10 5 16 14 18-9 2-14 8-14 18v12c0 13-6 24-18 31"
+      fill="none"
+      stroke="#2dd4bf"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="10"
+    />
+  </g>
+  <g id="document-check" transform="translate(0 0)">
+    <path d="M96 76h46l22 22v74a8 8 0 0 1-8 8H96a8 8 0 0 1-8-8V84a8 8 0 0 1 8-8Z" fill="#f8fafc" />
+    <path d="M142 76v22h22" fill="#cbd5e1" />
+    <rect x="106" y="110" width="40" height="8" rx="4" fill="#cbd5e1" />
+    <rect x="106" y="126" width="32" height="8" rx="4" fill="#cbd5e1" />
+    <rect x="106" y="142" width="24" height="8" rx="4" fill="#cbd5e1" />
+    <circle cx="152" cy="156" r="24" fill="#14b8a6" />
+    <path
+      d="m141 156 8 8 16-18"
+      fill="none"
+      stroke="#f8fafc"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="8"
+    />
+  </g>
+</svg>

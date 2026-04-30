@@ -3,25 +3,43 @@ version: 3
 includes:
   common:
     taskfile: ../../Taskfile.common.yaml
-    flatten: true
 
 tasks:
+  check:
+    deps:
+      - common:types
+      - common:lint
+
   build:
     cmds:
       - rm -rf dist/
       - bun tsc --p tsconfig.publish.json --outDir dist/
       - find dist/ -type f -name "*.js" -exec perl -pi -e 's/from "(\..+?)"/from "\1.js"/g' {} +
     sources:
-      - ../../bun.lockb
+      - ../../bun.lock
+      - package.json
       - tsconfig*.json
       - src/**/*
     generates:
       - dist/**/*
 
+  publish:dry-run:
+    deps:
+      - build
+    cmd: bun publish --dry-run --access public
+    sources:
+      - dist/**/*
+      - package.json
+
   publish:
     deps:
       - build
-    cmd: bun publish
+    vars:
+      PACKAGE_VERSION:
+        sh: jq -r .version package.json
+    cmds:
+      - bun publish --access public
+      - git tag -a "hono-v{{.PACKAGE_VERSION}}" -m "hono-v{{.PACKAGE_VERSION}}"
     sources:
       - dist/**/*
       - package.json

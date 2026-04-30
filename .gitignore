@@ -7,3 +7,4 @@ dist/
 .npmrc
 .wrangler/
 .task/
+.code-review-graph/

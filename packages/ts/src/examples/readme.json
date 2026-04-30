@@ -1,0 +1,2766 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "description": "Create beautiful product and API documentation with our developer friendly platform.",
+    "version": "2.0.0",
+    "title": "API Endpoints",
+    "contact": {
+      "name": "API Support",
+      "url": "https://docs.readme.com/docs/contact-support",
+      "email": "support@readme.io"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://dash.readme.local:3000/api/v1"
+    }
+  ],
+  "paths": {
+    "/api-registry/{uuid}": {
+      "get": {
+        "operationId": "getAPIRegistry",
+        "summary": "Retrieve an entry from the API Registry",
+        "description": "Get an API definition file that's been uploaded to ReadMe.",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "description": "An API Registry UUID. This can be found by navigating to your API Reference page and viewing code snippets for Node with the `api` library.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved API registry entry.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "$ref": "#/components/responses/error_REGISTRY_NOTFOUND"
+          }
+        },
+        "tags": ["API Registry"]
+      }
+    },
+    "/api-specification": {
+      "get": {
+        "operationId": "getAPISpecification",
+        "summary": "Get metadata",
+        "description": "Get API specification metadata.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved API specification metadata.",
+            "headers": {
+              "Link": {
+                "$ref": "#/components/headers/link"
+              },
+              "x-total-count": {
+                "$ref": "#/components/headers/x-total-count"
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/error_VERSION_EMPTY"
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_VERSION_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["API Specification"]
+      },
+      "post": {
+        "operationId": "uploadAPISpecification",
+        "summary": "Upload specification",
+        "description": "Upload an API specification to ReadMe. Or, to use a newer solution see https://docs.readme.com/docs/automatically-sync-api-specification-with-github.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "spec": {
+                    "description": "OpenAPI/Swagger file. We accept JSON or YAML.",
+                    "type": "string",
+                    "contentMediaType": "application/octet-stream"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The API specification was successfully uploaded."
+          },
+          "400": {
+            "description": "There was a validation error during upload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/error_SPEC_FILE_EMPTY"
+                    },
+                    {
+                      "$ref": "#/components/schemas/error_SPEC_INVALID"
+                    },
+                    {
+                      "$ref": "#/components/schemas/error_SPEC_INVALID_SCHEMA"
+                    },
+                    {
+                      "$ref": "#/components/schemas/error_SPEC_VERSION_NOTFOUND"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "408": {
+            "$ref": "#/components/responses/error_SPEC_TIMEOUT"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["API Specification"]
+      }
+    },
+    "/api-specification/{id}": {
+      "put": {
+        "operationId": "updateAPISpecification",
+        "summary": "Update specification",
+        "description": "Update an API specification in ReadMe.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the API specification. The unique ID for each API can be found by navigating to your **API Definitions** page.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "spec": {
+                    "description": "OpenAPI/Swagger file. We accept JSON or YAML.",
+                    "type": "string",
+                    "contentMediaType": "application/octet-stream"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The API specification was updated."
+          },
+          "400": {
+            "description": "There was a validation error during upload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/error_SPEC_FILE_EMPTY"
+                    },
+                    {
+                      "$ref": "#/components/schemas/error_SPEC_ID_DUPLICATE"
+                    },
+                    {
+                      "$ref": "#/components/schemas/error_SPEC_ID_INVALID"
+                    },
+                    {
+                      "$ref": "#/components/schemas/error_SPEC_INVALID"
+                    },
+                    {
+                      "$ref": "#/components/schemas/error_SPEC_INVALID_SCHEMA"
+                    },
+                    {
+                      "$ref": "#/components/schemas/error_SPEC_VERSION_NOTFOUND"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "description": "There is no API specification with that ID."
+          },
+          "408": {
+            "$ref": "#/components/responses/error_SPEC_TIMEOUT"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["API Specification"]
+      },
+      "delete": {
+        "operationId": "deleteAPISpecification",
+        "summary": "Delete specification",
+        "description": "Delete an API specification in ReadMe.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the API specification. The unique ID for each API can be found by navigating to your **API Definitions** page.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The API specification was deleted."
+          },
+          "400": {
+            "$ref": "#/components/responses/error_SPEC_ID_INVALID"
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_SPEC_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["API Specification"]
+      }
+    },
+    "/apply": {
+      "get": {
+        "operationId": "getOpenRoles",
+        "summary": "Get open roles",
+        "description": "Returns all the roles we're hiring for at ReadMe!",
+        "responses": {
+          "200": {
+            "description": "All the roles that we're hiring for.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/jobOpening"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Apply to ReadMe"]
+      },
+      "post": {
+        "operationId": "applyToReadMe",
+        "summary": "Submit your application!",
+        "description": "This endpoint will let you apply to a job at ReadMe programatically, without having to go through our UI!",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/apply"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "You did it!"
+          }
+        },
+        "tags": ["Apply to ReadMe"]
+      }
+    },
+    "/categories": {
+      "get": {
+        "operationId": "getCategories",
+        "summary": "Get all categories",
+        "description": "Returns all the categories for a specified version.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          },
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of categories.",
+            "headers": {
+              "Link": {
+                "$ref": "#/components/headers/link"
+              },
+              "x-total-count": {
+                "$ref": "#/components/headers/x-total-count"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Categories"]
+      },
+      "post": {
+        "operationId": "createCategory",
+        "summary": "Create category",
+        "description": "Create a new category inside of this project.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "allOf": [
+                  {
+                    "$ref": "#/components/schemas/category"
+                  },
+                  {
+                    "required": ["title"]
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The category has successfully been created."
+          },
+          "400": {
+            "$ref": "#/components/responses/error_CATEGORY_INVALID"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Categories"]
+      }
+    },
+    "/categories/{slug}": {
+      "get": {
+        "operationId": "getCategory",
+        "summary": "Get category",
+        "description": "Returns the category with this slug.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the category title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the category \"Getting Started\", enter the slug \"getting-started\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "getting-started"
+          },
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The category exists and has been returned."
+          },
+          "404": {
+            "$ref": "#/components/responses/error_CATEGORY_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Categories"]
+      },
+      "put": {
+        "operationId": "updateCategory",
+        "summary": "Update category",
+        "description": "Change the properties of a category.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the category title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the category \"Getting Started\", enter the slug \"getting-started\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "getting-started"
+          },
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/category"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The category was successfully updated."
+          },
+          "400": {
+            "$ref": "#/components/responses/error_CATEGORY_INVALID"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_CATEGORY_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Categories"]
+      },
+      "delete": {
+        "operationId": "deleteCategory",
+        "summary": "Delete category",
+        "description": "Delete the category with this slug.\n>⚠️Heads Up!\n> This will also delete all of the docs within this category.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the category title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the category \"Getting Started\", enter the slug \"getting-started\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "getting-started"
+          },
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The category was deleted."
+          },
+          "404": {
+            "$ref": "#/components/responses/error_CATEGORY_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Categories"]
+      }
+    },
+    "/categories/{slug}/docs": {
+      "get": {
+        "operationId": "getCategoryDocs",
+        "summary": "Get docs for category",
+        "description": "Returns the docs and children docs within this category.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the category title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the category \"Getting Started\", enter the slug \"getting-started\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "getting-started"
+          },
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The category exists and all of the docs have been returned."
+          },
+          "404": {
+            "$ref": "#/components/responses/error_CATEGORY_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Categories"]
+      }
+    },
+    "/changelogs": {
+      "get": {
+        "operationId": "getChangelogs",
+        "summary": "Get changelogs",
+        "description": "Returns a list of changelogs.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of changelogs.",
+            "headers": {
+              "Link": {
+                "$ref": "#/components/headers/link"
+              },
+              "x-total-count": {
+                "$ref": "#/components/headers/x-total-count"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Changelog"]
+      },
+      "post": {
+        "operationId": "createChangelog",
+        "summary": "Create changelog",
+        "description": "Create a new changelog entry.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/changelog"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The changelog was successfully created."
+          },
+          "400": {
+            "description": "There was a validation error during creation."
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Changelog"]
+      }
+    },
+    "/changelogs/{slug}": {
+      "get": {
+        "operationId": "getChangelog",
+        "summary": "Get changelog",
+        "description": "Returns the changelog with this slug.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the changelog title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the changelog \"Owlet Weekly Update\", enter the slug \"owlet-weekly-update\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The changelog exists and has been returned."
+          },
+          "404": {
+            "description": "There is no changelog with that slug."
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Changelog"]
+      },
+      "put": {
+        "operationId": "updateChangelog",
+        "summary": "Update changelog",
+        "description": "Update a changelog with this slug.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the changelog title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the changelog \"Owlet Weekly Update\", enter the slug \"owlet-weekly-update\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/changelog"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The changelog was successfully updated."
+          },
+          "400": {
+            "description": "There was a validation error during update."
+          },
+          "404": {
+            "description": "There is no changelog with that slug."
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Changelog"]
+      },
+      "delete": {
+        "operationId": "deleteChangelog",
+        "summary": "Delete changelog",
+        "description": "Delete the changelog with this slug.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the changelog title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the changelog \"Owlet Weekly Update\", enter the slug \"owlet-weekly-update\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The changelog was successfully updated."
+          },
+          "404": {
+            "description": "There is no changelog with that slug."
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Changelog"]
+      }
+    },
+    "/custompages": {
+      "get": {
+        "operationId": "getCustomPages",
+        "summary": "Get custom pages",
+        "description": "Returns a list of custom pages.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/perPage"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The list of custom pages.",
+            "headers": {
+              "Link": {
+                "$ref": "#/components/headers/link"
+              },
+              "x-total-count": {
+                "$ref": "#/components/headers/x-total-count"
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Custom Pages"]
+      },
+      "post": {
+        "operationId": "createCustomPage",
+        "summary": "Create custom page",
+        "description": "Create a new custom page inside of this project.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/customPage"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The custom page was successfully created."
+          },
+          "400": {
+            "$ref": "#/components/responses/error_CUSTOMPAGE_INVALID"
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Custom Pages"]
+      }
+    },
+    "/custompages/{slug}": {
+      "get": {
+        "operationId": "getCustomPage",
+        "summary": "Get custom page",
+        "description": "Returns the custom page with this slug.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the custom page title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the custom page \"Getting Started\", enter the slug \"getting-started\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The custom page exists and has been returned."
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_CUSTOMPAGE_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Custom Pages"]
+      },
+      "put": {
+        "operationId": "updateCustomPage",
+        "summary": "Update custom page",
+        "description": "Update a custom page with this slug.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the custom page title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the custom page \"Getting Started\", enter the slug \"getting-started\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/customPage"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The custom page was successfully updated."
+          },
+          "400": {
+            "$ref": "#/components/responses/error_CUSTOMPAGE_INVALID"
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_CUSTOMPAGE_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Custom Pages"]
+      },
+      "delete": {
+        "operationId": "deleteCustomPage",
+        "summary": "Delete custom page",
+        "description": "Delete the custom page with this slug.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the custom page title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the custom page \"Getting Started\", enter the slug \"getting-started\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The custom page was successfully updated."
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_CUSTOMPAGE_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Custom Pages"]
+      }
+    },
+    "/docs/{slug}": {
+      "get": {
+        "operationId": "getDoc",
+        "summary": "Get doc",
+        "description": "Returns the doc with this slug.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the doc title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the doc \"New Features\", enter the slug \"new-features\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "new-features"
+          },
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The doc exists and has been returned."
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_DOC_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Docs"]
+      },
+      "put": {
+        "operationId": "updateDoc",
+        "summary": "Update doc",
+        "description": "Update a doc with this slug.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the doc title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the doc \"New Features\", enter the slug \"new-features\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "new-features"
+          },
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/doc"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The doc was successfully updated."
+          },
+          "400": {
+            "$ref": "#/components/responses/error_DOC_INVALID"
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_DOC_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Docs"]
+      },
+      "delete": {
+        "operationId": "deleteDoc",
+        "summary": "Delete doc",
+        "description": "Delete the doc with this slug.",
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "description": "A URL-safe representation of the doc title. Slugs must be all lowercase, and replace spaces with hyphens. For example, for the the doc \"New Features\", enter the slug \"new-features\".",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "new-features"
+          },
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The doc was successfully updated."
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_DOC_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Docs"]
+      }
+    },
+    "/docs": {
+      "post": {
+        "operationId": "createDoc",
+        "summary": "Create doc",
+        "description": "Create a new doc inside of this project.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/doc"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The doc was successfully created."
+          },
+          "400": {
+            "$ref": "#/components/responses/error_DOC_INVALID"
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Docs"]
+      }
+    },
+    "/docs/search": {
+      "post": {
+        "operationId": "searchDocs",
+        "summary": "Search docs",
+        "description": "Returns all docs that match the search.",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "description": "Search string to look for.",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/x-readme-version"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The search was successful and results were returned."
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Docs"]
+      }
+    },
+    "/errors": {
+      "get": {
+        "operationId": "getErrors",
+        "summary": "Get errors",
+        "description": "Returns with all of the error page types for this project.",
+        "responses": {
+          "200": {
+            "description": "An array of the errors."
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Errors"]
+      }
+    },
+    "/": {
+      "get": {
+        "operationId": "getProject",
+        "summary": "Get metadata about the current project",
+        "description": "Returns project data for the API key.",
+        "responses": {
+          "200": {
+            "description": "Project data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/condensedProjectData"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Projects"]
+      }
+    },
+    "/version": {
+      "get": {
+        "operationId": "getVersions",
+        "summary": "Get versions",
+        "description": "Retrieve a list of versions associated with a project API key.",
+        "responses": {
+          "200": {
+            "description": "A list of versions."
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Version"]
+      },
+      "post": {
+        "operationId": "createVersion",
+        "summary": "Create version",
+        "description": "Create a new version.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/version"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The version was successfully created."
+          },
+          "400": {
+            "description": "There was a validation error during creation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/error_VERSION_EMPTY"
+                    },
+                    {
+                      "$ref": "#/components/schemas/error_VERSION_DUPLICATE"
+                    },
+                    {
+                      "$ref": "#/components/schemas/error_VERSION_FORK_EMPTY"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_VERSION_FORK_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Version"]
+      }
+    },
+    "/version/{versionId}": {
+      "get": {
+        "operationId": "getVersion",
+        "summary": "Get version",
+        "description": "Returns the version with this version ID.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/versionId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The version exists and has been returned."
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_VERSION_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Version"]
+      },
+      "put": {
+        "operationId": "updateVersion",
+        "summary": "Update version",
+        "description": "Update an existing version.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/versionId"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/version"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The version was successfully updated."
+          },
+          "400": {
+            "$ref": "#/components/responses/error_VERSION_CANT_DEMOTE_STABLE"
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_VERSION_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Version"]
+      },
+      "delete": {
+        "operationId": "deleteVersion",
+        "summary": "Delete version",
+        "description": "Delete a version",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/versionId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The version was successfully deleted."
+          },
+          "400": {
+            "$ref": "#/components/responses/error_VERSION_CANT_REMOVE_STABLE"
+          },
+          "401": {
+            "$ref": "#/components/responses/authUnauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/authForbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/error_VERSION_NOTFOUND"
+          }
+        },
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "tags": ["Version"]
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "page": {
+        "name": "page",
+        "in": "query",
+        "description": "Used to specify further pages (starts at 1).",
+        "schema": {
+          "type": "integer",
+          "default": 1,
+          "minimum": 1
+        }
+      },
+      "perPage": {
+        "name": "perPage",
+        "in": "query",
+        "description": "Number of items to include in pagination (up to 100, defaults to 10).",
+        "schema": {
+          "type": "integer",
+          "default": 10,
+          "maximum": 100,
+          "minimum": 1
+        }
+      },
+      "versionId": {
+        "name": "versionId",
+        "in": "path",
+        "description": "Semver identifier for the project version. For best results, use the formatted `version_clean` value listed in the response from the [Get Versions endpoint](/reference/getversions).",
+        "example": "v1.0.0",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "x-readme-version": {
+        "in": "header",
+        "name": "x-readme-version",
+        "description": "Version number of your docs project, for example, v3.0. By default the main project version is used. To see all valid versions for your docs project call https://docs.readme.com/reference/version#getversions.",
+        "example": "v3.0",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "schemas": {
+      "baseError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "description": "An error code unique to the error received.",
+            "type": "string"
+          },
+          "message": {
+            "description": "The reason why the error occured.",
+            "type": "string"
+          },
+          "suggestion": {
+            "description": "A helpful suggestion for how to alleviate the error.",
+            "type": "string"
+          },
+          "docs": {
+            "description": "A [ReadMe Metrics](https://readme.com/metrics/) log URL where you can see more information the request that you made. If we have metrics URLs unavailable for your request, this URL will be a URL to our API Reference.",
+            "type": "string",
+            "format": "url",
+            "examples": [
+              "https://docs.readme.com/logs/6883d0ee-cf79-447a-826f-a48f7d5bdf5f"
+            ]
+          },
+          "help": {
+            "description": "Information on where you can receive additional assistance from our wonderful support team.",
+            "type": "string",
+            "examples": ["If you need help, email support@readme.io"]
+          },
+          "poem": {
+            "description": "A short poem we wrote you about your error.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "examples": [
+              [
+                "If you're seeing this error,",
+                "Things didn't quite go the way we hoped.",
+                "When we tried to process your request,",
+                "Maybe trying again it'll work—who knows!"
+              ]
+            ]
+          }
+        }
+      },
+      "apply": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "Your full name",
+            "type": "string",
+            "default": "Your Name",
+            "minLength": 1
+          },
+          "email": {
+            "description": "A valid email we can reach you at.",
+            "type": "string",
+            "format": "email",
+            "default": "you@example.com"
+          },
+          "job": {
+            "description": "The job you're looking to apply for (https://readme.com/careers).",
+            "type": "string"
+          },
+          "pronouns": {
+            "description": "Learn more at https://pronoun.is/",
+            "type": "string"
+          },
+          "linkedin": {
+            "description": "What have you been up to the past few years?",
+            "type": "string",
+            "format": "url"
+          },
+          "github": {
+            "description": "Or Bitbucket, Gitlab or anywhere else your code is hosted!",
+            "type": "string",
+            "format": "url"
+          },
+          "coverLetter": {
+            "description": "What should we know about you?",
+            "type": "string",
+            "format": "blob"
+          },
+          "dontReallyApply": {
+            "description": "Want to play with the API but not actually apply? Set this to true.",
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": ["name", "email", "job"]
+      },
+      "category": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "description": "A short title for the category. This is what will show in the sidebar.",
+            "type": "string"
+          },
+          "type": {
+            "description": "A category can be part of your reference or guide documentation, which is determined by this field.",
+            "type": "string",
+            "default": "guide",
+            "enum": ["reference", "guide"]
+          }
+        }
+      },
+      "changelog": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "description": "Title of the changelog.",
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "default": "",
+            "enum": ["", "added", "fixed", "improved", "deprecated", "removed"]
+          },
+          "body": {
+            "description": "Body content of the changelog.",
+            "type": "string"
+          },
+          "hidden": {
+            "description": "Visibility of the changelog.",
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": ["title", "body"]
+      },
+      "condensedProjectData": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "subdomain": {
+            "type": "string"
+          },
+          "jwtSecret": {
+            "type": "string"
+          },
+          "baseUrl": {
+            "description": "The base URL for the project. If the project is not running under a custom domain, it will be `https://projectSubdomain.readme.io`, otherwise it can either be or `https://example.com` or, in the case of an enterprise child project `https://example.com/projectSubdomain`.",
+            "type": "string",
+            "format": "url"
+          },
+          "plan": {
+            "type": "string"
+          }
+        }
+      },
+      "customPage": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "description": "Title of the custom page.",
+            "type": "string"
+          },
+          "body": {
+            "description": "Body formatted in Markdown (displayed by default).",
+            "type": "string"
+          },
+          "html": {
+            "description": "Body formatted in HTML (sanitized, only displayed if `htmlmode` is **true**).",
+            "type": "string"
+          },
+          "htmlmode": {
+            "description": "**true** if `html` should be displayed, **false** if `body` should be displayed.",
+            "type": "boolean",
+            "default": false
+          },
+          "hidden": {
+            "description": "Visibility of the custom page.",
+            "type": "boolean",
+            "default": true
+          }
+        },
+        "required": ["title"]
+      },
+      "doc": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "description": "Title of the page.",
+            "type": "string"
+          },
+          "type": {
+            "description": "Type of the page. The available types all show up under the /docs/ URL path of your docs project (also known as the \"guides\" section). Can be \"basic\" (most common), \"error\" (page desribing an API error), or \"link\" (page that redirects to an external link).",
+            "type": "string",
+            "enum": ["basic", "error", "link"]
+          },
+          "body": {
+            "description": "Body content of the page, formatted in ReadMe or GitHub flavored Markdown. Accepts long page content, for example, greater than 100k characters.",
+            "type": "string"
+          },
+          "category": {
+            "description": "Category ID of the page, which you can get through https://docs.readme.com/reference/categories#getcategory.",
+            "type": "string"
+          },
+          "hidden": {
+            "description": "Visibility of the page.",
+            "type": "boolean",
+            "default": true
+          },
+          "order": {
+            "description": "The position of the page in your project sidebar.",
+            "type": "integer",
+            "default": 999
+          },
+          "parentDoc": {
+            "description": "For a subpage, specify the parent doc ID, which you can get through https://docs.readme.com/reference/docs#getdoc.",
+            "type": "string"
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "description": "The error code for docs with the \"error\" type.",
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": ["title", "category"]
+      },
+      "version": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "description": "Semantic Version",
+            "type": "string"
+          },
+          "codename": {
+            "description": "Dubbed name of version.",
+            "type": "string"
+          },
+          "from": {
+            "description": "Semantic Version to use as the base fork.",
+            "type": "string"
+          },
+          "is_stable": {
+            "description": "Should this be the **main** version?",
+            "type": "boolean"
+          },
+          "is_beta": {
+            "type": "boolean",
+            "default": true
+          },
+          "is_hidden": {
+            "description": "Should this be publically accessible?",
+            "type": "boolean"
+          },
+          "is_deprecated": {
+            "description": "Should this be deprecated? Only allowed in PUT operations.",
+            "type": "boolean"
+          }
+        },
+        "required": ["version", "from"]
+      },
+      "jobOpening": {
+        "type": "object",
+        "properties": {
+          "slug": {
+            "description": "A slugified version of the job opening title.",
+            "type": "string",
+            "examples": ["api-engineer"]
+          },
+          "title": {
+            "description": "The job opening position.",
+            "type": "string",
+            "examples": ["API Engineer"]
+          },
+          "description": {
+            "description": "The description for this open position. This content is formatted as HTML.",
+            "type": "string"
+          },
+          "pullquote": {
+            "description": "A short pullquote for the open position.",
+            "type": "string",
+            "examples": [
+              "Deeply knowledgeable of the web, HTTP, and the API space."
+            ]
+          },
+          "location": {
+            "description": "Where this position is located at.",
+            "type": "string",
+            "examples": ["Remote"]
+          },
+          "department": {
+            "description": "The internal organization you'll be working in.",
+            "type": "string",
+            "examples": ["Engineering"]
+          },
+          "url": {
+            "description": "The place where you can apply for the position!",
+            "type": "string",
+            "format": "url"
+          }
+        }
+      },
+      "error_APIKEY_EMPTY": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "APIKEY_EMPTY"
+              }
+            }
+          }
+        ]
+      },
+      "error_APIKEY_MISMATCH": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "APIKEY_MISMATCH"
+              }
+            }
+          }
+        ]
+      },
+      "error_APIKEY_NOTFOUND": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "APIKEY_NOTFOUND"
+              }
+            }
+          }
+        ]
+      },
+      "error_APPLY_INVALID_EMAIL": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "APPLY_INVALID_EMAIL"
+              }
+            }
+          }
+        ]
+      },
+      "error_APPLY_INVALID_JOB": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "APPLY_INVALID_JOB"
+              }
+            }
+          }
+        ]
+      },
+      "error_APPLY_INVALID_NAME": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "APPLY_INVALID_NAME"
+              }
+            }
+          }
+        ]
+      },
+      "error_CATEGORY_INVALID": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "CATEGORY_INVALID"
+              }
+            }
+          }
+        ]
+      },
+      "error_CATEGORY_NOTFOUND": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "CATEGORY_NOTFOUND"
+              }
+            }
+          }
+        ]
+      },
+      "error_CHANGELOG_INVALID": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "CHANGELOG_INVALID"
+              }
+            }
+          }
+        ]
+      },
+      "error_CHANGELOG_NOTFOUND": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "CHANGELOG_NOTFOUND"
+              }
+            }
+          }
+        ]
+      },
+      "error_CUSTOMPAGE_INVALID": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "CUSTOMPAGE_INVALID"
+              }
+            }
+          }
+        ]
+      },
+      "error_CUSTOMPAGE_NOTFOUND": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "CUSTOMPAGE_NOTFOUND"
+              }
+            }
+          }
+        ]
+      },
+      "error_DOC_INVALID": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "DOC_INVALID"
+              }
+            }
+          }
+        ]
+      },
+      "error_DOC_NOTFOUND": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "DOC_NOTFOUND"
+              }
+            }
+          }
+        ]
+      },
+      "error_ENDPOINT_NOTFOUND": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "ENDPOINT_NOTFOUND"
+              }
+            }
+          }
+        ]
+      },
+      "error_INTERNAL_ERROR": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "INTERNAL_ERROR"
+              }
+            }
+          }
+        ]
+      },
+      "error_PROJECT_NOTFOUND": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "PROJECT_NOTFOUND"
+              }
+            }
+          }
+        ]
+      },
+      "error_REGISTRY_INVALID": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "REGISTRY_INVALID"
+              }
+            }
+          }
+        ]
+      },
+      "error_REGISTRY_NOTFOUND": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "REGISTRY_NOTFOUND"
+              }
+            }
+          }
+        ]
+      },
+      "error_SPEC_FILE_EMPTY": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "SPEC_FILE_EMPTY"
+              }
+            }
+          }
+        ]
+      },
+      "error_SPEC_ID_DUPLICATE": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "SPEC_ID_DUPLICATE"
+              }
+            }
+          }
+        ]
+      },
+      "error_SPEC_ID_INVALID": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "SPEC_ID_INVALID"
+              }
+            }
+          }
+        ]
+      },
+      "error_SPEC_INVALID": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "SPEC_INVALID"
+              }
+            }
+          }
+        ]
+      },
+      "error_SPEC_INVALID_SCHEMA": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "SPEC_INVALID_SCHEMA"
+              }
+            }
+          }
+        ]
+      },
+      "error_SPEC_NOTFOUND": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "SPEC_NOTFOUND"
+              }
+            }
+          }
+        ]
+      },
+      "error_SPEC_TIMEOUT": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "SPEC_TIMEOUT"
+              }
+            }
+          }
+        ]
+      },
+      "error_SPEC_VERSION_NOTFOUND": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "SPEC_VERSION_NOTFOUND"
+              }
+            }
+          }
+        ]
+      },
+      "error_UNEXPECTED_ERROR": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "UNEXPECTED_ERROR"
+              }
+            }
+          }
+        ]
+      },
+      "error_VERSION_CANT_DEMOTE_STABLE": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "VERSION_CANT_DEMOTE_STABLE"
+              }
+            }
+          }
+        ]
+      },
+      "error_VERSION_CANT_REMOVE_STABLE": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "VERSION_CANT_REMOVE_STABLE"
+              }
+            }
+          }
+        ]
+      },
+      "error_VERSION_DUPLICATE": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "VERSION_DUPLICATE"
+              }
+            }
+          }
+        ]
+      },
+      "error_VERSION_EMPTY": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "VERSION_EMPTY"
+              }
+            }
+          }
+        ]
+      },
+      "error_VERSION_FORK_EMPTY": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "VERSION_FORK_EMPTY"
+              }
+            }
+          }
+        ]
+      },
+      "error_VERSION_FORK_NOTFOUND": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "VERSION_FORK_NOTFOUND"
+              }
+            }
+          }
+        ]
+      },
+      "error_VERSION_INVALID": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "VERSION_INVALID"
+              }
+            }
+          }
+        ]
+      },
+      "error_VERSION_NOTFOUND": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "default": "VERSION_NOTFOUND"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "headers": {
+      "link": {
+        "description": "Pagination information. See https://docs.readme.com/reference/pagination for more information.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "x-total-count": {
+        "description": "The total amount of results, ignoring pagination. See https://docs.readme.com/reference/pagination for more information about pagination.",
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "authForbidden": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/error_APIKEY_MISMATCH"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "authUnauthorized": {
+        "description": "Unauthorized",
+        "content": {
+          "application/json": {
+            "schema": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/error_APIKEY_EMPTY"
+                },
+                {
+                  "$ref": "#/components/schemas/error_APIKEY_NOTFOUND"
+                }
+              ]
+            }
+          }
+        }
+      },
+      "error_APIKEY_EMPTY": {
+        "description": "An API key was not supplied.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_APIKEY_EMPTY"
+            }
+          }
+        }
+      },
+      "error_APIKEY_MISMATCH": {
+        "description": "The API key doesn't match the project.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_APIKEY_MISMATCH"
+            }
+          }
+        }
+      },
+      "error_APIKEY_NOTFOUND": {
+        "description": "The API key couldn't be located.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_APIKEY_NOTFOUND"
+            }
+          }
+        }
+      },
+      "error_APPLY_INVALID_EMAIL": {
+        "description": "You need to provide a valid email.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_APPLY_INVALID_EMAIL"
+            }
+          }
+        }
+      },
+      "error_APPLY_INVALID_JOB": {
+        "description": "You need to provide a job.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_APPLY_INVALID_JOB"
+            }
+          }
+        }
+      },
+      "error_APPLY_INVALID_NAME": {
+        "description": "You need to provide a name.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_APPLY_INVALID_NAME"
+            }
+          }
+        }
+      },
+      "error_CATEGORY_INVALID": {
+        "description": "The category couldn't be saved.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_CATEGORY_INVALID"
+            }
+          }
+        }
+      },
+      "error_CATEGORY_NOTFOUND": {
+        "description": "The category couldn't be found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_CATEGORY_NOTFOUND"
+            }
+          }
+        }
+      },
+      "error_CHANGELOG_INVALID": {
+        "description": "The changelog couldn't be saved.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_CHANGELOG_INVALID"
+            }
+          }
+        }
+      },
+      "error_CHANGELOG_NOTFOUND": {
+        "description": "The changelog couldn't be found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_CHANGELOG_NOTFOUND"
+            }
+          }
+        }
+      },
+      "error_CUSTOMPAGE_INVALID": {
+        "description": "The page couldn't be saved.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_CUSTOMPAGE_INVALID"
+            }
+          }
+        }
+      },
+      "error_CUSTOMPAGE_NOTFOUND": {
+        "description": "The custom page couldn't be found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_CUSTOMPAGE_NOTFOUND"
+            }
+          }
+        }
+      },
+      "error_DOC_INVALID": {
+        "description": "The doc couldn't be saved.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_DOC_INVALID"
+            }
+          }
+        }
+      },
+      "error_DOC_NOTFOUND": {
+        "description": "The doc couldn't be found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_DOC_NOTFOUND"
+            }
+          }
+        }
+      },
+      "error_ENDPOINT_NOTFOUND": {
+        "description": "The endpoint doesn't exist.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_ENDPOINT_NOTFOUND"
+            }
+          }
+        }
+      },
+      "error_INTERNAL_ERROR": {
+        "description": "An unknown error has occurred.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_INTERNAL_ERROR"
+            }
+          }
+        }
+      },
+      "error_PROJECT_NOTFOUND": {
+        "description": "The project couldn't be found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_PROJECT_NOTFOUND"
+            }
+          }
+        }
+      },
+      "error_REGISTRY_INVALID": {
+        "description": "The registry entry couldn't be found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_REGISTRY_INVALID"
+            }
+          }
+        }
+      },
+      "error_REGISTRY_NOTFOUND": {
+        "description": "The registry entry couldn't be found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_REGISTRY_NOTFOUND"
+            }
+          }
+        }
+      },
+      "error_SPEC_FILE_EMPTY": {
+        "description": "A spec file wasn't included.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_SPEC_FILE_EMPTY"
+            }
+          }
+        }
+      },
+      "error_SPEC_ID_DUPLICATE": {
+        "description": "The spec ID already tied to another version.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_SPEC_ID_DUPLICATE"
+            }
+          }
+        }
+      },
+      "error_SPEC_ID_INVALID": {
+        "description": "The spec ID isn't valid.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_SPEC_ID_INVALID"
+            }
+          }
+        }
+      },
+      "error_SPEC_INVALID": {
+        "description": "The uploaded spec isn't valid JSON or YAML.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_SPEC_INVALID"
+            }
+          }
+        }
+      },
+      "error_SPEC_INVALID_SCHEMA": {
+        "description": "The uploaded spec has OpenAPI validation errors.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_SPEC_INVALID_SCHEMA"
+            }
+          }
+        }
+      },
+      "error_SPEC_NOTFOUND": {
+        "description": "The spec couldn't be found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_SPEC_NOTFOUND"
+            }
+          }
+        }
+      },
+      "error_SPEC_TIMEOUT": {
+        "description": "The spec upload timed out.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_SPEC_TIMEOUT"
+            }
+          }
+        }
+      },
+      "error_SPEC_VERSION_NOTFOUND": {
+        "description": "The spec version couldn't be found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_SPEC_VERSION_NOTFOUND"
+            }
+          }
+        }
+      },
+      "error_UNEXPECTED_ERROR": {
+        "description": "An unknown error has occurred.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_UNEXPECTED_ERROR"
+            }
+          }
+        }
+      },
+      "error_VERSION_CANT_DEMOTE_STABLE": {
+        "description": "A stable version can't be demoted.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_VERSION_CANT_DEMOTE_STABLE"
+            }
+          }
+        }
+      },
+      "error_VERSION_CANT_REMOVE_STABLE": {
+        "description": "A stable version can't be removed.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_VERSION_CANT_REMOVE_STABLE"
+            }
+          }
+        }
+      },
+      "error_VERSION_DUPLICATE": {
+        "description": "The version already exists.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_VERSION_DUPLICATE"
+            }
+          }
+        }
+      },
+      "error_VERSION_EMPTY": {
+        "description": "No version was supplied.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_VERSION_EMPTY"
+            }
+          }
+        }
+      },
+      "error_VERSION_FORK_EMPTY": {
+        "description": "New versions need to be forked from an existing version.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_VERSION_FORK_EMPTY"
+            }
+          }
+        }
+      },
+      "error_VERSION_FORK_NOTFOUND": {
+        "description": "The version couldn't be found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_VERSION_FORK_NOTFOUND"
+            }
+          }
+        }
+      },
+      "error_VERSION_INVALID": {
+        "description": "The version is invalid.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_VERSION_INVALID"
+            }
+          }
+        }
+      },
+      "error_VERSION_NOTFOUND": {
+        "description": "The version couldn't be found.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error_VERSION_NOTFOUND"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "apiKey": {
+        "type": "http",
+        "scheme": "basic"
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "API Registry"
+    },
+    {
+      "name": "API Specification"
+    },
+    {
+      "name": "Apply to ReadMe"
+    },
+    {
+      "name": "Categories"
+    },
+    {
+      "name": "Changelog"
+    },
+    {
+      "name": "Custom Pages"
+    },
+    {
+      "name": "Docs"
+    },
+    {
+      "name": "Errors"
+    },
+    {
+      "name": "Projects"
+    },
+    {
+      "name": "Version"
+    }
+  ]
+}

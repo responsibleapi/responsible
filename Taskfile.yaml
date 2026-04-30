@@ -13,28 +13,36 @@ includes:
   hono:
     taskfile: packages/hono/Taskfile.yaml
     dir: packages/hono
+  ts:
+    taskfile: packages/ts/Taskfile.yaml
+    dir: packages/ts
 
 tasks:
+  reindex:
+    cmd: uvx code-review-graph build
+    sources:
+      - packages/**/*.ts
+      - scripts/**/*.ts
+
   check:
     deps:
-      - generator:check
-      - cli:check
-      - website:check
       - hono:check
+      - ts:check
 
-  publish:
-    deps:
-      - generator:check
+  publish:auth:
+    cmd: bun pm whoami
+
+  publish:guard:
+    cmd: bun scripts/publish-guard.ts
+
+  release:ts:
     cmds:
-      - task: cli:publish
+      - task: publish:auth
+      - task: publish:guard
+      - task: ts:publish
 
-  deploy:
-    deps:
-      - generator:check
+  release:hono:
     cmds:
-      - task: website:deploy
-
-  release:
-    deps:
-      - publish
-      - deploy
+      - task: publish:auth
+      - task: publish:guard
+      - task: hono:publish
