@@ -8,6 +8,7 @@ import {
   type MiddlewareHandler,
 } from "hono"
 import { getCookie } from "hono/cookie"
+import { routePath } from "hono/route"
 import type { oas31 } from "openapi3-ts"
 import { lowerCaseKeys, memoize, mkAjv } from "../../http-jsonschema/src/common"
 import { JsonResolver } from "../../http-jsonschema/src/jsonresolver"
@@ -57,10 +58,10 @@ const inMemReq = (ctx: Context, body: unknown): ReqBuf => ({
 function getOp(
   doc: oas31.OpenAPIObject,
   openApiPaths: Record<string, string>,
-  req: HonoRequest,
+  ctx: Context,
 ): oas31.OperationObject | undefined {
-  const openApiPath = openApiPaths[req.routePath]
-  const method = req.method.toLowerCase() as HttpMethod
+  const openApiPath = openApiPaths[routePath(ctx)]
+  const method = ctx.req.method.toLowerCase() as HttpMethod
   return doc.paths?.[openApiPath][method]
 }
 
@@ -83,7 +84,7 @@ function validateMiddleware<OpID extends string>({
   )
 
   return async (ctx, next) => {
-    const op = getOp(refs.root, openApiPaths, ctx.req)
+    const op = getOp(refs.root, openApiPaths, ctx)
     if (!op) {
       await next()
       return

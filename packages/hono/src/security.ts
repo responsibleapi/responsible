@@ -1,5 +1,6 @@
 import type { Context, Env, MiddlewareHandler } from "hono"
 import { HTTPException } from "hono/http-exception"
+import { routePath } from "hono/route"
 import type { oas31 } from "openapi3-ts"
 import { asyncEvery, asyncSome } from "../../http-jsonschema/src/common"
 import type { HttpMethod } from "../../http-jsonschema/src/operations"
@@ -27,7 +28,7 @@ export const securityMiddleware =
     securityHandlers: Record<SecScheme, MiddlewareHandler>,
   ): MiddlewareHandler =>
   async (ctx, next) => {
-    const openApiPath = colonToOpenApi[ctx.req.routePath]
+    const openApiPath = colonToOpenApi[routePath(ctx)]
     const op =
       doc.paths?.[openApiPath][ctx.req.method.toLowerCase() as HttpMethod]
 
