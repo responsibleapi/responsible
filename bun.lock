@@ -1,5 +1,6 @@
 {
   "lockfileVersion": 1,
+  "configVersion": 0,
   "workspaces": {
     "": {
       "devDependencies": {
@@ -22,7 +23,7 @@
       "name": "@responsibleapi/cli",
       "version": "0.4.1",
       "bin": {
-        "responsible": "dist/bin.js"
+        "responsible": "dist/bin.js",
       },
       "dependencies": {
         "commander": "^13.1.0",
