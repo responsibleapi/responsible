@@ -2,7 +2,8 @@
   "compilerOptions": {
     "lib": ["ESNext"],
     "module": "ESNext",
-    "target": "ESNext"
+    "target": "ESNext",
+    "types": ["node"]
   },
   "extends": "../../tsconfig.base.json",
   "include": ["src/"]

@@ -137,8 +137,8 @@ struct "JsonItem" {
 }
 
 struct "PaginationResp" {
-    hasBefore "boolean" deprecated=true description="newBefore is enough"
-    hasAfter "boolean" deprecated=true description="newAfter is enough"
+    hasBefore "boolean" deprecated=#true description="newBefore is enough"
+    hasAfter "boolean" deprecated=#true description="newAfter is enough"
     (?)newBefore "ItemID"
     (?)newAfter "ItemID"
 }
@@ -183,7 +183,7 @@ struct "LoginReq" {
     host "string" minLength=1
 }
 
-GET "/api/health" head=true {
+GET "/api/health" head=#true {
     name "health"
 
     res {
@@ -284,7 +284,7 @@ scope "/japi" {
             }
         }
 
-        GET deprecated=true {
+        GET deprecated=#true {
             name "getShow"
             res {
                 "200" "Show"
@@ -325,7 +325,7 @@ scope "/japi" {
             }
         }
 
-        GET "/items" deprecated=true {
+        GET "/items" deprecated=#true {
             name "getItems"
 
             req {
@@ -418,7 +418,7 @@ scope "/japi" {
                 }
             }
 
-            GET "/:email(email)/shows" deprecated=true {
+            GET "/:email(email)/shows" deprecated=#true {
                 name "showsByEmail"
 
                 res {
@@ -530,7 +530,7 @@ scope "/japi" {
 
         scope "/later" {
 
-            GET deprecated=true {
+            GET deprecated=#true {
                 name "getLater"
                 res {
                     "200" "Show"
@@ -638,7 +638,7 @@ enum "AudioVideo" {
     video
 }
 
-GET "/rss/:show_id(ShowID)/:type(AudioVideo).rss" head=true {
+GET "/rss/:show_id(ShowID)/:type(AudioVideo).rss" head=#true {
     name "rss"
 
     res {
@@ -666,7 +666,7 @@ GET "/rss/:show_id(ShowID)/:type(AudioVideo).rss" head=true {
 type "NonEmptyString" "string" minLength=1
 
 // TODO support range=true
-GET "/a/:item_id(ItemID).:ext(NonEmptyString)" head=true {
+GET "/a/:item_id(ItemID).:ext(NonEmptyString)" head=#true {
     name "audio"
 
     req {
@@ -683,7 +683,7 @@ GET "/a/:item_id(ItemID).:ext(NonEmptyString)" head=true {
     }
 }
 
-GET "/w/:item_id(ItemID).:ext(NonEmptyString)" head=true {
+GET "/w/:item_id(ItemID).:ext(NonEmptyString)" head=#true {
     name "video"
 
     req {
