@@ -1,6 +1,0 @@
-{
-  "parserOptions": {
-    "project": "./tsconfig.json"
-  },
-  "ignorePatterns": ["src/kdl.js"]
-}

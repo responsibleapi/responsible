@@ -18,9 +18,8 @@ tasks:
     cmd: bun eslint src/ --fix
     sources:
       - "{{.LOCKFILE}}"
-      - ../../.eslintrc.json
+      - ../../eslint.config.js
       - src/**/*
-      - .eslintrc.json
 
   test:
     cmd: bun test

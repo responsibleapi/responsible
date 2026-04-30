@@ -1,5 +1,5 @@
 import Ajv from "ajv"
-import addFormats from "ajv-formats"
+import { formatNames, fullFormats } from "ajv-formats/dist/formats"
 import type { oas31 } from "openapi3-ts"
 
 export function mkAjv(doc: oas31.OpenAPIObject): Ajv {
@@ -9,7 +9,9 @@ export function mkAjv(doc: oas31.OpenAPIObject): Ajv {
     messages: false,
   })
 
-  addFormats(ajv)
+  for (const formatName of formatNames) {
+    ajv.addFormat(formatName, fullFormats[formatName])
+  }
 
   const schemas = doc.components?.schemas
   for (const s in schemas) {
