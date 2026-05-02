@@ -1,8 +1,0 @@
-[features]
-codex_hooks = true
-
-[mcp_servers.code-review-graph]
-command = "uvx"
-args = ["code-review-graph", "serve"]
-type = "stdio"
-default_tools_approval_mode = "approve"
