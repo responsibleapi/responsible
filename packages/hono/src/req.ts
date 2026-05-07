@@ -14,7 +14,7 @@ import { lowerCaseKeys, memoize, mkAjv } from "../../http-jsonschema/src/common"
 import { JsonResolver } from "../../http-jsonschema/src/jsonresolver"
 import {
   type FullOperation,
-  type HttpMethod,
+  isHttpMethod,
   operationLookup,
 } from "../../http-jsonschema/src/operations"
 import {
@@ -61,11 +61,13 @@ function getOp(
   ctx: Context,
 ): oas31.OperationObject | undefined {
   const openApiPath = openApiPaths[routePath(ctx)]
-  const method = ctx.req.method.toLowerCase() as HttpMethod
-  return doc.paths?.[openApiPath][method]
+  const method = ctx.req.method.toLowerCase()
+  if (!isHttpMethod(method)) return undefined
+
+  return doc.paths?.[openApiPath]?.[method]
 }
 
-function validateMiddleware<OpID extends string>({
+function validateMiddleware({
   doc,
   openApiPaths,
   ops,
@@ -73,15 +75,18 @@ function validateMiddleware<OpID extends string>({
 }: {
   doc: oas31.OpenAPIObject
   openApiPaths: Record<string, string>
-  ops: Record<OpID, FullOperation>
+  ops: Readonly<Partial<Record<string, FullOperation>>>
   onErrors: (ctx: Context, errors: ErrorObject[]) => Response
 }): MiddlewareHandler {
   const refs = new JsonResolver(doc)
   const ajv = mkAjv(doc)
 
-  const getReqValidator = memoize((opID: OpID) =>
-    ajv.compile<ReqBuf>(requestToSchema(refs, ops[opID])),
-  )
+  const getReqValidator = memoize((opID: string) => {
+    const op = ops[opID]
+    if (!op) throw new Error(`missing operation ${opID}`)
+
+    return ajv.compile<ReqBuf>(requestToSchema(refs, op))
+  })
 
   return async (ctx, next) => {
     const op = getOp(refs.root, openApiPaths, ctx)
@@ -92,7 +97,9 @@ function validateMiddleware<OpID extends string>({
 
     const body = await getBody(ctx.req)
 
-    const validate = getReqValidator(op.operationId as OpID)
+    if (!op.operationId) return next()
+
+    const validate = getReqValidator(op.operationId)
     validate(inMemReq(ctx, body))
     const errors = validate.errors
 
@@ -100,7 +107,7 @@ function validateMiddleware<OpID extends string>({
       return onErrors(ctx, errors)
     }
 
-    await next()
+    return next()
   }
 }
 

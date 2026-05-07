@@ -1,6 +1,5 @@
 import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
-import { validateDoc } from "../help/validate-doc.ts"
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"
@@ -8,6 +7,7 @@ import { headerParam } from "../dsl/params.ts"
 import { int32, object, string } from "../dsl/schema.ts"
 import { scope } from "../dsl/scope.ts"
 import { declareTags } from "../dsl/tags.ts"
+import { validateDoc } from "../help/validate-doc.ts"
 
 describe("compiler scope and path", () => {
   test("nested scopes join paths, inherit req/res, convert :params, nearest tags", async () => {

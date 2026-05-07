@@ -3,7 +3,7 @@ import { HTTPException } from "hono/http-exception"
 import { routePath } from "hono/route"
 import type { oas31 } from "openapi3-ts"
 import { asyncEvery, asyncSome } from "../../http-jsonschema/src/common"
-import type { HttpMethod } from "../../http-jsonschema/src/operations"
+import { isHttpMethod } from "../../http-jsonschema/src/operations"
 
 async function succeeds<E extends Env, P extends string>(
   handler: MiddlewareHandler<E, P>,
@@ -22,15 +22,17 @@ async function succeeds<E extends Env, P extends string>(
 }
 
 export const securityMiddleware =
-  <SecScheme extends string>(
+  (
     doc: oas31.OpenAPIObject,
     colonToOpenApi: Record<string, string>,
-    securityHandlers: Record<SecScheme, MiddlewareHandler>,
+    securityHandlers: Readonly<Partial<Record<string, MiddlewareHandler>>>,
   ): MiddlewareHandler =>
   async (ctx, next) => {
     const openApiPath = colonToOpenApi[routePath(ctx)]
-    const op =
-      doc.paths?.[openApiPath][ctx.req.method.toLowerCase() as HttpMethod]
+    const method = ctx.req.method.toLowerCase()
+    const op = isHttpMethod(method)
+      ? doc.paths?.[openApiPath]?.[method]
+      : undefined
 
     if (!op?.security) {
       await next()
@@ -38,9 +40,10 @@ export const securityMiddleware =
     }
 
     const ok = await asyncSome(op.security, security =>
-      asyncEvery(Object.keys(security), ref =>
-        succeeds(securityHandlers[ref as SecScheme], ctx),
-      ),
+      asyncEvery(Object.keys(security), ref => {
+        const handler = securityHandlers[ref]
+        return handler ? succeeds(handler, ctx) : Promise.resolve(false)
+      }),
     )
 
     if (ok) {

@@ -8,7 +8,10 @@ type Dict = Extract<RawSchema, { type: "object"; additionalProperties: Schema }>
 type AnyOfSchema = Extract<RawSchema, { anyOf: readonly Schema[] }>
 type AllOfSchema = Extract<RawSchema, { allOf: readonly Schema[] }>
 type ArraySchema = Extract<RawSchema, { type: "array"; items: Schema }>
-type ObjectSchema = Extract<RawSchema, { type: "object"; properties: Record<string, Schema> }>
+type ObjectSchema = Extract<
+  RawSchema,
+  { type: "object"; properties: Record<string, Schema> }
+>
 
 export type EmittedSchema = oas31.SchemaObject | oas31.ReferenceObject
 
@@ -112,9 +115,11 @@ const emitDict = (
   return out
 }
 
-const isAnyOfSchema = (schema: RawSchema): schema is AnyOfSchema => "anyOf" in schema
+const isAnyOfSchema = (schema: RawSchema): schema is AnyOfSchema =>
+  "anyOf" in schema
 
-const isAllOfSchema = (schema: RawSchema): schema is AllOfSchema => "allOf" in schema
+const isAllOfSchema = (schema: RawSchema): schema is AllOfSchema =>
+  "allOf" in schema
 
 const isDictSchema = (schema: RawSchema): schema is Dict =>
   "additionalProperties" in schema
@@ -122,7 +127,8 @@ const isDictSchema = (schema: RawSchema): schema is Dict =>
 const isObjectSchema = (schema: RawSchema): schema is ObjectSchema =>
   "properties" in schema
 
-const isArraySchema = (schema: RawSchema): schema is ArraySchema => "items" in schema
+const isArraySchema = (schema: RawSchema): schema is ArraySchema =>
+  "items" in schema
 
 const getStructuralType = (schema: RawSchema): string | undefined => {
   if (!("type" in schema)) {
@@ -148,7 +154,10 @@ const nullableLeafNeedsNullExample = (schema: RawSchema): boolean => {
     return false
   }
 
-  if ("example" in schema || ("examples" in schema && Array.isArray(schema.examples))) {
+  if (
+    "example" in schema ||
+    ("examples" in schema && Array.isArray(schema.examples))
+  ) {
     return false
   }
 
@@ -214,7 +223,9 @@ const emitRawSchemaValue = (
       return {
         ...schemaBaseFields(nullableAllOf),
         type: ["object", "null"],
-        allOf: nullableAllOf.allOf.map(item => emitSchemaRefOrValue(state, item)),
+        allOf: nullableAllOf.allOf.map(item =>
+          emitSchemaRefOrValue(state, item),
+        ),
       }
     }
 
@@ -253,7 +264,9 @@ const emitRawSchemaValue = (
         return emitNullableLeafExamples(schema, emitObject(state, schema))
       }
 
-      throw new Error('Schema with type "object" must define properties or additionalProperties')
+      throw new Error(
+        'Schema with type "object" must define properties or additionalProperties',
+      )
 
     case "array":
       if (!isArraySchema(schema)) {

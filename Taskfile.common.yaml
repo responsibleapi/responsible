@@ -15,10 +15,34 @@ tasks:
       - tsconfig.tsbuildinfo
 
   lint:
-    cmd: bun eslint src/ --fix
+    cmd: bun --cwd ../.. oxlint {{.PACKAGE_DIR}}/src --fix
     sources:
       - "{{.LOCKFILE}}"
-      - ../../eslint.config.js
+      - ../../oxlint.config.ts
+      - src/**/*
+
+  fmt:
+    cmd: >-
+      bun --cwd ../.. oxfmt
+      {{.PACKAGE_DIR}}/src
+      {{.PACKAGE_DIR}}/package.json
+      {{.PACKAGE_DIR}}/Taskfile.yaml
+      {{.PACKAGE_DIR}}/tsconfig.json
+    sources:
+      - "{{.LOCKFILE}}"
+      - ../../.oxfmtrc.jsonc
+      - src/**/*
+
+  fmt:check:
+    cmd: >-
+      bun --cwd ../.. oxfmt --check
+      {{.PACKAGE_DIR}}/src
+      {{.PACKAGE_DIR}}/package.json
+      {{.PACKAGE_DIR}}/Taskfile.yaml
+      {{.PACKAGE_DIR}}/tsconfig.json
+    sources:
+      - "{{.LOCKFILE}}"
+      - ../../.oxfmtrc.jsonc
       - src/**/*
 
   test:

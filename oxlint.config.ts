@@ -1,5 +1,13 @@
 import { defineConfig } from "oxlint"
 
+const maintainedTypeScriptFiles = [
+  "packages/ts/src/**/*.ts",
+  "packages/ts/scripts/**/*.ts",
+  "packages/hono/src/**/*.ts",
+  "src/**/*.ts",
+  "scripts/**/*.ts",
+]
+
 export default defineConfig({
   plugins: ["typescript", "jsdoc"],
   categories: {
@@ -25,10 +33,10 @@ export default defineConfig({
       },
     },
   },
-  // jsPlugins: ["./scripts/oxlint-prefer-schema-examples.ts"],
+  // jsPlugins: ["./packages/ts/scripts/oxlint-prefer-schema-examples.ts"],
   overrides: [
     {
-      files: ["src/**/*.ts", "scripts/**/*.ts"],
+      files: maintainedTypeScriptFiles,
       rules: {
         // "local/prefer-schema-examples": "warn",
         "typescript/consistent-type-imports": [
@@ -63,13 +71,13 @@ export default defineConfig({
       },
     },
     {
-      files: ["scripts/**/*.ts"],
+      files: ["packages/ts/scripts/**/*.ts", "scripts/**/*.ts"],
       rules: {
         "no-console": "off",
       },
     },
     {
-      files: ["src/**/*.test.ts"],
+      files: ["packages/ts/src/**/*.test.ts", "src/**/*.test.ts"],
       rules: {
         /**
          * `no-unsafe-type-assertion` has no Oxlint options (cannot allow only

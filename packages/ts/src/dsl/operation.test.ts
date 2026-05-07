@@ -5,7 +5,13 @@ import type {
   IsNever,
   OneExtendsTwo,
 } from "../help/type-assertions.ts"
-import type { GetOp, GetOpReq, Op, OpReq, ReqAugmentation } from "./operation.ts"
+import type {
+  GetOp,
+  GetOpReq,
+  Op,
+  OpReq,
+  ReqAugmentation,
+} from "./operation.ts"
 import type { PathParams } from "./params.ts"
 import { declareTags } from "./tags.ts"
 

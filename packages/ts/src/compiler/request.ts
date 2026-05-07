@@ -2,10 +2,14 @@ import type { oas31 } from "openapi3-ts"
 import { isOptional, type NameWithOptionality } from "../dsl/dsl.ts"
 import type { Nameable } from "../dsl/nameable.ts"
 import { decodeNameable } from "../dsl/nameable.ts"
+import type { ReqAugmentation } from "../dsl/operation.ts"
 import type {
-  ReqAugmentation,
-} from "../dsl/operation.ts"
-import type { ReusableParam, ParamRaw, InlineHeaderParam, InlineQueryParam, InlinePathParam } from "../dsl/params.ts"
+  ReusableParam,
+  ParamRaw,
+  InlineHeaderParam,
+  InlineQueryParam,
+  InlinePathParam,
+} from "../dsl/params.ts"
 import type { Schema } from "../dsl/schema.ts"
 import type {
   Security,

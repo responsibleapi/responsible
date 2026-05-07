@@ -3,6 +3,8 @@ version: 3
 includes:
   common:
     taskfile: ../../Taskfile.common.yaml
+    vars:
+      PACKAGE_DIR: packages/website
     flatten: true
 
 tasks:

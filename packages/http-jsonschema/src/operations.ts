@@ -13,7 +13,7 @@ const httpMethods = [
 export type HttpMethod = (typeof httpMethods)[number]
 
 const methodLookup = new Set<string>(httpMethods)
-const isHttpMethod = (x: unknown): x is HttpMethod =>
+export const isHttpMethod = (x: unknown): x is HttpMethod =>
   typeof x === "string" && methodLookup.has(x)
 
 export interface FullOperation extends oas31.OperationObject {

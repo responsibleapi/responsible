@@ -33,6 +33,7 @@ import {
   type ComponentRegistryState,
 } from "./components.ts"
 import { emitSchemaRefOrValue } from "./emit-schema.ts"
+import { ErrorMsg } from "./errors.ts"
 import { dslPathToOpenApiPath, joinHttpPaths } from "./path.ts"
 import {
   compileParameterLayers,
@@ -41,7 +42,6 @@ import {
   securityLayerFromScopeReq,
   stripSecurityFields,
 } from "./request.ts"
-import { ErrorMsg } from "./errors.ts"
 
 const OAS_METHOD: Record<HttpMethod, keyof oas31.PathItemObject> = {
   GET: "get",
@@ -254,9 +254,7 @@ function normalizeOpReq(
   )
 }
 
-function readReqBody(
-  req: Pick<ReqAugmentation, "body" | "body?"> | undefined,
-):
+function readReqBody(req: Pick<ReqAugmentation, "body" | "body?"> | undefined):
   | {
       body: Schema | Record<Mime, Schema>
       required: boolean
@@ -1292,7 +1290,13 @@ function compileRoutes(
         scopeForEachOpFromScopeNode(normalizedScope),
         scopeForEachPathFromScopeNode(normalizedScope),
       )
-      compileRoutes(schemaState, normalizedScope.routes, nextCtx, fullDslPath, paths)
+      compileRoutes(
+        schemaState,
+        normalizedScope.routes,
+        nextCtx,
+        fullDslPath,
+        paths,
+      )
     } else {
       assertRouteMethodOp(node)
       placeOperation(schemaState, paths, fullDslPath, ctx, node, undefined)
@@ -1319,13 +1323,7 @@ export function compileResponsibleAPI(
     ...(api.partialDoc.paths ?? {}),
   }
 
-  compileRoutes(
-    schemaState,
-    api.routes,
-    rootCtx,
-    "",
-    paths,
-  )
+  compileRoutes(schemaState, api.routes, rootCtx, "", paths)
 
   const dummyOpForComponents = { method: "GET" } as RouteMethodOp
 

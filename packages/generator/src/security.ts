@@ -64,7 +64,7 @@ function respectOptionality(
 
 export const parseSecurity = (parent: kdljs.Node): ParsedSecurity => {
   const [node] = parent.children
-  // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+  // oxlint-disable-next-line typescript/no-unnecessary-condition
   if (!node) return { securitySchemes: {}, security: [] }
 
   switch (node.name.toUpperCase()) {

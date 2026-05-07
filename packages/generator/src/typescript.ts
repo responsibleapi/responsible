@@ -23,7 +23,7 @@ const isAbsent = (
 export const removeAbsent = <T extends object>(t: T): T => {
   for (const k in t) {
     if (isAbsent(t[k])) {
-      // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+      // oxlint-disable-next-line typescript/no-dynamic-delete
       delete t[k]
     }
   }

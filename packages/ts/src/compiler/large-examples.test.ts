@@ -3,10 +3,9 @@ import { validateDoc } from "../help/validate-doc.ts"
 
 /**
  * Story 6: large specs validate end-to-end; named query params and named HTTP
- * basic auth register under `components` with `$ref` at operation scope.
- * Golden `src/examples/*.json` files are not updated here — those tests compare
- * full document equality and remain snapshot-drifted until examples are
- * refreshed.
+ * basic auth register under `components` with `$ref` at operation scope. Golden
+ * `src/examples/*.json` files are not updated here — those tests compare full
+ * document equality and remain snapshot-drifted until examples are refreshed.
  */
 describe("large example specs (Story 6)", () => {
   test("readme validates; named parameters and security scheme in components", async () => {

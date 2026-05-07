@@ -5,17 +5,10 @@
     "packages/*"
   ],
   "devDependencies": {
-    "@bgotink/prettier-plugin-kdl": "^0.2.0-next.0",
-    "@typescript-eslint/eslint-plugin": "^8.59.2",
-    "@typescript-eslint/parser": "^8.59.2",
-    "eslint": "^10.3.0",
-    "eslint-plugin-ban": "^2.0.0",
-    "eslint-plugin-jsx-a11y": "^6.10.2",
     "openapi3-ts": "^4.5.0",
-    "prettier": "^3.8.3",
-    "prettier-plugin-organize-imports": "^4.3.0",
-    "prettier-plugin-packagejson": "^3.0.2",
-    "prettier-plugin-tailwindcss": "^0.8.0",
+    "oxfmt": "^0.48.0",
+    "oxlint": "^1.63.0",
+    "oxlint-tsgolint": "^0.22.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.5"
   }

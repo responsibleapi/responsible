@@ -3882,57 +3882,57 @@ export default responsibleAPI({
       },
     }),
     "/bots/:id": PUT({
-        id: "BotOperations_updateBot",
-        description:
-          "Редактирование бота\n\nМетод для редактирования бота.\n\nДля редактирования бота вам необходимо знать его `user_id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса. Узнать `user_id` бота можно в настройках бота во вкладке «API».\n\nВы не можете редактировать бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).",
-        tags: [tags["Bots"]],
-        req: {
-          pathParams: {
-            id: {
-              description: "Идентификатор бота",
-              example: 1738816,
-              schema: int32({
-                examples: [1738816],
-              }),
-            },
+      id: "BotOperations_updateBot",
+      description:
+        "Редактирование бота\n\nМетод для редактирования бота.\n\nДля редактирования бота вам необходимо знать его `user_id` и указать его в `URL` запроса. Все редактируемые параметры бота указываются в теле запроса. Узнать `user_id` бота можно в настройках бота во вкладке «API».\n\nВы не можете редактировать бота, настройки которого вам недоступны (поле «Кто может редактировать настройки бота» находится во вкладке «Основное» в настройках бота).",
+      tags: [tags["Bots"]],
+      req: {
+        pathParams: {
+          id: {
+            description: "Идентификатор бота",
+            example: 1738816,
+            schema: int32({
+              examples: [1738816],
+            }),
           },
-          body: BotUpdateRequest,
         },
-        res: {
-          200: resp({
-            description: "The request has succeeded.",
-            body: dataOf(BotResponse, "Обертка ответа с данными"),
-          }),
-          400: resp({
-            description:
-              "The server could not understand the request due to invalid syntax.",
-            body: ApiError,
-          }),
-          401: resp({
-            description: "Access is unauthorized.",
-            body: OAuthError,
-          }),
-          402: resp({
-            description: "Client error",
-            body: ApiError,
-          }),
-          403: resp({
-            description: "Access is forbidden.",
-            body: OAuthError,
-          }),
-          404: resp({
-            description: "The server cannot find the requested resource.",
-            body: ApiError,
-          }),
-          422: resp({
-            description: "Client error",
-            body: ApiError,
-          }),
-        },
-        "x-requirements": {
-          scope: "bots:write",
-        },
-      }),
+        body: BotUpdateRequest,
+      },
+      res: {
+        200: resp({
+          description: "The request has succeeded.",
+          body: dataOf(BotResponse, "Обертка ответа с данными"),
+        }),
+        400: resp({
+          description:
+            "The server could not understand the request due to invalid syntax.",
+          body: ApiError,
+        }),
+        401: resp({
+          description: "Access is unauthorized.",
+          body: OAuthError,
+        }),
+        402: resp({
+          description: "Client error",
+          body: ApiError,
+        }),
+        403: resp({
+          description: "Access is forbidden.",
+          body: OAuthError,
+        }),
+        404: resp({
+          description: "The server cannot find the requested resource.",
+          body: ApiError,
+        }),
+        422: resp({
+          description: "Client error",
+          body: ApiError,
+        }),
+      },
+      "x-requirements": {
+        scope: "bots:write",
+      },
+    }),
     "/chats": scope({
       GET: {
         id: "ChatOperations_listChats",
@@ -5546,21 +5546,21 @@ export default responsibleAPI({
       }),
     }),
     "/oauth/token/info": GET({
-          id: "OAuthOperations_getTokenInfo",
-          description:
-            "Информация о токене\n\nМетод для получения информации о текущем OAuth токене, включая его скоупы, дату создания и последнего использования. Токен в ответе маскируется — видны только первые 8 и последние 4 символа.",
-          tags: [tags["Profile"]],
-          res: {
-            200: resp({
-              description: "The request has succeeded.",
-              body: dataOf(AccessTokenInfo, "Обертка ответа с данными"),
-            }),
-            401: resp({
-              description: "Access is unauthorized.",
-              body: OAuthError,
-            }),
-          },
+      id: "OAuthOperations_getTokenInfo",
+      description:
+        "Информация о токене\n\nМетод для получения информации о текущем OAuth токене, включая его скоупы, дату создания и последнего использования. Токен в ответе маскируется — видны только первые 8 и последние 4 символа.",
+      tags: [tags["Profile"]],
+      res: {
+        200: resp({
+          description: "The request has succeeded.",
+          body: dataOf(AccessTokenInfo, "Обертка ответа с данными"),
         }),
+        401: resp({
+          description: "Access is unauthorized.",
+          body: OAuthError,
+        }),
+      },
+    }),
     "/profile": scope({
       GET: {
         id: "ProfileOperations_getProfile",
@@ -6170,47 +6170,47 @@ export default responsibleAPI({
       }),
     }),
     "/threads/:id": GET({
-        id: "ThreadOperations_getThread",
-        description:
-          "Информация о треде\n\nМетод для получения информации о треде.\n\nДля получения треда вам необходимо знать его `id` и указать его в `URL` запроса.",
-        tags: [tags["Threads"]],
-        req: {
-          pathParams: {
-            id: {
-              description: "Идентификатор треда",
-              example: 265142,
-              schema: int32({
-                examples: [265142],
-              }),
-            },
+      id: "ThreadOperations_getThread",
+      description:
+        "Информация о треде\n\nМетод для получения информации о треде.\n\nДля получения треда вам необходимо знать его `id` и указать его в `URL` запроса.",
+      tags: [tags["Threads"]],
+      req: {
+        pathParams: {
+          id: {
+            description: "Идентификатор треда",
+            example: 265142,
+            schema: int32({
+              examples: [265142],
+            }),
           },
         },
-        res: {
-          200: resp({
-            description: "The request has succeeded.",
-            body: dataOf(Thread, "Обертка ответа с данными"),
-          }),
-          401: resp({
-            description: "Access is unauthorized.",
-            body: OAuthError,
-          }),
-          402: resp({
-            description: "Client error",
-            body: ApiError,
-          }),
-          403: resp({
-            description: "Access is forbidden.",
-            body: OAuthError,
-          }),
-          404: resp({
-            description: "The server cannot find the requested resource.",
-            body: ApiError,
-          }),
-        },
-        "x-requirements": {
-          scope: "threads:read",
-        },
-      }),
+      },
+      res: {
+        200: resp({
+          description: "The request has succeeded.",
+          body: dataOf(Thread, "Обертка ответа с данными"),
+        }),
+        401: resp({
+          description: "Access is unauthorized.",
+          body: OAuthError,
+        }),
+        402: resp({
+          description: "Client error",
+          body: ApiError,
+        }),
+        403: resp({
+          description: "Access is forbidden.",
+          body: OAuthError,
+        }),
+        404: resp({
+          description: "The server cannot find the requested resource.",
+          body: ApiError,
+        }),
+      },
+      "x-requirements": {
+        scope: "threads:read",
+      },
+    }),
     "/uploads": POST({
       id: "UploadOperations_getUploadParams",
       description:
@@ -6657,17 +6657,68 @@ export default responsibleAPI({
       }),
     }),
     "/views/open": POST({
-        id: "FormOperations_openView",
+      id: "FormOperations_openView",
+      description:
+        "Открытие представления\n\nМетод для открытия модального окна с представлением для пользователя.\n\nЧтобы открыть модальное окно с представлением, ваше приложение должно иметь действительный, неистекший `trigger_id`.",
+      tags: [tags["Views"]],
+      req: {
+        body: OpenViewRequest,
+      },
+      res: {
+        201: resp({
+          description:
+            "The request has succeeded and a new resource has been created as a result.",
+        }),
+        400: resp({
+          description:
+            "The server could not understand the request due to invalid syntax.",
+          body: ApiError,
+        }),
+        401: resp({
+          description: "Access is unauthorized.",
+          body: OAuthError,
+        }),
+        402: resp({
+          description: "Client error",
+          body: ApiError,
+        }),
+        403: resp({
+          description: "Access is forbidden.",
+          body: OAuthError,
+        }),
+        410: resp({
+          description: "Client error",
+          body: ApiError,
+        }),
+        422: resp({
+          description: "Client error",
+          body: ApiError,
+        }),
+      },
+      "x-requirements": {
+        scope: "views:write",
+      },
+    }),
+    "/webhooks/events": scope({
+      GET: {
+        id: "BotOperations_getWebhookEvents",
         description:
-          "Открытие представления\n\nМетод для открытия модального окна с представлением для пользователя.\n\nЧтобы открыть модальное окно с представлением, ваше приложение должно иметь действительный, неистекший `trigger_id`.",
-        tags: [tags["Views"]],
+          "История событий\n\nМетод для получения истории последних событий бота. Данный метод будет полезен, если вы не можете получать события в реальном времени на ваш `URL`, но вам требуется обрабатывать все события, на которые вы подписались.\n\nИстория событий сохраняется только при активном пункте «Сохранять историю событий» во вкладке «Исходящий webhook» настроек бота. При этом указывать «Webhook `URL`» не требуется.\n\nДля получения истории событий конкретного бота вам необходимо знать его `access_token` и использовать его при запросе. Каждое событие представляет `JSON` объект вебхука.",
+        tags: [tags["Bots"]],
         req: {
-          body: OpenViewRequest,
+          query: {
+            "limit?": QueryLimitParam1,
+            "cursor?": paginationParam,
+          },
         },
         res: {
-          201: resp({
-            description:
-              "The request has succeeded and a new resource has been created as a result.",
+          200: resp({
+            description: "The request has succeeded.",
+            body: dataMetaOf(
+              array(WebhookEvent),
+              PaginationMeta,
+              "Обертка ответа с данными и пагинацией",
+            ),
           }),
           400: resp({
             description:
@@ -6686,109 +6737,58 @@ export default responsibleAPI({
             description: "Access is forbidden.",
             body: OAuthError,
           }),
-          410: resp({
-            description: "Client error",
-            body: ApiError,
-          }),
           422: resp({
             description: "Client error",
             body: ApiError,
           }),
         },
+        "x-paginated": true,
         "x-requirements": {
-          scope: "views:write",
+          scope: "webhooks:events:read",
         },
-      }),
-    "/webhooks/events": scope({
-        GET: {
-          id: "BotOperations_getWebhookEvents",
-          description:
-            "История событий\n\nМетод для получения истории последних событий бота. Данный метод будет полезен, если вы не можете получать события в реальном времени на ваш `URL`, но вам требуется обрабатывать все события, на которые вы подписались.\n\nИстория событий сохраняется только при активном пункте «Сохранять историю событий» во вкладке «Исходящий webhook» настроек бота. При этом указывать «Webhook `URL`» не требуется.\n\nДля получения истории событий конкретного бота вам необходимо знать его `access_token` и использовать его при запросе. Каждое событие представляет `JSON` объект вебхука.",
-          tags: [tags["Bots"]],
-          req: {
-            query: {
-              "limit?": QueryLimitParam1,
-              "cursor?": paginationParam,
+      },
+      "/:id": DELETE({
+        id: "BotOperations_deleteWebhookEvent",
+        description:
+          "Удаление события\n\nДанный метод доступен для работы только с `access_token` бота\n\nМетод для удаления события из истории событий бота.\n\nДля удаления события вам необходимо знать `access_token` бота, которому принадлежит событие, и `id` события.",
+        tags: [tags["Bots"]],
+        req: {
+          pathParams: {
+            id: {
+              description: "Идентификатор события",
+              example: "01KAJZ2XDSS2S3DSW9EXJZ0TBV",
+              schema: string({
+                examples: ["01KAJZ2XDSS2S3DSW9EXJZ0TBV"],
+              }),
             },
           },
-          res: {
-            200: resp({
-              description: "The request has succeeded.",
-              body: dataMetaOf(
-                array(WebhookEvent),
-                PaginationMeta,
-                "Обертка ответа с данными и пагинацией",
-              ),
-            }),
-            400: resp({
-              description:
-                "The server could not understand the request due to invalid syntax.",
-              body: ApiError,
-            }),
-            401: resp({
-              description: "Access is unauthorized.",
-              body: OAuthError,
-            }),
-            402: resp({
-              description: "Client error",
-              body: ApiError,
-            }),
-            403: resp({
-              description: "Access is forbidden.",
-              body: OAuthError,
-            }),
-            422: resp({
-              description: "Client error",
-              body: ApiError,
-            }),
-          },
-          "x-paginated": true,
-          "x-requirements": {
-            scope: "webhooks:events:read",
-          },
         },
-        "/:id": DELETE({
-          id: "BotOperations_deleteWebhookEvent",
-          description:
-            "Удаление события\n\nДанный метод доступен для работы только с `access_token` бота\n\nМетод для удаления события из истории событий бота.\n\nДля удаления события вам необходимо знать `access_token` бота, которому принадлежит событие, и `id` события.",
-          tags: [tags["Bots"]],
-          req: {
-            pathParams: {
-              id: {
-                description: "Идентификатор события",
-                example: "01KAJZ2XDSS2S3DSW9EXJZ0TBV",
-                schema: string({
-                  examples: ["01KAJZ2XDSS2S3DSW9EXJZ0TBV"],
-                }),
-              },
-            },
-          },
-          res: {
-            204: resp({
-              description:
-                "There is no content to send for this request, but the headers may be useful. ",
-            }),
-            401: resp({
-              description: "Access is unauthorized.",
-              body: OAuthError,
-            }),
-            402: resp({
-              description: "Client error",
-              body: ApiError,
-            }),
-            403: resp({
-              description: "Access is forbidden.",
-              body: OAuthError,
-            }),
-            404: resp({
-              description: "The server cannot find the requested resource.",
-              body: ApiError,
-            }),
-          },
-          "x-requirements": {
-            scope: "webhooks:events:delete",
-          },
-        }),
+        res: {
+          204: resp({
+            description:
+              "There is no content to send for this request, but the headers may be useful. ",
+          }),
+          401: resp({
+            description: "Access is unauthorized.",
+            body: OAuthError,
+          }),
+          402: resp({
+            description: "Client error",
+            body: ApiError,
+          }),
+          403: resp({
+            description: "Access is forbidden.",
+            body: OAuthError,
+          }),
+          404: resp({
+            description: "The server cannot find the requested resource.",
+            body: ApiError,
+          }),
+        },
+        "x-requirements": {
+          scope: "webhooks:events:delete",
+        },
       }),
+    }),
   },
 })
