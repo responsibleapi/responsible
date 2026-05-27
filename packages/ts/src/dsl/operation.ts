@@ -141,6 +141,14 @@ interface RespBase {
 }
 
 export interface RespAugmentation extends RespBase {
+  /**
+   * Default response body MIME type. When this is `application/json`, OpenAPI
+   * 3.2 `text/event-stream` response item schemas are treated as semantic JSON
+   * event payload schemas and wrapped as Server-Sent Event objects with
+   * `event`, JSON `data`, optional `id`, and optional `retry`.
+   *
+   * @dsl
+   */
   readonly mime?: Mime
 }
 

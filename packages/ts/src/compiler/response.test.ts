@@ -313,6 +313,111 @@ describe("response", () => {
     })
   })
 
+  test("forEachOp.res.mime controls semantic SSE response wrapping", () => {
+    function streamRoutes() {
+      return {
+        "/stream": GET({
+          res: {
+            200: resp({
+              body: {
+                "text/event-stream": {
+                  itemSchema: object({
+                    type: string({ const: "message.delta" }),
+                    delta: string(),
+                  }),
+                },
+              },
+            }),
+          },
+        }),
+      }
+    }
+
+    const requestJsonDefault = responsibleAPI({
+      partialDoc: {
+        openapi: "3.2.0",
+        info: { title: "SSE request JSON default", version: "1" },
+      },
+      forEachOp: { req: { mime: "application/json" } },
+      routes: streamRoutes(),
+    })
+    const responseJsonDefault = responsibleAPI({
+      partialDoc: {
+        openapi: "3.2.0",
+        info: { title: "SSE response JSON default", version: "1" },
+      },
+      forEachOp: { res: { mime: "application/json" } },
+      routes: streamRoutes(),
+    })
+
+    expect(requestJsonDefault.paths?.["/stream"]?.get?.responses).toEqual({
+      ["200"]: {
+        description: "200",
+        content: {
+          ["text/event-stream"]: {
+            itemSchema: {
+              type: "object",
+              properties: {
+                type: {
+                  type: "string",
+                  const: "message.delta",
+                },
+                delta: {
+                  type: "string",
+                },
+              },
+              required: ["type", "delta"],
+            },
+          },
+        },
+      },
+    })
+
+    expect(responseJsonDefault.paths?.["/stream"]?.get?.responses).toEqual({
+      ["200"]: {
+        description: "200",
+        content: {
+          ["text/event-stream"]: {
+            itemSchema: {
+              type: "object",
+              properties: {
+                event: {
+                  type: "string",
+                  const: "message.delta",
+                },
+                data: {
+                  type: "string",
+                  contentMediaType: "application/json",
+                  contentSchema: {
+                    type: "object",
+                    properties: {
+                      type: {
+                        type: "string",
+                        const: "message.delta",
+                      },
+                      delta: {
+                        type: "string",
+                      },
+                    },
+                    required: ["type", "delta"],
+                  },
+                },
+                id: {
+                  type: "string",
+                },
+                retry: {
+                  minimum: 0,
+                  type: "integer",
+                },
+              },
+              required: ["event", "data"],
+            },
+          },
+        },
+      },
+    })
+  })
+
   test("sse response with JSON default requires event schemas to define type", () => {
     expect(() =>
       responsibleAPI({

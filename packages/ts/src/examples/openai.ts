@@ -12,7 +12,6 @@ import {
   resp,
   responsibleAPI,
   string,
-  type Schema,
   unknown,
 } from "../index.ts"
 
@@ -121,56 +120,18 @@ const errorEventData = object({
   "sequence_number?": integer(),
 })
 
-const jsonServerSentEvent = (type: string, data: Schema) =>
-  object({
-    event: string({ const: type }),
-    data: string({
-      contentMediaType: "application/json",
-      contentSchema: data,
-    }),
-    "id?": string(),
-    "retry?": integer({ minimum: 0 }),
-  })
-
 const ResponseStreamEvent = () =>
   oneOf([
-    jsonServerSentEvent(
-      "response.created",
-      responseLifecycleEventData("response.created"),
-    ),
-    jsonServerSentEvent(
-      "response.in_progress",
-      responseLifecycleEventData("response.in_progress"),
-    ),
-    jsonServerSentEvent(
-      "response.completed",
-      responseLifecycleEventData("response.completed"),
-    ),
-    jsonServerSentEvent(
-      "response.output_item.added",
-      responseOutputItemAddedData,
-    ),
-    jsonServerSentEvent(
-      "response.output_item.done",
-      responseOutputItemDoneData,
-    ),
-    jsonServerSentEvent(
-      "response.content_part.added",
-      responseContentPartAddedData,
-    ),
-    jsonServerSentEvent(
-      "response.content_part.done",
-      responseContentPartDoneData,
-    ),
-    jsonServerSentEvent(
-      "response.output_text.delta",
-      responseOutputTextDeltaData,
-    ),
-    jsonServerSentEvent(
-      "response.output_text.done",
-      responseOutputTextDoneData,
-    ),
-    jsonServerSentEvent("error", errorEventData),
+    responseLifecycleEventData("response.created"),
+    responseLifecycleEventData("response.in_progress"),
+    responseLifecycleEventData("response.completed"),
+    responseOutputItemAddedData,
+    responseOutputItemDoneData,
+    responseContentPartAddedData,
+    responseContentPartDoneData,
+    responseOutputTextDeltaData,
+    responseOutputTextDoneData,
+    errorEventData,
   ])
 
 export default responsibleAPI({
@@ -189,6 +150,9 @@ export default responsibleAPI({
   security: bearerAuth,
   forEachOp: {
     req: {
+      mime: "application/json",
+    },
+    res: {
       mime: "application/json",
     },
   },
