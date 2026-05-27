@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest"
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, HEAD, POST } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"
-import { resp, sse, sseJSON } from "../dsl/operation.ts"
+import { resp, sse } from "../dsl/operation.ts"
 import { responseHeader } from "../dsl/response-headers.ts"
 import {
   int32,
@@ -197,17 +197,18 @@ describe("response", () => {
     })
   })
 
-  test("sseJSON response wraps semantic event schemas", () => {
+  test("sse response with JSON default wraps semantic event schemas", () => {
     const rapi = responsibleAPI({
       partialDoc: {
         openapi: "3.2.0",
         info: { title: "SSE JSON response", version: "1" },
       },
+      forEachOp: { res: { mime: "application/json" } },
       routes: {
         "/stream": GET({
           res: {
             200: resp({
-              body: sseJSON(
+              body: sse(
                 oneOf([
                   object({
                     type: string({ const: "message.delta" }),
@@ -308,18 +309,19 @@ describe("response", () => {
     })
   })
 
-  test("sseJSON requires event schemas to define type", () => {
+  test("sse response with JSON default requires event schemas to define type", () => {
     expect(() =>
       responsibleAPI({
         partialDoc: {
           openapi: "3.2.0",
           info: { title: "SSE JSON response", version: "1" },
         },
+        forEachOp: { res: { mime: "application/json" } },
         routes: {
           "/stream": GET({
             res: {
               200: resp({
-                body: sseJSON(object({ ok: string() })),
+                body: sse(object({ ok: string() })),
               }),
             },
           }),
@@ -328,18 +330,19 @@ describe("response", () => {
     ).toThrow(/must define a type property/)
   })
 
-  test("sseJSON requires event type to be a string schema", () => {
+  test("sse response with JSON default requires event type to be a string schema", () => {
     expect(() =>
       responsibleAPI({
         partialDoc: {
           openapi: "3.2.0",
           info: { title: "SSE JSON response", version: "1" },
         },
+        forEachOp: { res: { mime: "application/json" } },
         routes: {
           "/stream": GET({
             res: {
               200: resp({
-                body: sseJSON(
+                body: sse(
                   object({
                     type: integer(),
                   }),
@@ -352,18 +355,19 @@ describe("response", () => {
     ).toThrow(/type property must be a string schema/)
   })
 
-  test("sseJSON requires event type const", () => {
+  test("sse response with JSON default requires event type const", () => {
     expect(() =>
       responsibleAPI({
         partialDoc: {
           openapi: "3.2.0",
           info: { title: "SSE JSON response", version: "1" },
         },
+        forEachOp: { res: { mime: "application/json" } },
         routes: {
           "/stream": GET({
             res: {
               200: resp({
-                body: sseJSON(
+                body: sse(
                   object({
                     type: string(),
                   }),
@@ -376,18 +380,19 @@ describe("response", () => {
     ).toThrow(/type property must define const/)
   })
 
-  test("sseJSON rejects duplicate event types", () => {
+  test("sse response with JSON default rejects duplicate event types", () => {
     expect(() =>
       responsibleAPI({
         partialDoc: {
           openapi: "3.2.0",
           info: { title: "SSE JSON response", version: "1" },
         },
+        forEachOp: { res: { mime: "application/json" } },
         routes: {
           "/stream": GET({
             res: {
               200: resp({
-                body: sseJSON(
+                body: sse(
                   oneOf([
                     object({
                       type: string({ const: "message.delta" }),

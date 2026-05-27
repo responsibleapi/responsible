@@ -1,7 +1,7 @@
 export { responsibleAPI } from "./dsl/dsl.ts"
 export { GET, HEAD, POST, PUT, DELETE } from "./dsl/methods.ts"
 export { named, ref } from "./dsl/nameable.ts"
-export { resp, sse, sseJSON } from "./dsl/operation.ts"
+export { resp, sse } from "./dsl/operation.ts"
 export { headerParam, pathParam, queryParam } from "./dsl/params.ts"
 export { responseHeader } from "./dsl/response-headers.ts"
 export {

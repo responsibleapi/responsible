@@ -1,6 +1,6 @@
 import type { NameWithOptionality } from "./dsl.ts"
 import type { HttpMethod } from "./methods.ts"
-import { decodeNameable, named, ref, type Nameable } from "./nameable.ts"
+import type { Nameable } from "./nameable.ts"
 import type {
   HeaderParams,
   PathParams,
@@ -8,8 +8,7 @@ import type {
   ReusableParam,
 } from "./params.ts"
 import type { ReusableHeader } from "./response-headers.ts"
-import type { Obj, RawSchema, Schema } from "./schema.ts"
-import { integer, object, oneOf, string } from "./schema.ts"
+import type { Schema } from "./schema.ts"
 import type { Mime } from "./scope.ts"
 import type { Security } from "./security.ts"
 import type { DeclaredTags, OpTags } from "./tags.ts"
@@ -225,105 +224,3 @@ export const sse = (
 ): Record<"text/event-stream", ServerSentEventStream> => ({
   "text/event-stream": { itemSchema },
 })
-
-const isObjectEventSchema = (schema: RawSchema): schema is Obj =>
-  "type" in schema && schema.type === "object" && "properties" in schema
-
-function readEventTypeConst(eventSchema: Schema): string {
-  const { value } = decodeNameable(eventSchema)
-
-  if (!isObjectEventSchema(value)) {
-    throw new Error("sseJSON event schema must be an object schema")
-  }
-
-  const typeSchema = value.properties["type"]
-
-  if (typeSchema === undefined) {
-    throw new Error("sseJSON event schema must define a type property")
-  }
-
-  const decodedTypeSchema = decodeNameable(typeSchema).value
-
-  if (!("type" in decodedTypeSchema) || decodedTypeSchema.type !== "string") {
-    throw new Error(
-      "sseJSON event schema type property must be a string schema",
-    )
-  }
-
-  if (!("const" in decodedTypeSchema)) {
-    throw new Error("sseJSON event schema type property must define const")
-  }
-
-  if (decodedTypeSchema.const === undefined) {
-    throw new Error("sseJSON event schema type property must define const")
-  }
-
-  return decodedTypeSchema.const
-}
-
-const sseJSONEventSchema = (eventSchema: Schema): Obj =>
-  object({
-    event: string({ const: readEventTypeConst(eventSchema) }),
-    data: string({
-      contentMediaType: "application/json",
-      contentSchema: eventSchema,
-    }),
-    "id?": string(),
-    "retry?": integer({ minimum: 0 }),
-  })
-
-function collectEventSchemas(eventSchema: Schema): readonly Schema[] {
-  const { value } = decodeNameable(eventSchema)
-
-  return "oneOf" in value ? value.oneOf : [value]
-}
-
-function sseJSONItemSchema(eventSchema: Schema): RawSchema {
-  const eventSchemas = collectEventSchemas(eventSchema)
-  const eventTypes = new Set<string>()
-  const itemSchemas: Obj[] = []
-
-  for (const event of eventSchemas) {
-    const eventType = readEventTypeConst(event)
-
-    if (eventTypes.has(eventType)) {
-      throw new Error(`sseJSON event type "${eventType}" is duplicated`)
-    }
-
-    eventTypes.add(eventType)
-    itemSchemas.push(sseJSONEventSchema(event))
-  }
-
-  return itemSchemas.length === 1 ? itemSchemas[0]! : oneOf(itemSchemas)
-}
-
-/**
- * Models JSON-bearing Server-Sent Events from semantic event schemas.
- *
- * The input schema describes parsed JSON event data with a required `type:
- * string({ const: ... })` property. The emitted OpenAPI schema keeps the
- * wire-level SSE envelope and JSON string encoding explicit.
- *
- * @dsl
- */
-export function sseJSON(
-  eventSchema: Schema,
-): Record<"text/event-stream", ServerSentEventStream> {
-  const { name, summary, description } = decodeNameable(eventSchema)
-  const itemSchema = sseJSONItemSchema(eventSchema)
-
-  if (name === undefined || name === "") {
-    return sse(itemSchema)
-  }
-
-  const namedItemSchema = named(name, itemSchema)
-
-  return sse(
-    summary === undefined && description === undefined
-      ? namedItemSchema
-      : ref(namedItemSchema, {
-          ...(summary !== undefined ? { summary } : {}),
-          ...(description !== undefined ? { description } : {}),
-        }),
-  )
-}

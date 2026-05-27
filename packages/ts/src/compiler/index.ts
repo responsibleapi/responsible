@@ -1,7 +1,12 @@
 import type { oas31 } from "openapi3-ts"
 import { isOptional, type ResponsibleApiInput } from "../dsl/dsl.ts"
 import type { HttpMethod } from "../dsl/methods.ts"
-import { decodeNameable, type Nameable } from "../dsl/nameable.ts"
+import {
+  decodeNameable,
+  named,
+  ref as namedRef,
+  type Nameable,
+} from "../dsl/nameable.ts"
 import type {
   GetOp,
   MatchStatus,
@@ -19,7 +24,15 @@ import type {
 } from "../dsl/operation.ts"
 import type { InlineHeaderParam } from "../dsl/params.ts"
 import type { HeaderRaw, ReusableHeader } from "../dsl/response-headers.ts"
-import type { RawSchema, Schema } from "../dsl/schema.ts"
+import {
+  integer,
+  object,
+  oneOf,
+  string,
+  type Obj,
+  type RawSchema,
+  type Schema,
+} from "../dsl/schema.ts"
 import type {
   CanonicalScope,
   ForEachPath,
@@ -762,6 +775,97 @@ function isServerSentEventStream(body: unknown): body is ServerSentEventStream {
   return typeof body === "object" && body !== null && "itemSchema" in body
 }
 
+function isObjectEventSchema(schema: RawSchema): schema is Obj {
+  return "type" in schema && schema.type === "object" && "properties" in schema
+}
+
+function readJsonEventTypeConst(eventSchema: Schema): string {
+  const { value } = decodeNameable(eventSchema)
+
+  if (!isObjectEventSchema(value)) {
+    throw new Error("SSE JSON event schema must be an object schema")
+  }
+
+  const typeSchema = value.properties["type"]
+
+  if (typeSchema === undefined) {
+    throw new Error("SSE JSON event schema must define a type property")
+  }
+
+  const decodedTypeSchema = decodeNameable(typeSchema).value
+
+  if (!("type" in decodedTypeSchema) || decodedTypeSchema.type !== "string") {
+    throw new Error(
+      "SSE JSON event schema type property must be a string schema",
+    )
+  }
+
+  if (!("const" in decodedTypeSchema)) {
+    throw new Error("SSE JSON event schema type property must define const")
+  }
+
+  if (decodedTypeSchema.const === undefined) {
+    throw new Error("SSE JSON event schema type property must define const")
+  }
+
+  return decodedTypeSchema.const
+}
+
+function jsonServerSentEventSchema(eventSchema: Schema): Obj {
+  return object({
+    event: string({ const: readJsonEventTypeConst(eventSchema) }),
+    data: string({
+      contentMediaType: "application/json",
+      contentSchema: eventSchema,
+    }),
+    "id?": string(),
+    "retry?": integer({ minimum: 0 }),
+  })
+}
+
+function collectJsonEventSchemas(eventSchema: Schema): readonly Schema[] {
+  const { value } = decodeNameable(eventSchema)
+
+  return "oneOf" in value ? value.oneOf : [value]
+}
+
+function jsonServerSentEventItemValue(eventSchema: Schema): RawSchema {
+  const eventSchemas = collectJsonEventSchemas(eventSchema)
+  const eventTypes = new Set<string>()
+  const itemSchemas: Obj[] = []
+
+  for (const event of eventSchemas) {
+    const eventType = readJsonEventTypeConst(event)
+
+    if (eventTypes.has(eventType)) {
+      throw new Error(`SSE JSON event type "${eventType}" is duplicated`)
+    }
+
+    eventTypes.add(eventType)
+    itemSchemas.push(jsonServerSentEventSchema(event))
+  }
+
+  return itemSchemas.length === 1 ? itemSchemas[0]! : oneOf(itemSchemas)
+}
+
+function jsonServerSentEventItemSchema(eventSchema: Schema): Schema {
+  const { name, summary, description } = decodeNameable(eventSchema)
+  const itemSchema = jsonServerSentEventItemValue(eventSchema)
+
+  if (name === undefined || name === "") {
+    return itemSchema
+  }
+
+  const namedItemSchema = named(name, itemSchema)
+
+  return summary === undefined && description === undefined
+    ? namedItemSchema
+    : namedRef(namedItemSchema, {
+        ...(summary !== undefined ? { summary } : {}),
+        ...(description !== undefined ? { description } : {}),
+      })
+}
+
 function isMimeMap(
   body: BodyContent | Record<Mime, BodyContent>,
 ): body is Record<Mime, BodyContent> {
@@ -788,8 +892,13 @@ function compileContent(
     sch: BodyContent,
   ): Oas32MediaTypeObject => {
     if (isServerSentEventStream(sch)) {
+      const itemSchema =
+        defaultMime === "application/json"
+          ? jsonServerSentEventItemSchema(sch.itemSchema)
+          : sch.itemSchema
+
       return {
-        itemSchema: emitSchemaRefOrValue(schemaState, sch.itemSchema),
+        itemSchema: emitSchemaRefOrValue(schemaState, itemSchema),
       }
     }
 

@@ -11,7 +11,7 @@ import {
   oneOf,
   resp,
   responsibleAPI,
-  sseJSON,
+  sse,
   string,
   unknown,
 } from "../index.ts"
@@ -167,6 +167,9 @@ export default responsibleAPI({
     req: {
       mime: "application/json",
     },
+    res: {
+      mime: "application/json",
+    },
   },
   routes: {
     "/responses": POST("createStreamingResponse", {
@@ -175,7 +178,7 @@ export default responsibleAPI({
       res: {
         200: resp({
           description: "A server-sent event stream of response events.",
-          body: sseJSON(ResponseStreamEvent),
+          body: sse(ResponseStreamEvent),
         }),
       },
     }),
