@@ -4,7 +4,7 @@ import { validateDoc } from "../help/validate-doc.ts"
 /**
  * Story 6: large specs validate end-to-end; named query params and named HTTP
  * basic auth register under `components` with `$ref` at operation scope.
- * Golden `src/examples/*.json` files are not updated here — those tests compare
+ * Golden `src/examples/*.yaml` files are not updated here — those tests compare
  * full document equality and remain snapshot-drifted until examples are
  * refreshed.
  */

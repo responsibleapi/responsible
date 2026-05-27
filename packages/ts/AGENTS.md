@@ -48,8 +48,6 @@ git log --all --since='%day% 00:00:00' --until='%day% 23:59:59' --numstat --form
 
 ## Rules
 
-- before making changes to `packages/ts/src/**/*` from the root, or `src/**/*`
-  from `packages/ts`, run `task reindex`
 - verify changes to `packages/ts/src/**/*` with `task ts:check` from the root,
   or `task check` from `packages/ts`
 - never add `oxlint-disable-next-line` without asking a human

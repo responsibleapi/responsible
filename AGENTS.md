@@ -13,7 +13,6 @@
 ## TypeScript
 
 - Run package tasks through Taskfile from the root when possible.
-- Before editing `packages/**/*.ts`, run `task reindex`.
 - Verify maintained TypeScript package changes with the relevant package task:
   - `task ts:check` for `packages/ts`.
   - `task hono:check` for `packages/hono`.

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest"
-import pachca from "../examples/pachca.json"
+import pachca from "../examples/pachca.yaml" with { type: "yaml" }
 import { validateSchema } from "./validate-schema.ts"
 
 describe("validateSchema", () => {
