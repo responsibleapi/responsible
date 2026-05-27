@@ -100,10 +100,8 @@ components:
           type: string
         output:
           type: array
-          items:
-            {}
-        usage:
-          {}
+          items: {}
+        usage: {}
       required:
         - id
         - object
@@ -214,8 +212,7 @@ components:
                     const: response.output_item.added
                   output_index:
                     type: integer
-                  item:
-                    {}
+                  item: {}
                   sequence_number:
                     type: integer
                 required:
@@ -246,8 +243,7 @@ components:
                     const: response.output_item.done
                   output_index:
                     type: integer
-                  item:
-                    {}
+                  item: {}
                   sequence_number:
                     type: integer
                 required:
@@ -282,8 +278,7 @@ components:
                     type: integer
                   content_index:
                     type: integer
-                  part:
-                    {}
+                  part: {}
                   sequence_number:
                     type: integer
                 required:
@@ -320,8 +315,7 @@ components:
                     type: integer
                   content_index:
                     type: integer
-                  part:
-                    {}
+                  part: {}
                   sequence_number:
                     type: integer
                 required:
@@ -450,5 +444,4 @@ components:
 servers:
   - url: https://api.openai.com/v1
 security:
-  - bearerAuth:
-      []
+  - bearerAuth: []

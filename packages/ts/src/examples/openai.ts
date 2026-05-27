@@ -6,7 +6,6 @@ import {
   httpSecurity,
   int64,
   integer,
-  named,
   object,
   oneOf,
   resp,
@@ -15,13 +14,11 @@ import {
   unknown,
 } from "../index.ts"
 
-const bearerAuth = named(
-  "bearerAuth",
+const bearerAuth = () =>
   httpSecurity({
     scheme: "bearer",
     bearerFormat: "OpenAI API key",
-  }),
-)
+  })
 
 const inputText = object({
   type: string({ const: "input_text" }),
@@ -157,7 +154,8 @@ export default responsibleAPI({
     },
   },
   routes: {
-    "/responses": POST("createResponse", {
+    "/responses": POST({
+      id: "createResponse",
       summary: "Create a model response",
       req: object({
         model: string({ examples: ["gpt-5.4"] }),
