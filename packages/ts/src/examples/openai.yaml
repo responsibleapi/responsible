@@ -1,12 +1,12 @@
 openapi: 3.2.0
 info:
-  title: OpenAI Responses Streaming
+  title: OpenAI Responses
   version: "1"
 paths:
   /responses:
     post:
-      summary: Create a streaming model response
-      operationId: createStreamingResponse
+      summary: Create a model response
+      operationId: createResponse
       requestBody:
         required: true
         content:
@@ -54,16 +54,18 @@ paths:
                   type: string
                 stream:
                   type: boolean
-                  default: true
+                  default: false
                   description: Set to true to receive server-sent events.
               required:
                 - model
                 - input
-                - stream
       responses:
         "200":
-          description: A server-sent event stream of response events.
+          description: OK
           content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Response"
             text/event-stream:
               itemSchema:
                 $ref: "#/components/schemas/ResponseStreamEvent"

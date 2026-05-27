@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest"
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, HEAD, POST } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"
-import { resp, sse } from "../dsl/operation.ts"
+import { resp } from "../dsl/operation.ts"
 import { responseHeader } from "../dsl/response-headers.ts"
 import {
   int32,
@@ -161,12 +161,14 @@ describe("response", () => {
         "/stream": GET({
           res: {
             200: resp({
-              body: sse(
-                object({
-                  event: string({ const: "message" }),
-                  data: string(),
-                }),
-              ),
+              body: {
+                "text/event-stream": {
+                  itemSchema: object({
+                    event: string({ const: "message" }),
+                    data: string(),
+                  }),
+                },
+              },
             }),
           },
         }),
@@ -208,18 +210,20 @@ describe("response", () => {
         "/stream": GET({
           res: {
             200: resp({
-              body: sse(
-                oneOf([
-                  object({
-                    type: string({ const: "message.delta" }),
-                    delta: string(),
-                  }),
-                  object({
-                    type: string({ const: "message.done" }),
-                    text: string(),
-                  }),
-                ]),
-              ),
+              body: {
+                "text/event-stream": {
+                  itemSchema: oneOf([
+                    object({
+                      type: string({ const: "message.delta" }),
+                      delta: string(),
+                    }),
+                    object({
+                      type: string({ const: "message.done" }),
+                      text: string(),
+                    }),
+                  ]),
+                },
+              },
             }),
           },
         }),
@@ -321,7 +325,11 @@ describe("response", () => {
           "/stream": GET({
             res: {
               200: resp({
-                body: sse(object({ ok: string() })),
+                body: {
+                  "text/event-stream": {
+                    itemSchema: object({ ok: string() }),
+                  },
+                },
               }),
             },
           }),
@@ -342,11 +350,13 @@ describe("response", () => {
           "/stream": GET({
             res: {
               200: resp({
-                body: sse(
-                  object({
-                    type: integer(),
-                  }),
-                ),
+                body: {
+                  "text/event-stream": {
+                    itemSchema: object({
+                      type: integer(),
+                    }),
+                  },
+                },
               }),
             },
           }),
@@ -367,11 +377,13 @@ describe("response", () => {
           "/stream": GET({
             res: {
               200: resp({
-                body: sse(
-                  object({
-                    type: string(),
-                  }),
-                ),
+                body: {
+                  "text/event-stream": {
+                    itemSchema: object({
+                      type: string(),
+                    }),
+                  },
+                },
               }),
             },
           }),
@@ -392,16 +404,18 @@ describe("response", () => {
           "/stream": GET({
             res: {
               200: resp({
-                body: sse(
-                  oneOf([
-                    object({
-                      type: string({ const: "message.delta" }),
-                    }),
-                    object({
-                      type: string({ const: "message.delta" }),
-                    }),
-                  ]),
-                ),
+                body: {
+                  "text/event-stream": {
+                    itemSchema: oneOf([
+                      object({
+                        type: string({ const: "message.delta" }),
+                      }),
+                      object({
+                        type: string({ const: "message.delta" }),
+                      }),
+                    ]),
+                  },
+                },
               }),
             },
           }),

@@ -11,8 +11,8 @@ import {
   oneOf,
   resp,
   responsibleAPI,
-  sse,
   string,
+  type Schema,
   unknown,
 } from "../index.ts"
 
@@ -121,25 +121,63 @@ const errorEventData = object({
   "sequence_number?": integer(),
 })
 
+const jsonServerSentEvent = (type: string, data: Schema) =>
+  object({
+    event: string({ const: type }),
+    data: string({
+      contentMediaType: "application/json",
+      contentSchema: data,
+    }),
+    "id?": string(),
+    "retry?": integer({ minimum: 0 }),
+  })
+
 const ResponseStreamEvent = () =>
   oneOf([
-    responseLifecycleEventData("response.created"),
-    responseLifecycleEventData("response.in_progress"),
-    responseLifecycleEventData("response.completed"),
-    responseOutputItemAddedData,
-    responseOutputItemDoneData,
-    responseContentPartAddedData,
-    responseContentPartDoneData,
-    responseOutputTextDeltaData,
-    responseOutputTextDoneData,
-    errorEventData,
+    jsonServerSentEvent(
+      "response.created",
+      responseLifecycleEventData("response.created"),
+    ),
+    jsonServerSentEvent(
+      "response.in_progress",
+      responseLifecycleEventData("response.in_progress"),
+    ),
+    jsonServerSentEvent(
+      "response.completed",
+      responseLifecycleEventData("response.completed"),
+    ),
+    jsonServerSentEvent(
+      "response.output_item.added",
+      responseOutputItemAddedData,
+    ),
+    jsonServerSentEvent(
+      "response.output_item.done",
+      responseOutputItemDoneData,
+    ),
+    jsonServerSentEvent(
+      "response.content_part.added",
+      responseContentPartAddedData,
+    ),
+    jsonServerSentEvent(
+      "response.content_part.done",
+      responseContentPartDoneData,
+    ),
+    jsonServerSentEvent(
+      "response.output_text.delta",
+      responseOutputTextDeltaData,
+    ),
+    jsonServerSentEvent(
+      "response.output_text.done",
+      responseOutputTextDoneData,
+    ),
+    jsonServerSentEvent("error", errorEventData),
   ])
 
 export default responsibleAPI({
   partialDoc: {
     openapi: "3.2.0",
     info: {
-      title: "OpenAI Responses Streaming",
+      title: "OpenAI Responses",
       version: "1",
     },
     servers: [
@@ -153,26 +191,26 @@ export default responsibleAPI({
     req: {
       mime: "application/json",
     },
-    res: {
-      mime: "application/json",
-    },
   },
   routes: {
-    "/responses": POST("createStreamingResponse", {
-      summary: "Create a streaming model response",
+    "/responses": POST("createResponse", {
+      summary: "Create a model response",
       req: object({
         model: string({ examples: ["gpt-5.4"] }),
         input: anyOf([string(), array(responseInputMessage)]),
         "instructions?": string(),
-        stream: boolean({
-          default: true,
+        "stream?": boolean({
+          default: false,
           description: "Set to true to receive server-sent events.",
         }),
       }),
       res: {
         200: resp({
-          description: "A server-sent event stream of response events.",
-          body: sse(ResponseStreamEvent),
+          description: "OK",
+          body: {
+            "application/json": Response,
+            "text/event-stream": { itemSchema: ResponseStreamEvent },
+          },
         }),
       },
     }),

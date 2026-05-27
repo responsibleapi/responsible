@@ -44,7 +44,10 @@ type StringFormat = KnownStringFormat | (string & {})
 interface StringsOpts extends SchemaOpts<string> {
   format?: StringFormat
 
-  /** Declares the encoding expected for string payloads that carry embedded content. */
+  /**
+   * Declares the encoding expected for string payloads that carry embedded
+   * content.
+   */
   contentEncoding?: string
   /** Declares the media type of content embedded inside this string value. */
   contentMediaType?: Mime
