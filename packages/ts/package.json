@@ -36,19 +36,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "check": "bun run --parallel typecheck lint test",
-    "check:full": "bun run --parallel --no-exit-on-error typecheck lint test",
-    "fmt": "oxfmt",
-    "fmt:check": "oxfmt --check",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "test": "bun test",
-    "test:coverage": "bun test --coverage",
-    "test:slow": "vitest run src/",
-    "typecheck": "tsc"
-  },
   "dependencies": {
     "fast-deep-equal": "^3.1.3",
     "openapi3-ts": "^4.5.0"

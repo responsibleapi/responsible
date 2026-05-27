@@ -1,63 +1,120 @@
-version: "3"
+version: 3
 
 tasks:
   reindex:
     cmd: uvx code-review-graph build
     sources:
-      - "src/**/*"
-      - "scripts/**/*.ts"
+      - src/**/*
+      - scripts/**/*.ts
+
+  typecheck:
+    run: once
+    cmd: bun tsc
+    sources:
+      - ../../bun.lock
+      - ../../tsconfig.base.json
+      - package.json
+      - tsconfig.json
+      - src/**/*.ts
+      - scripts/**/*.ts
+
+  lint:
+    run: once
+    cmd: bun oxlint
+    sources:
+      - ../../bun.lock
+      - package.json
+      - oxlint.config.ts
+      - tsconfig.json
+      - src/**/*.ts
+      - scripts/**/*.ts
+
+  test:
+    run: once
+    cmd: bun test
+    sources:
+      - ../../bun.lock
+      - package.json
+      - bunfig.toml
+      - src/**/*.ts
 
   check:
     desc: Run publish-safe repo validation
-    cmd: bun check
-    sources:
-      - "src/**/*.ts"
-      - "scripts/**/*.ts"
-      - "package.json"
-      - "tsconfig.json"
-      - "tsconfig.build.json"
-      - ".oxfmtrc.jsonc"
-      - "oxlint.config.ts"
-      - "bunfig.toml"
+    run: once
+    deps:
+      - typecheck
+      - lint
+      - test
 
   fmt:
-    cmd: bun run fmt
+    cmd: bun oxfmt
     sources:
-      - "src/**/*.ts"
-      - "scripts/**/*.ts"
-      - ".oxfmtrc.jsonc"
+      - src/**/*.ts
+      - scripts/**/*.ts
+      - .oxfmtrc.jsonc
 
   fmt:check:
-    cmd: bun run fmt:check
+    cmd: bun oxfmt --check
     sources:
-      - "src/**/*.ts"
-      - "scripts/**/*.ts"
-      - ".oxfmtrc.jsonc"
+      - src/**/*.ts
+      - scripts/**/*.ts
+      - .oxfmtrc.jsonc
+
+  lint:fix:
+    cmd: bun oxlint --fix
+    sources:
+      - ../../bun.lock
+      - package.json
+      - oxlint.config.ts
+      - tsconfig.json
+      - src/**/*.ts
+      - scripts/**/*.ts
+
+  test:coverage:
+    cmd: bun test --coverage
+    sources:
+      - ../../bun.lock
+      - package.json
+      - bunfig.toml
+      - src/**/*.ts
+
+  test:slow:
+    cmd: bun vitest run src/
+    sources:
+      - ../../bun.lock
+      - package.json
+      - src/**/*.ts
 
   build:
     desc: Emit publish artifacts into dist/
-    deps: [check]
-    cmd: bun run build
+    run: once
+    deps:
+      - check
+    cmd: bun tsc -p tsconfig.build.json
     sources:
-      - "src/**/*.ts"
-      - "scripts/**/*.ts"
-      - "package.json"
-      - "tsconfig.json"
-      - "tsconfig.build.json"
-      - ".oxfmtrc.jsonc"
-      - "oxlint.config.ts"
-      - "bunfig.toml"
+      - ../../bun.lock
+      - ../../tsconfig.base.json
+      - src/**/*.ts
+      - scripts/**/*.ts
+      - package.json
+      - tsconfig.json
+      - tsconfig.build.json
+      - .oxfmtrc.jsonc
+      - oxlint.config.ts
+      - bunfig.toml
     generates:
-      - "dist/**/*"
+      - dist/**/*
 
   publish:dry-run:
     desc: Build and inspect publish payload
-    deps: [build]
+    deps:
+      - build
     cmd: bun publish --dry-run --access public
 
   publish:
     desc: Publish current version to npm latest
-    deps: [build]
+    deps:
+      - build
     vars:
       PACKAGE_VERSION:
         sh: jq -r .version package.json
