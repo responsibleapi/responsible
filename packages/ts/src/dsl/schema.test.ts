@@ -324,6 +324,29 @@ describe("schema", () => {
     })
   })
 
+  test("string with contentSchema", () => {
+    const schema = string({
+      contentMediaType: "application/json",
+      contentSchema: object({
+        type: string(),
+      }),
+    })
+
+    expect(validateSchema(schema)).toEqual({
+      type: "string",
+      contentMediaType: "application/json",
+      contentSchema: {
+        type: "object",
+        properties: {
+          type: {
+            type: "string",
+          },
+        },
+        required: ["type"],
+      },
+    })
+  })
+
   test("string with vendor extensions", () => {
     const schema = string({
       description: "Тип события webhook для пользователей",

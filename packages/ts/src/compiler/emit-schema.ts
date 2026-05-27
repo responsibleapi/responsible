@@ -8,7 +8,10 @@ type Dict = Extract<RawSchema, { type: "object"; additionalProperties: Schema }>
 type AnyOfSchema = Extract<RawSchema, { anyOf: readonly Schema[] }>
 type AllOfSchema = Extract<RawSchema, { allOf: readonly Schema[] }>
 type ArraySchema = Extract<RawSchema, { type: "array"; items: Schema }>
-type ObjectSchema = Extract<RawSchema, { type: "object"; properties: Record<string, Schema> }>
+type ObjectSchema = Extract<
+  RawSchema,
+  { type: "object"; properties: Record<string, Schema> }
+>
 
 export type EmittedSchema = oas31.SchemaObject | oas31.ReferenceObject
 
@@ -47,13 +50,21 @@ const rollbackNewSchemas = <T>(
   }
 }
 
-const schemaBaseFields = (schema: object): Record<string, unknown> => {
+const schemaBaseFields = (
+  state: ComponentRegistryState,
+  schema: object,
+): Record<string, unknown> => {
   const out = Object.fromEntries(Object.entries(schema))
   const boxed = schema as {
+    contentSchema?: Schema
     enum?: readonly unknown[]
     examples?: readonly unknown[]
     required?: readonly string[]
     type?: unknown
+  }
+
+  if (boxed.contentSchema !== undefined) {
+    out["contentSchema"] = emitSchemaRefOrValue(state, boxed.contentSchema)
   }
 
   if (Array.isArray(boxed.enum)) {
@@ -80,7 +91,7 @@ const emitObject = (
   schema: Obj,
 ): oas31.SchemaObject => {
   const out: oas31.SchemaObject = {
-    ...schemaBaseFields(schema),
+    ...schemaBaseFields(state, schema),
     properties: Object.fromEntries(
       Object.entries(schema.properties).map(([key, value]) => [
         key,
@@ -101,7 +112,7 @@ const emitDict = (
       ? emitSchemaRefOrValue(state, schema.propertyNames)
       : undefined
   const out: oas31.SchemaObject = {
-    ...schemaBaseFields(schema),
+    ...schemaBaseFields(state, schema),
     additionalProperties: emitSchemaRefOrValue(
       state,
       schema.additionalProperties,
@@ -112,9 +123,11 @@ const emitDict = (
   return out
 }
 
-const isAnyOfSchema = (schema: RawSchema): schema is AnyOfSchema => "anyOf" in schema
+const isAnyOfSchema = (schema: RawSchema): schema is AnyOfSchema =>
+  "anyOf" in schema
 
-const isAllOfSchema = (schema: RawSchema): schema is AllOfSchema => "allOf" in schema
+const isAllOfSchema = (schema: RawSchema): schema is AllOfSchema =>
+  "allOf" in schema
 
 const isDictSchema = (schema: RawSchema): schema is Dict =>
   "additionalProperties" in schema
@@ -122,7 +135,8 @@ const isDictSchema = (schema: RawSchema): schema is Dict =>
 const isObjectSchema = (schema: RawSchema): schema is ObjectSchema =>
   "properties" in schema
 
-const isArraySchema = (schema: RawSchema): schema is ArraySchema => "items" in schema
+const isArraySchema = (schema: RawSchema): schema is ArraySchema =>
+  "items" in schema
 
 const getStructuralType = (schema: RawSchema): string | undefined => {
   if (!("type" in schema)) {
@@ -148,7 +162,10 @@ const nullableLeafNeedsNullExample = (schema: RawSchema): boolean => {
     return false
   }
 
-  if ("example" in schema || ("examples" in schema && Array.isArray(schema.examples))) {
+  if (
+    "example" in schema ||
+    ("examples" in schema && Array.isArray(schema.examples))
+  ) {
     return false
   }
 
@@ -200,7 +217,7 @@ const emitRawSchemaValue = (
 ): oas31.SchemaObject => {
   if ("oneOf" in schema) {
     const out: oas31.SchemaObject = {
-      ...schemaBaseFields(schema),
+      ...schemaBaseFields(state, schema),
       oneOf: schema.oneOf.map(item => emitSchemaRefOrValue(state, item)),
     }
 
@@ -212,14 +229,16 @@ const emitRawSchemaValue = (
 
     if (nullableAllOf !== undefined) {
       return {
-        ...schemaBaseFields(nullableAllOf),
+        ...schemaBaseFields(state, nullableAllOf),
         type: ["object", "null"],
-        allOf: nullableAllOf.allOf.map(item => emitSchemaRefOrValue(state, item)),
+        allOf: nullableAllOf.allOf.map(item =>
+          emitSchemaRefOrValue(state, item),
+        ),
       }
     }
 
     const out: oas31.SchemaObject = {
-      ...schemaBaseFields(schema),
+      ...schemaBaseFields(state, schema),
       anyOf: schema.anyOf.map(item => emitSchemaRefOrValue(state, item)),
     }
 
@@ -228,7 +247,7 @@ const emitRawSchemaValue = (
 
   if (isAllOfSchema(schema)) {
     const out: oas31.SchemaObject = {
-      ...schemaBaseFields(schema),
+      ...schemaBaseFields(state, schema),
       allOf: schema.allOf.map(item => emitSchemaRefOrValue(state, item)),
     }
 
@@ -238,7 +257,7 @@ const emitRawSchemaValue = (
   const structuralType = getStructuralType(schema)
 
   if (structuralType === undefined) {
-    const out: oas31.SchemaObject = schemaBaseFields(schema)
+    const out: oas31.SchemaObject = schemaBaseFields(state, schema)
 
     return emitNullableLeafExamples(schema, out)
   }
@@ -253,7 +272,9 @@ const emitRawSchemaValue = (
         return emitNullableLeafExamples(schema, emitObject(state, schema))
       }
 
-      throw new Error('Schema with type "object" must define properties or additionalProperties')
+      throw new Error(
+        'Schema with type "object" must define properties or additionalProperties',
+      )
 
     case "array":
       if (!isArraySchema(schema)) {
@@ -261,12 +282,12 @@ const emitRawSchemaValue = (
       }
 
       return emitNullableLeafExamples(schema, {
-        ...schemaBaseFields(schema),
+        ...schemaBaseFields(state, schema),
         items: emitSchemaRefOrValue(state, schema.items),
       })
 
     default: {
-      const out: oas31.SchemaObject = schemaBaseFields(schema)
+      const out: oas31.SchemaObject = schemaBaseFields(state, schema)
 
       return emitNullableLeafExamples(schema, out)
     }

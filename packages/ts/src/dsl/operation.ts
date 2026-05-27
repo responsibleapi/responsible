@@ -33,7 +33,18 @@ export interface GetOpReq {
   readonly params?: readonly ReusableParam[]
 }
 
-type RequestBody = Schema | Record<Mime, Schema>
+export interface ServerSentEventStream {
+  /**
+   * OpenAPI 3.2 schema for each Server-Sent Event in the stream.
+   *
+   * @dsl
+   */
+  readonly itemSchema: Schema
+}
+
+export type BodyContent = Schema | ServerSentEventStream
+
+type RequestBody = BodyContent | Record<Mime, BodyContent>
 
 interface OpReqWithBody {
   /**
@@ -126,7 +137,7 @@ interface RespBase {
    */
   readonly cookies?: Record<NameWithOptionality, Schema>
 
-  readonly body?: Schema | Record<Mime, Schema>
+  readonly body?: BodyContent | Record<Mime, BodyContent>
 }
 
 export interface RespAugmentation extends RespBase {
@@ -207,3 +218,9 @@ export type RouteMethodOp<TTags extends DeclaredTags = DeclaredTags> =
 
 /** This exists mostly to distinguish {@link Schema} from {@link Resp} */
 export const resp = (param: OpResp): OpResp => param
+
+export const sse = (
+  itemSchema: Schema,
+): Record<"text/event-stream", ServerSentEventStream> => ({
+  "text/event-stream": { itemSchema },
+})

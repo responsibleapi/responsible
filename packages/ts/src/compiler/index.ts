@@ -12,8 +12,10 @@ import type {
   ReqAugmentation,
   Resp,
   RespAugmentation,
+  BodyContent,
   OpResp,
   RouteMethodOp,
+  ServerSentEventStream,
 } from "../dsl/operation.ts"
 import type { InlineHeaderParam } from "../dsl/params.ts"
 import type { HeaderRaw, ReusableHeader } from "../dsl/response-headers.ts"
@@ -33,6 +35,7 @@ import {
   type ComponentRegistryState,
 } from "./components.ts"
 import { emitSchemaRefOrValue } from "./emit-schema.ts"
+import { ErrorMsg } from "./errors.ts"
 import { dslPathToOpenApiPath, joinHttpPaths } from "./path.ts"
 import {
   compileParameterLayers,
@@ -41,7 +44,6 @@ import {
   securityLayerFromScopeReq,
   stripSecurityFields,
 } from "./request.ts"
-import { ErrorMsg } from "./errors.ts"
 
 const OAS_METHOD: Record<HttpMethod, keyof oas31.PathItemObject> = {
   GET: "get",
@@ -254,11 +256,9 @@ function normalizeOpReq(
   )
 }
 
-function readReqBody(
-  req: Pick<ReqAugmentation, "body" | "body?"> | undefined,
-):
+function readReqBody(req: Pick<ReqAugmentation, "body" | "body?"> | undefined):
   | {
-      body: Schema | Record<Mime, Schema>
+      body: BodyContent | Record<Mime, BodyContent>
       required: boolean
     }
   | undefined {
@@ -754,9 +754,17 @@ function omitSchemaWhenEmptyUnknown(mime: string): boolean {
   return mime === "application/octet-stream"
 }
 
+type Oas32MediaTypeObject = oas31.MediaTypeObject & {
+  itemSchema?: oas31.SchemaObject | oas31.ReferenceObject
+}
+
+function isServerSentEventStream(body: unknown): body is ServerSentEventStream {
+  return typeof body === "object" && body !== null && "itemSchema" in body
+}
+
 function isMimeMap(
-  body: Schema | Record<Mime, Schema>,
-): body is Record<Mime, Schema> {
+  body: BodyContent | Record<Mime, BodyContent>,
+): body is Record<Mime, BodyContent> {
   if (typeof body !== "object" || body === null || "type" in body) {
     return false
   }
@@ -772,10 +780,19 @@ function isMimeMap(
 
 function compileContent(
   schemaState: ComponentRegistryState,
-  body: Schema | Record<Mime, Schema>,
+  body: BodyContent | Record<Mime, BodyContent>,
   defaultMime: Mime | undefined,
 ): oas31.ContentObject {
-  const mediaEntry = (mimeType: string, sch: Schema): oas31.MediaTypeObject => {
+  const mediaEntry = (
+    mimeType: string,
+    sch: BodyContent,
+  ): Oas32MediaTypeObject => {
+    if (isServerSentEventStream(sch)) {
+      return {
+        itemSchema: emitSchemaRefOrValue(schemaState, sch.itemSchema),
+      }
+    }
+
     const compiled = emitSchemaRefOrValue(schemaState, sch)
 
     return isEmptyInlineSchema(compiled) && omitSchemaWhenEmptyUnknown(mimeType)
@@ -787,8 +804,13 @@ function compileContent(
     const c: oas31.ContentObject = {}
 
     for (const [mime, sch] of Object.entries(body)) {
-      if (!isMimeValue(mime) || !isDslSchema(sch)) {
-        throw new TypeError("MIME map entries must be DSL schemas")
+      if (
+        !isMimeValue(mime) ||
+        !(isDslSchema(sch) || isServerSentEventStream(sch))
+      ) {
+        throw new TypeError(
+          "MIME map entries must be DSL schemas or SSE streams",
+        )
       }
 
       c[mime] = mediaEntry(mime, sch)
@@ -799,8 +821,12 @@ function compileContent(
 
   const mime = defaultMime ?? "application/octet-stream"
 
+  if (!(isDslSchema(body) || isServerSentEventStream(body))) {
+    throw new TypeError("Body must be a DSL schema or SSE stream")
+  }
+
   return {
-    [mime]: mediaEntry(mime, body as Schema),
+    [mime]: mediaEntry(mime, body),
   }
 }
 
@@ -971,6 +997,10 @@ function buildMergedResponseObject(
     }
 
     if (!opts?.omitEmptyInlineContent) {
+      return compileContent(schemaState, concrete.body, mime)
+    }
+
+    if (!isDslSchema(concrete.body)) {
       return compileContent(schemaState, concrete.body, mime)
     }
 
@@ -1292,7 +1322,13 @@ function compileRoutes(
         scopeForEachOpFromScopeNode(normalizedScope),
         scopeForEachPathFromScopeNode(normalizedScope),
       )
-      compileRoutes(schemaState, normalizedScope.routes, nextCtx, fullDslPath, paths)
+      compileRoutes(
+        schemaState,
+        normalizedScope.routes,
+        nextCtx,
+        fullDslPath,
+        paths,
+      )
     } else {
       assertRouteMethodOp(node)
       placeOperation(schemaState, paths, fullDslPath, ctx, node, undefined)
@@ -1319,13 +1355,7 @@ export function compileResponsibleAPI(
     ...(api.partialDoc.paths ?? {}),
   }
 
-  compileRoutes(
-    schemaState,
-    api.routes,
-    rootCtx,
-    "",
-    paths,
-  )
+  compileRoutes(schemaState, api.routes, rootCtx, "", paths)
 
   const dummyOpForComponents = { method: "GET" } as RouteMethodOp
 

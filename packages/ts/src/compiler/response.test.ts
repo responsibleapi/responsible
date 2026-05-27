@@ -3,7 +3,7 @@ import { describe, expect, test } from "vitest"
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, HEAD, POST } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"
-import { resp } from "../dsl/operation.ts"
+import { resp, sse } from "../dsl/operation.ts"
 import { responseHeader } from "../dsl/response-headers.ts"
 import { int32, object, string, unknown } from "../dsl/schema.ts"
 import { scope } from "../dsl/scope.ts"
@@ -142,6 +142,52 @@ describe("response", () => {
         },
       },
     } satisfies oas31.ResponsesObject)
+  })
+
+  test("sse response emits OpenAPI 3.2 itemSchema", () => {
+    const rapi = responsibleAPI({
+      partialDoc: {
+        openapi: "3.2.0",
+        info: { title: "SSE response", version: "1" },
+      },
+      routes: {
+        "/stream": GET({
+          res: {
+            200: resp({
+              body: sse(
+                object({
+                  event: string({ const: "message" }),
+                  data: string(),
+                }),
+              ),
+            }),
+          },
+        }),
+      },
+    })
+
+    expect(rapi.paths?.["/stream"]?.get?.responses).toEqual({
+      ["200"]: {
+        description: "200",
+        content: {
+          ["text/event-stream"]: {
+            itemSchema: {
+              type: "object",
+              properties: {
+                event: {
+                  type: "string",
+                  const: "message",
+                },
+                data: {
+                  type: "string",
+                },
+              },
+              required: ["event", "data"],
+            },
+          },
+        },
+      },
+    })
   })
 
   test("synthetic HEAD from GET headID strips response bodies and uses headID as operationId", async () => {

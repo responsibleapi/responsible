@@ -43,7 +43,9 @@ type StringFormat = KnownStringFormat | (string & {})
 
 interface StringsOpts extends SchemaOpts<string> {
   format?: StringFormat
+  contentEncoding?: string
   contentMediaType?: Mime
+  contentSchema?: Schema
   minLength?: number
   maxLength?: number
   pattern?: string | RegExp
