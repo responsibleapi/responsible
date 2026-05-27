@@ -1,12 +1,6 @@
 version: 3
 
 tasks:
-  reindex:
-    cmd: uvx code-review-graph build
-    sources:
-      - src/**/*
-      - scripts/**/*.ts
-
   typecheck:
     run: once
     cmd: bun tsc

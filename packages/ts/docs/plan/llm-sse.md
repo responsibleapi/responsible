@@ -1,254 +1,223 @@
-# LLM SSE Plan
+# LLM SSE Follow-Up Plan
 
-## Goal
+## Current State
 
-- Document why OpenAPI 3.2 matters for LLM-style streaming APIs.
-- Identify exact gaps between current `responsibleapi` output and OpenAPI 3.2
-  sequential media types.
-- Outline minimal-risk path to support `text/event-stream` and related formats
-  without mixing plan work into unrelated compiler changes.
-
-## Why This Matters
-
-- Many LLM APIs stream output incrementally rather than returning one final JSON
+- The compiler can already emit OpenAPI `3.2.0` `text/event-stream` responses.
+- `sse(itemSchema)` emits a media type object with `itemSchema`.
+- `@seriousme/openapi-schema-validator` validates the generated OpenAPI 3.2
   document.
-- Common wire formats include:
-  - `text/event-stream` for Server-Sent Events
-  - `application/jsonl`
-  - `application/x-ndjson`
-  - `multipart/mixed`
-- OpenAPI 3.1 can declare `text/event-stream` as response media type, but it
-  cannot standardly describe response-side SSE item contracts:
-  - 3.1 `Media Type Object` has `schema`, `example`, `examples`, and
-    request-only `encoding`
-  - 3.1 has no `itemSchema`, no sequential-media model, and no SSE-specific
-    response framing fields
-  - 3.1 `schema` applies to complete content, which is wrong abstraction for
-    open-ended per-item streams
-- OpenAPI 3.2 adds sequential media types and `itemSchema`, which is exact
-  missing primitive for streamed item-by-item contracts.
+- The OpenAI streaming example compiles and validates against
+  [`openai.yaml`](../../src/examples/openai.yaml).
 
-## Current Repo State
+The remaining problem is DSL ergonomics.
 
-- Repo emits OpenAPI `3.1.0` today.
-- README says compiler targets OpenAPI `3.1.0`.
-- Current response/request body DSL shape is schema-first:
-  - [`src/dsl/operation.ts`](../../src/dsl/operation.ts)
-  - `body?: Schema | Record<Mime, Schema>`
-- Current compiler content emission is schema-only per media type:
-  - [`src/compiler/index.ts`](../../src/compiler/index.ts)
-  - `compileContent()` returns `{ schema }` entries, not richer media type
-    objects.
-- This means current output can express:
-  - media type name
-  - single body schema
-- Current output cannot express OpenAPI 3.2 sequential-media fields such as:
-  - `itemSchema`
-  - item-by-item multipart encoding
-  - richer streaming examples tied to item structure
+[`openai.ts`](../../src/examples/openai.ts) currently makes authors model the
+SSE wire envelope themselves:
 
-## What OpenAPI 3.2 Adds For LLM APIs
+```ts
+const sseJSONEvent = (event: string, contentSchema: Schema) =>
+  object({
+    event: string({ const: event }),
+    data: string({
+      contentMediaType: "application/json",
+      contentSchema,
+    }),
+    "id?": string(),
+    "retry?": integer({ minimum: 0 }),
+  })
+```
 
-- First-class sequential media types, including `text/event-stream`.
-- `itemSchema` on a Media Type Object for each streamed item/event.
-- Clear split between:
-  - `schema` for complete content
-  - `itemSchema` for each streamed item
-- Better examples for serialized streaming payloads.
-- More accurate docs and codegen for APIs that emit event unions such as:
-  - text deltas
-  - tool call deltas
-  - progress events
-  - terminal `done` events
-  - error events
+That is conformant, but it is the wrong public abstraction for LLM APIs.
 
-## Real-World HTTP API Examples
+## Why It Feels Wrong
 
-- OpenAI Responses API already treats streaming as an event union, not one final
-  JSON document:
-  - request uses `stream: true`
-  - response uses SSE with semantic event types such as `response.created`,
-    `response.output_text.delta`, `response.completed`, and `error`
-  - each emitted item has distinct lifecycle meaning and shape
-- Anthropic Messages API uses named SSE events and richer per-item variants:
-  - request uses `stream: true`
-  - response emits `event: message_start`, `event: content_block_start`,
-    repeated `event: content_block_delta`, `event: message_delta`,
-    `event: message_stop`, plus `ping` and `error`
-  - tool streaming adds `input_json_delta`; thinking mode adds `thinking_delta`
-    and `signature_delta`
-  - text deltas, tool deltas, pings, and terminal events are structurally
-    different items
-- Kimi K2.5 exposes real SSE over plain HTTP on `POST /v1/chat/completions`:
-  - request uses `stream: true`
-  - response switches from `application/json` to `text/event-stream`
-  - each item is `data: { ... }`, usually with `object: "chat.completion.chunk"`
-    and incremental `choices[0].delta.content`
-  - terminal sequence is final chunk with `finish_reason` and `usage`, then
-    `data: [DONE]`
-  - relevant because it stays close to OpenAI-compatible chat completions while
-    still relying on sequential wire items
-- Practical conclusion:
-  - providers do not converge on one streaming item shape
-  - some streams use named SSE events
-  - some use data-only SSE chunks with typed JSON payloads
-  - some append non-JSON sentinels such as `[DONE]`
-  - single-response `schema` is not enough to describe these contracts
+OpenAPI 3.2 has two layers for SSE:
 
-## Why OpenAPI 3.1 Is Not Enough
+- `itemSchema` describes each parsed SSE event item.
+- SSE `data` is still a string field at the wire layer.
+- JSON inside `data` is described with `contentMediaType: application/json`
+  and `contentSchema`.
 
-- This is not “hard to express”; it is missing from standard OAS 3.1.
-- OAS 3.1 can describe:
-  - response media type `text/event-stream`
-  - examples and prose
-  - vendor extensions
-- OAS 3.1 cannot standardly describe:
-  - schema for each SSE item in a response stream
-  - union of distinct streamed event shapes as per-item contract
-  - response-side SSE framing such as named `event:` blocks versus data-only
-    chunks
-- Reason:
-  - 3.1 `Media Type Object` has no `itemSchema`
-  - 3.1 `encoding` only applies to `requestBody` with `multipart` or
-    `application/x-www-form-urlencoded`
-  - 3.1 has no sequential media type model, while 3.2 adds one explicitly
-- Therefore:
-  - in 3.1, SSE can only be approximated with prose, examples, or non-standard
-    extensions
-  - in 3.2, SSE item contracts become first-class via `itemSchema`
+That matches the spec, but it should not leak into everyday DSL code.
 
-## Example Target
+For OpenAI-style streams, authors think in semantic events:
 
-- A future LLM response endpoint should be able to describe a response like:
-  - media type `text/event-stream`
-  - each event item validated against a schema or schema union
-  - non-streaming variant still available under `application/json`
-- Conceptually, OpenAPI 3.2 shape looks like:
+```ts
+object({
+  type: string({ const: "response.output_text.delta" }),
+  item_id: string(),
+  output_index: integer(),
+  content_index: integer(),
+  delta: string(),
+  "sequence_number?": integer(),
+})
+```
+
+They do not think in:
+
+- `event: ...`
+- `data: string(...)`
+- `contentMediaType`
+- `contentSchema`
+- JSON serialized inside an SSE text field
+
+The DSL should accept parsed semantic event schemas and let the compiler produce
+the OpenAPI 3.2 SSE envelope.
+
+## Target DSL Shape
+
+The example should move toward this shape:
+
+```ts
+const ResponseStreamEvent = () =>
+  oneOf([
+    responseLifecycleEventData("response.created"),
+    responseLifecycleEventData("response.in_progress"),
+    responseLifecycleEventData("response.completed"),
+    responseOutputItemAddedData,
+    responseOutputItemDoneData,
+    responseContentPartAddedData,
+    responseContentPartDoneData,
+    responseOutputTextDeltaData,
+    responseOutputTextDoneData,
+    errorEventData,
+  ])
+
+export default responsibleAPI({
+  partialDoc: {
+    openapi: "3.2.0",
+    info: {
+      title: "OpenAI Responses Streaming",
+      version: "1",
+    },
+  },
+  routes: {
+    "/responses": POST("createStreamingResponse", {
+      req: createStreamingResponseRequest,
+      res: {
+        200: resp({
+          description: "A server-sent event stream of response events.",
+          body: sseJSON(ResponseStreamEvent),
+        }),
+      },
+    }),
+  },
+})
+```
+
+The exact helper name is open. The important part is the contract:
+
+- input schema is the parsed semantic event object
+- every event variant has a `type` field
+- compiler emits the SSE envelope
+- generated OpenAPI remains spec-conformant
+
+## Generated OpenAPI Target
+
+The generated YAML can keep the current conformant shape:
 
 ```yaml
-responses:
-  "200":
-    description: Streamed LLM output
-    content:
-      text/event-stream:
-        itemSchema:
-          oneOf:
-            - $ref: "#/components/schemas/ResponseTextDeltaEvent"
-            - $ref: "#/components/schemas/ResponseToolCallDeltaEvent"
-            - $ref: "#/components/schemas/ResponseCompletedEvent"
-            - $ref: "#/components/schemas/ErrorEvent"
+content:
+  text/event-stream:
+    itemSchema:
+      $ref: "#/components/schemas/ResponseStreamEvent"
+components:
+  schemas:
+    ResponseStreamEvent:
+      oneOf:
+        - type: object
+          properties:
+            event:
+              type: string
+              const: response.created
+            data:
+              type: string
+              contentMediaType: application/json
+              contentSchema:
+                $ref: "#/components/schemas/ResponseCreatedData"
 ```
 
-## Compiler Gap
+But authors should only write `ResponseCreatedData`.
 
-- Current DSL assumes each media type maps to one complete schema.
-- Streaming needs one more layer:
-  - complete payload schema for non-streaming content
-  - item schema for sequential content
-- Current compiler path likely affected:
-  - [`src/dsl/operation.ts`](../../src/dsl/operation.ts)
-  - [`src/dsl/scope.ts`](../../src/dsl/scope.ts)
-  - [`src/compiler/index.ts`](../../src/compiler/index.ts)
-  - [`src/compiler/response.test.ts`](../../src/compiler/response.test.ts)
-  - [`src/compiler/request.test.ts`](../../src/compiler/request.test.ts) if
-    request streaming ever matters
+## Compiler Responsibility
 
-## Design Constraints
+For a semantic event schema, the compiler should build the SSE item schema:
 
-- Any change to `@dsl` signatures needs human approval first.
-- Compiler should not claim OpenAPI `3.2.0` until emitted document shape is
-  actually 3.2-aware.
-- 3.1 behavior must remain stable for existing examples and tests.
-- Avoid repo-wide migration until there is one concrete streaming use case or
-  golden example worth protecting.
-
-## Suggested Plan
-
-### 1. Decide Version Strategy First
-
-- Choose between:
-  - keep compiler default on `3.1.0` and add later 3.2 mode
-  - move compiler baseline to `3.2.0`
-- Recommendation:
-  - keep current default on `3.1.0` first
-  - prototype 3.2 support behind an explicit opt-in path
-- Reason:
-  - existing tests and fixtures assume `3.1.0`
-  - toolchain support for 3.2 will lag 3.1 for some time
-
-### 2. Separate Internal Media Type Model From Public DSL
-
-- Refactor compiler content assembly so one internal representation can emit:
-  - `schema`
-  - `itemSchema`
-  - later media-type-specific encoding fields
-- Do this before touching public DSL signatures.
-- Reason:
-  - keeps migration smaller
-  - reduces risk of redesigning `@dsl` surface twice
-
-### 3. Define Streaming DSL Shape
-
-- Only after approval for `@dsl` edits.
-- Possible direction:
-  - keep existing `body` for complete payloads
-  - add separate explicit streaming body field rather than overloading `body`
-- Favor explicitness over “magic if mime is `text/event-stream`”.
-- Reason:
-  - `application/jsonl` and `multipart/mixed` have similar needs
-  - explicit streaming intent is easier to compile and review
-
-### 4. Add Focused Compiler Tests
-
-- Add response tests covering:
-  - `text/event-stream` with `itemSchema`
-  - `application/json` plus `text/event-stream` side by side
-  - schema unions for event variants
-  - no accidental `schema`/`itemSchema` confusion
-- Add regression tests proving 3.1 output stays unchanged when streaming path is
-  unused.
-
-### 5. Add One Real Example
-
-- Prefer one example rooted in real LLM patterns:
-  - streamed assistant response
-  - event union with delta, tool, completed, error
-- Keep it small.
-- Goal:
-  - prove doc output shape
-  - prove normalization/validation story
-  - give future work concrete fixture coverage
-
-## Validation
-
-- Minimum success criteria:
-  - compiler can emit valid OpenAPI 3.2 sequential media type entries
-  - streaming item schemas survive normalization
-  - existing 3.1 fixtures stay stable unless intentionally migrated
-  - one LLM-style example demonstrates real `text/event-stream` output
-- If source changes land under `src/`, verify with:
-
-```sh
-bun check
+```ts
+object({
+  event: string({ const: eventType }),
+  data: string({
+    contentMediaType: "application/json",
+    contentSchema: semanticEventSchema,
+  }),
+  "id?": string(),
+  "retry?": integer({ minimum: 0 }),
+})
 ```
 
-## Recommendation
+The event name can be inferred from the semantic event object's
+`type.const`.
 
-- Treat this as a targeted OpenAPI 3.2 feature, not a broad version-upgrade
-  project.
-- Prioritize only if upcoming work includes LLM or event-streaming APIs.
-- If no concrete streamed API is planned, keep this doc as design context and
-  defer implementation.
+If inference fails, the DSL should throw a clear error:
 
-## Sources
+- missing `type`
+- `type` is not a string schema
+- missing `type.const`
+- duplicate or incompatible event type variants
 
-- [OpenAPI Specification v3.1.0](https://spec.openapis.org/oas/v3.1.0.html)
+## Design Direction
+
+Add a higher-level SSE helper instead of changing all body handling.
+
+Possible shape:
+
+```ts
+export const sseJSON = (
+  eventSchema: Schema,
+): Record<"text/event-stream", ServerSentEventStream>
+```
+
+The existing low-level `sse(itemSchema)` can remain as an escape hatch for
+non-JSON SSE, custom envelope modeling, or non-OpenAI-style streams.
+
+`sseJSON()` would:
+
+- accept parsed semantic event schema
+- wrap it into SSE envelope item schema
+- require each event variant to expose `type.const`
+- emit `event: <type>` and JSON `data`
+- hide `contentMediaType` and `contentSchema` from user examples
+
+## Implementation Steps
+
+1. Add internal schema inspection for event `type.const`.
+2. Add a helper that converts semantic event schemas to SSE envelope schemas.
+3. Export the helper from [`src/index.ts`](../../src/index.ts).
+4. Rewrite [`openai.ts`](../../src/examples/openai.ts) to remove
+   `sseJSONEvent()`.
+5. Keep [`openai.yaml`](../../src/examples/openai.yaml) stable unless a better
+   component factoring naturally falls out.
+6. Add tests for missing or invalid event `type.const`.
+
+## Acceptance Criteria
+
+- Example authors define only parsed semantic event objects.
+- No example code mentions `contentMediaType: "application/json"`.
+- No example code mentions `contentSchema`.
+- No example code manually builds SSE `event` / `data` wrappers.
+- Generated YAML remains valid OpenAPI 3.2.
+- `openai.yaml` still models SSE `data` as JSON-encoded string, because that is
+  the spec-conformant wire shape.
+
+## Non-Goals
+
+- Do not remove `sse(itemSchema)` yet.
+- Do not switch the OpenAI example to JSONL or NDJSON.
+- Do not pretend SSE `data` is a JSON object on the wire.
+- Do not add broad OpenAPI 3.2 support beyond this streaming path.
+
+## References
+
 - [OpenAPI Specification v3.2.0](https://spec.openapis.org/oas/v3.2.0.html)
-- [OAS 3.2.0 release notes](https://github.com/OAI/OpenAPI-Specification/releases/tag/3.2.0)
-- [WHATWG Server-Sent Events](https://html.spec.whatwg.org/dev/server-sent-events.html)
-- [OpenAI streaming responses guide](https://developers.openai.com/api/docs/guides/streaming-responses)
-- [OpenAI streaming events reference](https://platform.openai.com/docs/api-reference/responses-streaming/response)
-- [Anthropic streaming messages](https://platform.claude.com/docs/en/build-with-claude/streaming)
-- [Kimi Chat API](https://platform.kimi.ai/docs/api/chat)
-- [Kimi introduction](https://platform.kimi.ai/docs/introduction)
-- [AGENTS.md](../../AGENTS.md)
+- [OpenAI Responses streaming events](https://platform.openai.com/docs/api-reference/responses-streaming)
+- [openai-node streaming parser](https://github.com/openai/openai-node/blob/master/src/core/streaming.ts)
