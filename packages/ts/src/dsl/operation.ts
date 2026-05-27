@@ -219,6 +219,12 @@ export type RouteMethodOp<TTags extends DeclaredTags = DeclaredTags> =
 /** This exists mostly to distinguish {@link Schema} from {@link Resp} */
 export const resp = (param: OpResp): OpResp => param
 
+/**
+ * Server-Sent Event stream response body.
+ *
+ * @param itemSchema OpenAPI 3.2 schema for each event item. Internal mimes are
+ * inherited from {@link RespAugmentation.mime}.
+ */
 export const sse = (
   itemSchema: Schema,
 ): Record<"text/event-stream", ServerSentEventStream> => ({

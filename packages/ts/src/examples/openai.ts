@@ -36,20 +36,7 @@ const responseInputMessage = object({
   content: inputContent,
 })
 
-const createStreamingResponseRequest = object({
-  model: string({
-    examples: ["gpt-5.4"],
-  }),
-  input: anyOf([string(), array(responseInputMessage)]),
-  "instructions?": string(),
-  stream: boolean({
-    default: true,
-    description: "Set to true to receive server-sent events.",
-  }),
-})
-
-const response = named(
-  "Response",
+const Response = () =>
   object({
     id: string(),
     object: string({ const: "response" }),
@@ -67,13 +54,12 @@ const response = named(
     "model?": string(),
     "output?": array(unknown()),
     "usage?": unknown(),
-  }),
-)
+  })
 
 const responseLifecycleEventData = (type: string) =>
   object({
     type: string({ const: type }),
-    response,
+    response: Response,
     "sequence_number?": integer(),
   })
 
@@ -174,7 +160,15 @@ export default responsibleAPI({
   routes: {
     "/responses": POST("createStreamingResponse", {
       summary: "Create a streaming model response",
-      req: createStreamingResponseRequest,
+      req: object({
+        model: string({ examples: ["gpt-5.4"] }),
+        input: anyOf([string(), array(responseInputMessage)]),
+        "instructions?": string(),
+        stream: boolean({
+          default: true,
+          description: "Set to true to receive server-sent events.",
+        }),
+      }),
       res: {
         200: resp({
           description: "A server-sent event stream of response events.",

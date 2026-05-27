@@ -45,14 +45,14 @@ tasks:
     sources:
       - src/**/*.ts
       - scripts/**/*.ts
-      - .oxfmtrc.jsonc
+      - ../../.oxfmtrc.jsonc
 
   fmt:check:
     cmd: bun oxfmt --check
     sources:
       - src/**/*.ts
       - scripts/**/*.ts
-      - .oxfmtrc.jsonc
+      - ../../.oxfmtrc.jsonc
 
   lint:fix:
     cmd: bun oxlint --fix
@@ -93,7 +93,6 @@ tasks:
       - package.json
       - tsconfig.json
       - tsconfig.build.json
-      - .oxfmtrc.jsonc
       - oxlint.config.ts
       - bunfig.toml
     generates:

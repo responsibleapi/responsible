@@ -1,0 +1,63 @@
+// Folder-specific settings
+//
+// For a full list of overridable settings, and general information on folder-specific settings,
+// see the documentation: https://zed.dev/docs/configuring-zed#settings-files
+{
+  "lsp": {
+    "oxfmt": {
+      "binary": {
+        "path": "bun",
+        "arguments": ["oxfmt", "--lsp"]
+      },
+      "initialization_options": {
+        "settings": {
+          "fmt.configPath": ".oxfmtrc.jsonc"
+        }
+      }
+    }
+  },
+  // "context_servers": {
+  //   "code-review-graph": {
+  //     "command": "uvx",
+  //     "args": ["code-review-graph", "serve"]
+  //   }
+  // },
+  "formatter": {
+    "language_server": {
+      "name": "oxfmt"
+    }
+  },
+  "prettier": {
+    "allowed": false
+  },
+  "languages": {
+    "Taskfile": {
+      /**
+       * `oxfmt --lsp` refuses to format Taskfiles in Zed with our current
+       * YAML stack: yaml-language-server, OXC/oxfmt, and the Taskfile
+       * extension all touch this YAML-backed custom language. Direct oxfmt is
+       * the working escape hatch until we know how to untangle that setup.
+       */
+      "formatter": {
+        "external": {
+          "command": "bun",
+          "arguments": ["oxfmt", "--stdin-filepath", "{buffer_path}"]
+        }
+      }
+    },
+    "Go": {
+      "formatter": {
+        "language_server": {
+          "name": "gopls"
+        }
+      }
+    },
+    "SQL": {
+      "formatter": {
+        "language_server": {
+          "name": "sqruff"
+        }
+      }
+    }
+  }
+}
