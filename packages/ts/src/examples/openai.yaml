@@ -1,0 +1,452 @@
+openapi: 3.2.0
+info:
+  title: OpenAI Responses Streaming
+  version: "1"
+paths:
+  /responses:
+    post:
+      summary: Create a streaming model response
+      operationId: createStreamingResponse
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                model:
+                  type: string
+                  examples:
+                    - gpt-5.4
+                input:
+                  anyOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: object
+                        properties:
+                          role:
+                            type: string
+                            enum:
+                              - developer
+                              - system
+                              - user
+                              - assistant
+                          content:
+                            anyOf:
+                              - type: string
+                              - type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    type:
+                                      type: string
+                                      const: input_text
+                                    text:
+                                      type: string
+                                  required:
+                                    - type
+                                    - text
+                        required:
+                          - role
+                          - content
+                instructions:
+                  type: string
+                stream:
+                  type: boolean
+                  default: true
+                  description: Set to true to receive server-sent events.
+              required:
+                - model
+                - input
+                - stream
+      responses:
+        "200":
+          description: A server-sent event stream of response events.
+          content:
+            text/event-stream:
+              itemSchema:
+                $ref: "#/components/schemas/ResponseStreamEvent"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: OpenAI API key
+  schemas:
+    Response:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+          const: response
+        created_at:
+          type: integer
+          format: int64
+        status:
+          type: string
+          enum:
+            - queued
+            - in_progress
+            - completed
+            - failed
+            - cancelled
+            - incomplete
+        model:
+          type: string
+        output:
+          type: array
+          items:
+            {}
+        usage:
+          {}
+      required:
+        - id
+        - object
+        - created_at
+        - status
+    ResponseStreamEvent:
+      oneOf:
+        - type: object
+          properties:
+            event:
+              type: string
+              const: response.created
+            data:
+              type: string
+              contentMediaType: application/json
+              contentSchema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    const: response.created
+                  response:
+                    $ref: "#/components/schemas/Response"
+                  sequence_number:
+                    type: integer
+                required:
+                  - type
+                  - response
+            id:
+              type: string
+            retry:
+              minimum: 0
+              type: integer
+          required:
+            - event
+            - data
+        - type: object
+          properties:
+            event:
+              type: string
+              const: response.in_progress
+            data:
+              type: string
+              contentMediaType: application/json
+              contentSchema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    const: response.in_progress
+                  response:
+                    $ref: "#/components/schemas/Response"
+                  sequence_number:
+                    type: integer
+                required:
+                  - type
+                  - response
+            id:
+              type: string
+            retry:
+              minimum: 0
+              type: integer
+          required:
+            - event
+            - data
+        - type: object
+          properties:
+            event:
+              type: string
+              const: response.completed
+            data:
+              type: string
+              contentMediaType: application/json
+              contentSchema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    const: response.completed
+                  response:
+                    $ref: "#/components/schemas/Response"
+                  sequence_number:
+                    type: integer
+                required:
+                  - type
+                  - response
+            id:
+              type: string
+            retry:
+              minimum: 0
+              type: integer
+          required:
+            - event
+            - data
+        - type: object
+          properties:
+            event:
+              type: string
+              const: response.output_item.added
+            data:
+              type: string
+              contentMediaType: application/json
+              contentSchema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    const: response.output_item.added
+                  output_index:
+                    type: integer
+                  item:
+                    {}
+                  sequence_number:
+                    type: integer
+                required:
+                  - type
+                  - output_index
+                  - item
+            id:
+              type: string
+            retry:
+              minimum: 0
+              type: integer
+          required:
+            - event
+            - data
+        - type: object
+          properties:
+            event:
+              type: string
+              const: response.output_item.done
+            data:
+              type: string
+              contentMediaType: application/json
+              contentSchema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    const: response.output_item.done
+                  output_index:
+                    type: integer
+                  item:
+                    {}
+                  sequence_number:
+                    type: integer
+                required:
+                  - type
+                  - output_index
+                  - item
+            id:
+              type: string
+            retry:
+              minimum: 0
+              type: integer
+          required:
+            - event
+            - data
+        - type: object
+          properties:
+            event:
+              type: string
+              const: response.content_part.added
+            data:
+              type: string
+              contentMediaType: application/json
+              contentSchema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    const: response.content_part.added
+                  item_id:
+                    type: string
+                  output_index:
+                    type: integer
+                  content_index:
+                    type: integer
+                  part:
+                    {}
+                  sequence_number:
+                    type: integer
+                required:
+                  - type
+                  - item_id
+                  - output_index
+                  - content_index
+                  - part
+            id:
+              type: string
+            retry:
+              minimum: 0
+              type: integer
+          required:
+            - event
+            - data
+        - type: object
+          properties:
+            event:
+              type: string
+              const: response.content_part.done
+            data:
+              type: string
+              contentMediaType: application/json
+              contentSchema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    const: response.content_part.done
+                  item_id:
+                    type: string
+                  output_index:
+                    type: integer
+                  content_index:
+                    type: integer
+                  part:
+                    {}
+                  sequence_number:
+                    type: integer
+                required:
+                  - type
+                  - item_id
+                  - output_index
+                  - content_index
+                  - part
+            id:
+              type: string
+            retry:
+              minimum: 0
+              type: integer
+          required:
+            - event
+            - data
+        - type: object
+          properties:
+            event:
+              type: string
+              const: response.output_text.delta
+            data:
+              type: string
+              contentMediaType: application/json
+              contentSchema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    const: response.output_text.delta
+                  item_id:
+                    type: string
+                  output_index:
+                    type: integer
+                  content_index:
+                    type: integer
+                  delta:
+                    type: string
+                  sequence_number:
+                    type: integer
+                required:
+                  - type
+                  - item_id
+                  - output_index
+                  - content_index
+                  - delta
+            id:
+              type: string
+            retry:
+              minimum: 0
+              type: integer
+          required:
+            - event
+            - data
+        - type: object
+          properties:
+            event:
+              type: string
+              const: response.output_text.done
+            data:
+              type: string
+              contentMediaType: application/json
+              contentSchema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    const: response.output_text.done
+                  item_id:
+                    type: string
+                  output_index:
+                    type: integer
+                  content_index:
+                    type: integer
+                  text:
+                    type: string
+                  sequence_number:
+                    type: integer
+                required:
+                  - type
+                  - item_id
+                  - output_index
+                  - content_index
+                  - text
+            id:
+              type: string
+            retry:
+              minimum: 0
+              type: integer
+          required:
+            - event
+            - data
+        - type: object
+          properties:
+            event:
+              type: string
+              const: error
+            data:
+              type: string
+              contentMediaType: application/json
+              contentSchema:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    const: error
+                  message:
+                    type: string
+                  code:
+                    type: string
+                  param:
+                    type: string
+                  sequence_number:
+                    type: integer
+                required:
+                  - type
+                  - message
+            id:
+              type: string
+            retry:
+              minimum: 0
+              type: integer
+          required:
+            - event
+            - data
+servers:
+  - url: https://api.openai.com/v1
+security:
+  - bearerAuth:
+      []
