@@ -3,9 +3,16 @@ import { describe, expect, test } from "vitest"
 import { responsibleAPI } from "../dsl/dsl.ts"
 import { GET, HEAD, POST } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"
-import { resp, sse } from "../dsl/operation.ts"
+import { resp, sse, sseJSON } from "../dsl/operation.ts"
 import { responseHeader } from "../dsl/response-headers.ts"
-import { int32, object, string, unknown } from "../dsl/schema.ts"
+import {
+  int32,
+  integer,
+  object,
+  oneOf,
+  string,
+  unknown,
+} from "../dsl/schema.ts"
 import { scope } from "../dsl/scope.ts"
 import { validateDoc } from "../help/validate-doc.ts"
 
@@ -188,6 +195,214 @@ describe("response", () => {
         },
       },
     })
+  })
+
+  test("sseJSON response wraps semantic event schemas", () => {
+    const rapi = responsibleAPI({
+      partialDoc: {
+        openapi: "3.2.0",
+        info: { title: "SSE JSON response", version: "1" },
+      },
+      routes: {
+        "/stream": GET({
+          res: {
+            200: resp({
+              body: sseJSON(
+                oneOf([
+                  object({
+                    type: string({ const: "message.delta" }),
+                    delta: string(),
+                  }),
+                  object({
+                    type: string({ const: "message.done" }),
+                    text: string(),
+                  }),
+                ]),
+              ),
+            }),
+          },
+        }),
+      },
+    })
+
+    expect(rapi.paths?.["/stream"]?.get?.responses).toEqual({
+      ["200"]: {
+        description: "200",
+        content: {
+          ["text/event-stream"]: {
+            itemSchema: {
+              oneOf: [
+                {
+                  type: "object",
+                  properties: {
+                    event: {
+                      type: "string",
+                      const: "message.delta",
+                    },
+                    data: {
+                      type: "string",
+                      contentMediaType: "application/json",
+                      contentSchema: {
+                        type: "object",
+                        properties: {
+                          type: {
+                            type: "string",
+                            const: "message.delta",
+                          },
+                          delta: {
+                            type: "string",
+                          },
+                        },
+                        required: ["type", "delta"],
+                      },
+                    },
+                    id: {
+                      type: "string",
+                    },
+                    retry: {
+                      minimum: 0,
+                      type: "integer",
+                    },
+                  },
+                  required: ["event", "data"],
+                },
+                {
+                  type: "object",
+                  properties: {
+                    event: {
+                      type: "string",
+                      const: "message.done",
+                    },
+                    data: {
+                      type: "string",
+                      contentMediaType: "application/json",
+                      contentSchema: {
+                        type: "object",
+                        properties: {
+                          type: {
+                            type: "string",
+                            const: "message.done",
+                          },
+                          text: {
+                            type: "string",
+                          },
+                        },
+                        required: ["type", "text"],
+                      },
+                    },
+                    id: {
+                      type: "string",
+                    },
+                    retry: {
+                      minimum: 0,
+                      type: "integer",
+                    },
+                  },
+                  required: ["event", "data"],
+                },
+              ],
+            },
+          },
+        },
+      },
+    })
+  })
+
+  test("sseJSON requires event schemas to define type", () => {
+    expect(() =>
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.2.0",
+          info: { title: "SSE JSON response", version: "1" },
+        },
+        routes: {
+          "/stream": GET({
+            res: {
+              200: resp({
+                body: sseJSON(object({ ok: string() })),
+              }),
+            },
+          }),
+        },
+      }),
+    ).toThrow(/must define a type property/)
+  })
+
+  test("sseJSON requires event type to be a string schema", () => {
+    expect(() =>
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.2.0",
+          info: { title: "SSE JSON response", version: "1" },
+        },
+        routes: {
+          "/stream": GET({
+            res: {
+              200: resp({
+                body: sseJSON(
+                  object({
+                    type: integer(),
+                  }),
+                ),
+              }),
+            },
+          }),
+        },
+      }),
+    ).toThrow(/type property must be a string schema/)
+  })
+
+  test("sseJSON requires event type const", () => {
+    expect(() =>
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.2.0",
+          info: { title: "SSE JSON response", version: "1" },
+        },
+        routes: {
+          "/stream": GET({
+            res: {
+              200: resp({
+                body: sseJSON(
+                  object({
+                    type: string(),
+                  }),
+                ),
+              }),
+            },
+          }),
+        },
+      }),
+    ).toThrow(/type property must define const/)
+  })
+
+  test("sseJSON rejects duplicate event types", () => {
+    expect(() =>
+      responsibleAPI({
+        partialDoc: {
+          openapi: "3.2.0",
+          info: { title: "SSE JSON response", version: "1" },
+        },
+        routes: {
+          "/stream": GET({
+            res: {
+              200: resp({
+                body: sseJSON(
+                  oneOf([
+                    object({
+                      type: string({ const: "message.delta" }),
+                    }),
+                    object({
+                      type: string({ const: "message.delta" }),
+                    }),
+                  ]),
+                ),
+              }),
+            },
+          }),
+        },
+      }),
+    ).toThrow(/event type "message\.delta" is duplicated/)
   })
 
   test("synthetic HEAD from GET headID strips response bodies and uses headID as operationId", async () => {

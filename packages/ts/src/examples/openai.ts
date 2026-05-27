@@ -1,4 +1,3 @@
-import type { Schema } from "../index.ts"
 import {
   POST,
   anyOf,
@@ -12,7 +11,7 @@ import {
   oneOf,
   resp,
   responsibleAPI,
-  sse,
+  sseJSON,
   string,
   unknown,
 } from "../index.ts"
@@ -136,38 +135,18 @@ const errorEventData = object({
   "sequence_number?": integer(),
 })
 
-const sseJSONEvent = (event: string, contentSchema: Schema) =>
-  object({
-    event: string({ const: event }),
-    data: string({
-      contentMediaType: "application/json",
-      contentSchema,
-    }),
-    "id?": string(),
-    "retry?": integer({ minimum: 0 }),
-  })
-
 const ResponseStreamEvent = () =>
   oneOf([
-    sseJSONEvent(
-      "response.created",
-      responseLifecycleEventData("response.created"),
-    ),
-    sseJSONEvent(
-      "response.in_progress",
-      responseLifecycleEventData("response.in_progress"),
-    ),
-    sseJSONEvent(
-      "response.completed",
-      responseLifecycleEventData("response.completed"),
-    ),
-    sseJSONEvent("response.output_item.added", responseOutputItemAddedData),
-    sseJSONEvent("response.output_item.done", responseOutputItemDoneData),
-    sseJSONEvent("response.content_part.added", responseContentPartAddedData),
-    sseJSONEvent("response.content_part.done", responseContentPartDoneData),
-    sseJSONEvent("response.output_text.delta", responseOutputTextDeltaData),
-    sseJSONEvent("response.output_text.done", responseOutputTextDoneData),
-    sseJSONEvent("error", errorEventData),
+    responseLifecycleEventData("response.created"),
+    responseLifecycleEventData("response.in_progress"),
+    responseLifecycleEventData("response.completed"),
+    responseOutputItemAddedData,
+    responseOutputItemDoneData,
+    responseContentPartAddedData,
+    responseContentPartDoneData,
+    responseOutputTextDeltaData,
+    responseOutputTextDoneData,
+    errorEventData,
   ])
 
 export default responsibleAPI({
@@ -196,7 +175,7 @@ export default responsibleAPI({
       res: {
         200: resp({
           description: "A server-sent event stream of response events.",
-          body: sse(ResponseStreamEvent),
+          body: sseJSON(ResponseStreamEvent),
         }),
       },
     }),
