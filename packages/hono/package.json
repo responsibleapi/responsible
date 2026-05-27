@@ -10,7 +10,7 @@
     "dist"
   ],
   "dependencies": {
-    "hono": "^4.12.18"
+    "hono": "^4.12.23"
   },
   "publishConfig": {
     "access": "public"
