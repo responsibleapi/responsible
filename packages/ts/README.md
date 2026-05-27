@@ -2,8 +2,8 @@
 
 [![npm version](https://img.shields.io/npm/v/%40responsibleapi%2Fts)](https://www.npmjs.com/package/@responsibleapi/ts)
 
-TypeScript [DSL](src/dsl/) that [compiles](src/compiler/) to OpenAPI 3.1
-documents.
+TypeScript [DSL](src/dsl/) that [compiles](src/compiler/) to OpenAPI 3.1 and
+3.2 documents.
 
 ## Rationale
 
