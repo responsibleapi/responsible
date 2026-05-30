@@ -1,0 +1,2168 @@
+openapi: 3.0.3
+info:
+  title: Last.fm Web Services API (2.0)
+  version: "2.0"
+  description: |
+    The Last.fm (AudioScrobbler) Web Services 2.0 API provides programmatic access to
+    music metadata, charts, geo-listening data, tags, user listening history, and
+    scrobbling. The API is method-dispatched: every request targets the single endpoint
+    `https://ws.audioscrobbler.com/2.0/` and identifies the operation via the `method`
+    query/body parameter (e.g. `method=track.getInfo`).
+
+    Read methods accept `GET`; write methods (scrobbling, tagging, love/unlove, session
+    management) require `POST` with an authenticated session key and a signed
+    `api_sig` parameter (MD5 of sorted params + shared secret).
+
+    Responses default to XML; pass `format=json` for JSON.
+  termsOfService: https://www.last.fm/api/tos
+  contact:
+    name: Last.fm API Support
+    url: https://www.last.fm/api
+    email: partners@last.fm
+  license:
+    name: Last.fm API Terms of Service
+    url: https://www.last.fm/api/tos
+servers:
+  - url: https://ws.audioscrobbler.com/2.0
+    description: Production AudioScrobbler endpoint
+  - url: http://ws.audioscrobbler.com/2.0
+    description: Non-TLS endpoint (legacy)
+tags:
+  - name: Album
+    description: Album metadata, tagging, and search.
+  - name: Artist
+    description: Artist metadata, similarity, tagging, top albums/tracks, and search.
+  - name: Auth
+    description: Token, session, and mobile session acquisition for authenticated calls.
+  - name: Chart
+    description: Global top artists, tags, and tracks.
+  - name: Geo
+    description: Country-level top artists and tracks.
+  - name: Library
+    description: A user's scrobbled artist library.
+  - name: Tag
+    description: Tag metadata, similar tags, top albums/artists/tracks, and chart history.
+  - name: Track
+    description: Track metadata, scrobbling, love/unlove, tagging, search.
+  - name: User
+    description: User profile, friends, listening history, top entities, and weekly charts.
+security:
+  - ApiKeyAuth: []
+  - SignedAuth: []
+paths:
+  /:
+    get:
+      operationId: invokeReadMethod
+      summary: Invoke A Read Method
+      description: |
+        Single read-side dispatch endpoint. The `method` parameter selects the
+        operation (e.g. `album.getInfo`, `artist.getTopTracks`, `chart.getTopArtists`).
+        Use `format=json` for JSON responses.
+      tags: [Album, Artist, Chart, Geo, Library, Tag, Track, User]
+      parameters:
+        - $ref: "#/components/parameters/MethodParam"
+        - $ref: "#/components/parameters/ApiKeyParam"
+        - $ref: "#/components/parameters/FormatParam"
+        - $ref: "#/components/parameters/CallbackParam"
+        - name: artist
+          in: query
+          schema: { type: string }
+          description: Artist name (used by album.*, artist.*, track.* read methods).
+        - name: album
+          in: query
+          schema: { type: string }
+          description: Album name (used by album.* methods).
+        - name: track
+          in: query
+          schema: { type: string }
+          description: Track name (used by track.* methods).
+        - name: mbid
+          in: query
+          schema: { type: string }
+          description: MusicBrainz identifier; takes precedence over artist/album/track names.
+        - name: user
+          in: query
+          schema: { type: string }
+          description: Last.fm username (used by user.* methods).
+        - name: tag
+          in: query
+          schema: { type: string }
+          description: Tag name (used by tag.* methods).
+        - name: country
+          in: query
+          schema: { type: string }
+          description: ISO 3166-1 country name (used by geo.* methods).
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50, maximum: 1000 }
+          description: Max items per page.
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+          description: Page number for paginated results.
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [overall, 7day, 1month, 3month, 6month, 12month]
+          description: Aggregation window for user.getTop* methods.
+        - name: autocorrect
+          in: query
+          schema: { type: integer, enum: [0, 1], default: 0 }
+          description: Auto-correct misspelled artist/track names when set to 1.
+        - name: username
+          in: query
+          schema: { type: string }
+          description: Username context for personalized fields (playcount, userplaycount).
+      responses:
+        "200":
+          description: Successful response in XML (default) or JSON (`format=json`).
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/AlbumInfoResponse"
+                  - $ref: "#/components/schemas/ArtistInfoResponse"
+                  - $ref: "#/components/schemas/TrackInfoResponse"
+                  - $ref: "#/components/schemas/TagInfoResponse"
+                  - $ref: "#/components/schemas/UserInfoResponse"
+                  - $ref: "#/components/schemas/ChartResponse"
+                  - $ref: "#/components/schemas/GeoResponse"
+                  - $ref: "#/components/schemas/SearchResponse"
+            application/xml:
+              schema:
+                type: string
+                description: XML payload wrapped in `<lfm status="ok">…</lfm>`.
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/ErrorResponse"
+    post:
+      operationId: invokeWriteMethod
+      summary: Invoke A Write Method
+      description: |
+        Single write-side dispatch endpoint. Used for authenticated write actions:
+        `track.scrobble`, `track.updateNowPlaying`, `track.love`, `track.unlove`,
+        `album.addTags`, `album.removeTag`, `artist.addTags`, `artist.removeTag`,
+        `track.addTags`, `track.removeTag`. POST body parameters are
+        `application/x-www-form-urlencoded` UTF-8 encoded and must include
+        `api_key`, `sk` (session key), and `api_sig`.
+      tags: [Album, Artist, Track, Auth]
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/WriteRequestBody"
+      responses:
+        "200":
+          description: Successful write response with status wrapper.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WriteResponse" }
+        "400":
+          $ref: "#/components/responses/ErrorResponse"
+        "403":
+          $ref: "#/components/responses/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/ErrorResponse"
+
+  # --- Convenience method-as-path operations (logical alias of the dispatch endpoint) ---
+
+  # ALBUM
+  /?method=album.addTags:
+    post:
+      operationId: albumAddTags
+      summary: Add Album Tags
+      tags: [Album]
+      description: Tag an album using a list of user supplied tags. Requires authentication.
+      requestBody: { $ref: "#/components/requestBodies/AlbumTagWrite" }
+      responses:
+        "200":
+          {
+            description: OK,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/WriteResponse" } },
+              },
+          }
+
+  /?method=album.getInfo:
+    get:
+      operationId: albumGetInfo
+      summary: Get Album Info
+      tags: [Album]
+      description: Get the metadata and tracklist for an album on Last.fm using the album name or a musicbrainz id.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: album
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: lang
+          in: query
+          schema: { type: string, example: en }
+        - name: autocorrect
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+        - name: username
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Album info envelope.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AlbumInfoResponse" }
+
+  /?method=album.getTags:
+    get:
+      operationId: albumGetTags
+      summary: Get Album Tags
+      tags: [Album]
+      description: Get the tags applied by an individual user to an album on Last.fm.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: album
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: User tags applied to the album.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TagListResponse" }
+
+  /?method=album.getTopTags:
+    get:
+      operationId: albumGetTopTags
+      summary: Get Top Album Tags
+      tags: [Album]
+      description: Get the top tags for an album on Last.fm, ordered by popularity.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: album
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: autocorrect
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+      responses:
+        "200":
+          description: Top tags for the album.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopTagsResponse" }
+
+  /?method=album.removeTag:
+    post:
+      operationId: albumRemoveTag
+      summary: Remove Album Tag
+      tags: [Album]
+      description: Remove a user's tag from an album.
+      requestBody: { $ref: "#/components/requestBodies/AlbumTagWrite" }
+      responses:
+        "200":
+          {
+            description: OK,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/WriteResponse" } },
+              },
+          }
+
+  /?method=album.search:
+    get:
+      operationId: albumSearch
+      summary: Search Albums
+      tags: [Album]
+      description: Search for an album by name. Returns album matches sorted by relevance.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: album
+          in: query
+          required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 30 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Search results for albums.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SearchResponse" }
+
+  # ARTIST
+  /?method=artist.addTags:
+    post:
+      operationId: artistAddTags
+      summary: Add Artist Tags
+      tags: [Artist]
+      description: Tag an artist with one or more user supplied tags.
+      requestBody: { $ref: "#/components/requestBodies/ArtistTagWrite" }
+      responses:
+        "200":
+          {
+            description: OK,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/WriteResponse" } },
+              },
+          }
+
+  /?method=artist.getCorrection:
+    get:
+      operationId: artistGetCorrection
+      summary: Get Artist Correction
+      tags: [Artist]
+      description: Use the last.fm corrections data to check whether the supplied artist has a correction to a canonical artist.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Suggested artist correction, if any.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /?method=artist.getInfo:
+    get:
+      operationId: artistGetInfo
+      summary: Get Artist Info
+      tags: [Artist]
+      description: Get the metadata for an artist. Includes biography, listener counts, similar artists, tags.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: lang
+          in: query
+          schema: { type: string }
+        - name: autocorrect
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+        - name: username
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Artist info envelope.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ArtistInfoResponse" }
+
+  /?method=artist.getSimilar:
+    get:
+      operationId: artistGetSimilar
+      summary: Get Similar Artists
+      tags: [Artist]
+      description: Get all the artists similar to this artist.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 100 }
+        - name: autocorrect
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+      responses:
+        "200":
+          description: Similar artists list.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /?method=artist.getTags:
+    get:
+      operationId: artistGetTags
+      summary: Get Artist Tags
+      tags: [Artist]
+      description: Get the tags applied by an individual user to an artist on Last.fm.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: User tags for the artist.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TagListResponse" }
+
+  /?method=artist.getTopAlbums:
+    get:
+      operationId: artistGetTopAlbums
+      summary: Get Top Albums For Artist
+      tags: [Artist]
+      description: Get the top albums for an artist on Last.fm, ordered by popularity.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: autocorrect
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+      responses:
+        "200":
+          description: Top albums for the artist.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopAlbumsResponse" }
+
+  /?method=artist.getTopTags:
+    get:
+      operationId: artistGetTopTags
+      summary: Get Top Artist Tags
+      tags: [Artist]
+      description: Get the top tags for an artist on Last.fm, ordered by popularity.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: autocorrect
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+      responses:
+        "200":
+          description: Top tags for the artist.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopTagsResponse" }
+
+  /?method=artist.getTopTracks:
+    get:
+      operationId: artistGetTopTracks
+      summary: Get Top Tracks For Artist
+      tags: [Artist]
+      description: Get the top tracks by an artist on Last.fm, ordered by popularity.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: autocorrect
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+      responses:
+        "200":
+          description: Top tracks for the artist.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopTracksResponse" }
+
+  /?method=artist.removeTag:
+    post:
+      operationId: artistRemoveTag
+      summary: Remove Artist Tag
+      tags: [Artist]
+      description: Remove a user's tag from an artist.
+      requestBody: { $ref: "#/components/requestBodies/ArtistTagWrite" }
+      responses:
+        "200":
+          {
+            description: OK,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/WriteResponse" } },
+              },
+          }
+
+  /?method=artist.search:
+    get:
+      operationId: artistSearch
+      summary: Search Artists
+      tags: [Artist]
+      description: Search for an artist by name. Returns artist matches sorted by relevance.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 30 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Search results for artists.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SearchResponse" }
+
+  # AUTH
+  /?method=auth.getMobileSession:
+    post:
+      operationId: authGetMobileSession
+      summary: Get Mobile Session
+      tags: [Auth]
+      description: Create a Last.fm web service session for a user. Used by mobile devices. Requires signed POST.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [method, api_key, username, password, api_sig]
+              properties:
+                method: { type: string, enum: [auth.getMobileSession] }
+                api_key: { type: string }
+                username: { type: string }
+                password: { type: string }
+                api_sig:
+                  {
+                    type: string,
+                    description: MD5 signature of sorted params + secret.,
+                  }
+      responses:
+        "200":
+          description: Session response with session key, name, and subscriber flag.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionResponse" }
+
+  /?method=auth.getSession:
+    get:
+      operationId: authGetSession
+      summary: Get Web Session
+      tags: [Auth]
+      description: Fetch a session key for a user using a previously authorized token.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: token
+          in: query
+          required: true
+          schema: { type: string }
+        - name: api_sig
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Session response.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SessionResponse" }
+
+  /?method=auth.getToken:
+    get:
+      operationId: authGetToken
+      summary: Get Auth Token
+      tags: [Auth]
+      description: Fetch an unauthorized request token for an API account. Returns a token to be authorized by the user.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+      responses:
+        "200":
+          description: Unauthorized token.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token: { type: string }
+
+  # CHART
+  /?method=chart.getTopArtists:
+    get:
+      operationId: chartGetTopArtists
+      summary: Get Top Artists Chart
+      tags: [Chart]
+      description: Get the top artists chart on Last.fm.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Top artists chart.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChartResponse" }
+
+  /?method=chart.getTopTags:
+    get:
+      operationId: chartGetTopTags
+      summary: Get Top Tags Chart
+      tags: [Chart]
+      description: Get the top tags chart on Last.fm.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Top tags chart.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopTagsResponse" }
+
+  /?method=chart.getTopTracks:
+    get:
+      operationId: chartGetTopTracks
+      summary: Get Top Tracks Chart
+      tags: [Chart]
+      description: Get the top tracks chart on Last.fm.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Top tracks chart.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopTracksResponse" }
+
+  # GEO
+  /?method=geo.getTopArtists:
+    get:
+      operationId: geoGetTopArtists
+      summary: Get Top Artists By Country
+      tags: [Geo]
+      description: Get the most popular artists on Last.fm by country.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: country
+          in: query
+          required: true
+          schema: { type: string, example: United States }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Country top artists.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GeoResponse" }
+
+  /?method=geo.getTopTracks:
+    get:
+      operationId: geoGetTopTracks
+      summary: Get Top Tracks By Country
+      tags: [Geo]
+      description: Get the most popular tracks on Last.fm last week by country.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: country
+          in: query
+          required: true
+          schema: { type: string }
+        - name: location
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Country top tracks.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GeoResponse" }
+
+  # LIBRARY
+  /?method=library.getArtists:
+    get:
+      operationId: libraryGetArtists
+      summary: Get Library Artists
+      tags: [Library]
+      description: A paginated list of all the artists in a user's library, with play counts and tag counts.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Library artists for the user.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  # TAG
+  /?method=tag.getInfo:
+    get:
+      operationId: tagGetInfo
+      summary: Get Tag Info
+      tags: [Tag]
+      description: Get the metadata for a tag.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: tag
+          in: query
+          required: true
+          schema: { type: string }
+        - name: lang
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Tag metadata.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TagInfoResponse" }
+
+  /?method=tag.getSimilar:
+    get:
+      operationId: tagGetSimilar
+      summary: Get Similar Tags
+      tags: [Tag]
+      description: Search for tags similar to this one. Returns tags ranked by similarity, based on listening data.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: tag
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Similar tags.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopTagsResponse" }
+
+  /?method=tag.getTopAlbums:
+    get:
+      operationId: tagGetTopAlbums
+      summary: Get Top Albums For Tag
+      tags: [Tag]
+      description: Get the top albums tagged by this tag, ordered by tag count.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: tag
+          in: query
+          required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Top albums tagged with this tag.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopAlbumsResponse" }
+
+  /?method=tag.getTopArtists:
+    get:
+      operationId: tagGetTopArtists
+      summary: Get Top Artists For Tag
+      tags: [Tag]
+      description: Get the top artists tagged by this tag, ordered by tag count.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: tag
+          in: query
+          required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Top artists for the tag.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChartResponse" }
+
+  /?method=tag.getTopTags:
+    get:
+      operationId: tagGetTopTags
+      summary: Get Top Tags Overall
+      tags: [Tag]
+      description: Fetches the top global tags on Last.fm, sorted by popularity (number of times used).
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+      responses:
+        "200":
+          description: Top global tags.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopTagsResponse" }
+
+  /?method=tag.getTopTracks:
+    get:
+      operationId: tagGetTopTracks
+      summary: Get Top Tracks For Tag
+      tags: [Tag]
+      description: Get the top tracks tagged by this tag, ordered by tag count.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: tag
+          in: query
+          required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Top tracks for the tag.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopTracksResponse" }
+
+  /?method=tag.getWeeklyChartList:
+    get:
+      operationId: tagGetWeeklyChartList
+      summary: Get Weekly Tag Chart List
+      tags: [Tag]
+      description: Get a list of available charts for this tag, expressed as date ranges.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: tag
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Available weekly chart ranges.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  # TRACK
+  /?method=track.addTags:
+    post:
+      operationId: trackAddTags
+      summary: Add Track Tags
+      tags: [Track]
+      description: Tag a track using a list of user supplied tags.
+      requestBody: { $ref: "#/components/requestBodies/TrackTagWrite" }
+      responses:
+        "200":
+          {
+            description: OK,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/WriteResponse" } },
+              },
+          }
+
+  /?method=track.getCorrection:
+    get:
+      operationId: trackGetCorrection
+      summary: Get Track Correction
+      tags: [Track]
+      description: Use the last.fm corrections data to check whether the supplied track has a correction to a canonical track.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          required: true
+          schema: { type: string }
+        - name: track
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Suggested track correction.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /?method=track.getInfo:
+    get:
+      operationId: trackGetInfo
+      summary: Get Track Info
+      tags: [Track]
+      description: Get the metadata for a track on Last.fm using the artist/track name or a musicbrainz id.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: track
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: autocorrect
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+        - name: username
+          in: query
+          schema: { type: string }
+      responses:
+        "200":
+          description: Track info envelope.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TrackInfoResponse" }
+
+  /?method=track.getSimilar:
+    get:
+      operationId: trackGetSimilar
+      summary: Get Similar Tracks
+      tags: [Track]
+      description: Get the similar tracks for this track on Last.fm, based on listening data.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: track
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 100 }
+        - name: autocorrect
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+      responses:
+        "200":
+          description: Similar tracks list.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /?method=track.getTags:
+    get:
+      operationId: trackGetTags
+      summary: Get Track Tags
+      tags: [Track]
+      description: Get the tags applied by an individual user to a track on Last.fm.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: track
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: User tags for the track.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TagListResponse" }
+
+  /?method=track.getTopTags:
+    get:
+      operationId: trackGetTopTags
+      summary: Get Top Track Tags
+      tags: [Track]
+      description: Get the top tags for this track on Last.fm, ordered by tag count.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: track
+          in: query
+          schema: { type: string }
+        - name: mbid
+          in: query
+          schema: { type: string }
+        - name: autocorrect
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+      responses:
+        "200":
+          description: Top tags for the track.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopTagsResponse" }
+
+  /?method=track.love:
+    post:
+      operationId: trackLove
+      summary: Love Track
+      tags: [Track]
+      description: Love a track for a user profile.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [method, api_key, artist, track, sk, api_sig]
+              properties:
+                method: { type: string, enum: [track.love] }
+                api_key: { type: string }
+                artist: { type: string }
+                track: { type: string }
+                sk: { type: string }
+                api_sig: { type: string }
+      responses:
+        "200":
+          {
+            description: OK,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/WriteResponse" } },
+              },
+          }
+
+  /?method=track.removeTag:
+    post:
+      operationId: trackRemoveTag
+      summary: Remove Track Tag
+      tags: [Track]
+      description: Remove a user's tag from a track.
+      requestBody: { $ref: "#/components/requestBodies/TrackTagWrite" }
+      responses:
+        "200":
+          {
+            description: OK,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/WriteResponse" } },
+              },
+          }
+
+  /?method=track.scrobble:
+    post:
+      operationId: trackScrobble
+      summary: Scrobble Track
+      tags: [Track]
+      description: |
+        Add a track-play to a user's profile (Scrobbling 2.0). Up to 50 scrobbles
+        may be sent in a single batch using array notation
+        (`artist[0]`, `track[0]`, `timestamp[0]` etc.). A track must be longer
+        than 30 seconds and listened to for at least half its duration or 4 minutes
+        (whichever comes first).
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [method, api_key, artist, track, timestamp, sk, api_sig]
+              properties:
+                method: { type: string, enum: [track.scrobble] }
+                api_key: { type: string }
+                artist:
+                  {
+                    type: string,
+                    description: "Artist name. Use array notation (artist[i]) for batch.",
+                  }
+                track:
+                  {
+                    type: string,
+                    description: "Track name. Use array notation (track[i]) for batch.",
+                  }
+                album: { type: string }
+                timestamp:
+                  {
+                    type: integer,
+                    description: "Unix timestamp when track started. Use array notation for batch.",
+                  }
+                albumArtist: { type: string }
+                trackNumber: { type: integer }
+                duration:
+                  { type: integer, description: Track length in seconds. }
+                mbid: { type: string }
+                streamId: { type: string }
+                chosenByUser: { type: integer, enum: [0, 1] }
+                context: { type: string }
+                sk: { type: string }
+                api_sig: { type: string }
+      responses:
+        "200":
+          description: Scrobble acceptance with per-scrobble status.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ScrobbleResponse" }
+
+  /?method=track.search:
+    get:
+      operationId: trackSearch
+      summary: Search Tracks
+      tags: [Track]
+      description: Search for a track by name. Returns track matches sorted by relevance.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: track
+          in: query
+          required: true
+          schema: { type: string }
+        - name: artist
+          in: query
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 30 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Search results for tracks.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/SearchResponse" }
+
+  /?method=track.unlove:
+    post:
+      operationId: trackUnlove
+      summary: Unlove Track
+      tags: [Track]
+      description: UnLove a track for a user profile.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [method, api_key, artist, track, sk, api_sig]
+              properties:
+                method: { type: string, enum: [track.unlove] }
+                api_key: { type: string }
+                artist: { type: string }
+                track: { type: string }
+                sk: { type: string }
+                api_sig: { type: string }
+      responses:
+        "200":
+          {
+            description: OK,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/WriteResponse" } },
+              },
+          }
+
+  /?method=track.updateNowPlaying:
+    post:
+      operationId: trackUpdateNowPlaying
+      summary: Update Now Playing
+      tags: [Track]
+      description: Used to notify Last.fm that a user has started listening to a track.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [method, api_key, artist, track, sk, api_sig]
+              properties:
+                method: { type: string, enum: [track.updateNowPlaying] }
+                api_key: { type: string }
+                artist: { type: string }
+                track: { type: string }
+                album: { type: string }
+                albumArtist: { type: string }
+                trackNumber: { type: integer }
+                context: { type: string }
+                duration: { type: integer }
+                mbid: { type: string }
+                sk: { type: string }
+                api_sig: { type: string }
+      responses:
+        "200":
+          {
+            description: OK,
+            content:
+              {
+                application/json:
+                  { schema: { $ref: "#/components/schemas/WriteResponse" } },
+              },
+          }
+
+  # USER
+  /?method=user.getFriends:
+    get:
+      operationId: userGetFriends
+      summary: Get User Friends
+      tags: [User]
+      description: Get a list of the user's friends on Last.fm.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+        - name: recenttracks
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: User friends list.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /?method=user.getInfo:
+    get:
+      operationId: userGetInfo
+      summary: Get User Info
+      tags: [User]
+      description: Get information about a user profile.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: User profile envelope.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/UserInfoResponse" }
+
+  /?method=user.getLovedTracks:
+    get:
+      operationId: userGetLovedTracks
+      summary: Get Loved Tracks
+      tags: [User]
+      description: Get the last 50 tracks loved by a user.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: User loved tracks.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /?method=user.getPersonalTags:
+    get:
+      operationId: userGetPersonalTags
+      summary: Get Personal Tags
+      tags: [User]
+      description: Get the user's personal tags for an artist, album, or track.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+        - name: tag
+          in: query
+          required: true
+          schema: { type: string }
+        - name: taggingtype
+          in: query
+          required: true
+          schema: { type: string, enum: [artist, album, track] }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Personal tags.
+          content:
+            application/json:
+              schema: { type: object, additionalProperties: true }
+
+  /?method=user.getRecentTracks:
+    get:
+      operationId: userGetRecentTracks
+      summary: Get Recent Tracks
+      tags: [User]
+      description: Get a list of the recent tracks listened to by this user. Also includes the currently playing track if there is one.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50, maximum: 200 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: from
+          in: query
+          schema: { type: integer, description: Unix timestamp (UTC). }
+        - name: to
+          in: query
+          schema: { type: integer, description: Unix timestamp (UTC). }
+        - name: extended
+          in: query
+          schema: { type: integer, enum: [0, 1] }
+      responses:
+        "200":
+          description: Recent tracks for the user.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RecentTracksResponse" }
+
+  /?method=user.getTopAlbums:
+    get:
+      operationId: userGetTopAlbums
+      summary: Get User Top Albums
+      tags: [User]
+      description: Get the top albums listened to by a user. You can stipulate a time period.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+        - name: period
+          in: query
+          schema:
+            {
+              type: string,
+              enum: [overall, 7day, 1month, 3month, 6month, 12month],
+            }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Top albums for the user.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopAlbumsResponse" }
+
+  /?method=user.getTopArtists:
+    get:
+      operationId: userGetTopArtists
+      summary: Get User Top Artists
+      tags: [User]
+      description: Get the top artists listened to by a user. You can stipulate a time period.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+        - name: period
+          in: query
+          schema:
+            {
+              type: string,
+              enum: [overall, 7day, 1month, 3month, 6month, 12month],
+            }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Top artists for the user.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChartResponse" }
+
+  /?method=user.getTopTags:
+    get:
+      operationId: userGetTopTags
+      summary: Get User Top Tags
+      tags: [User]
+      description: Get the top tags used by this user.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        "200":
+          description: Top tags used by the user.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopTagsResponse" }
+
+  /?method=user.getTopTracks:
+    get:
+      operationId: userGetTopTracks
+      summary: Get User Top Tracks
+      tags: [User]
+      description: Get the top tracks listened to by a user. You can stipulate a time period.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+        - name: period
+          in: query
+          schema:
+            {
+              type: string,
+              enum: [overall, 7day, 1month, 3month, 6month, 12month],
+            }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+      responses:
+        "200":
+          description: Top tracks for the user.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopTracksResponse" }
+
+  /?method=user.getWeeklyAlbumChart:
+    get:
+      operationId: userGetWeeklyAlbumChart
+      summary: Get Weekly Album Chart
+      tags: [User]
+      description: Get an album chart for a user profile, for a given date range. If no date range is supplied, it will return the most recent week.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+        - name: from
+          in: query
+          schema: { type: integer }
+        - name: to
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Weekly album chart for the user.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopAlbumsResponse" }
+
+  /?method=user.getWeeklyArtistChart:
+    get:
+      operationId: userGetWeeklyArtistChart
+      summary: Get Weekly Artist Chart
+      tags: [User]
+      description: Get an artist chart for a user profile, for a given date range.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+        - name: from
+          in: query
+          schema: { type: integer }
+        - name: to
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Weekly artist chart.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ChartResponse" }
+
+  /?method=user.getWeeklyChartList:
+    get:
+      operationId: userGetWeeklyChartList
+      summary: Get Weekly Chart List
+      tags: [User]
+      description: Get a list of available charts for this user, expressed as date ranges that can be sent to the chart services.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+      responses:
+        "200":
+          description: Available chart ranges.
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /?method=user.getWeeklyTrackChart:
+    get:
+      operationId: userGetWeeklyTrackChart
+      summary: Get Weekly Track Chart
+      tags: [User]
+      description: Get a track chart for a user profile, for a given date range.
+      parameters:
+        - { $ref: "#/components/parameters/ApiKeyParam" }
+        - { $ref: "#/components/parameters/FormatParam" }
+        - name: user
+          in: query
+          required: true
+          schema: { type: string }
+        - name: from
+          in: query
+          schema: { type: integer }
+        - name: to
+          in: query
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Weekly track chart.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/TopTracksResponse" }
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: query
+      name: api_key
+      description: Required on all calls. Obtain from https://www.last.fm/api/account/create.
+    SignedAuth:
+      type: apiKey
+      in: query
+      name: api_sig
+      description: |
+        MD5 signature of all request parameters (excluding format and callback)
+        sorted alphabetically by name, concatenated as name+value pairs, with
+        the shared secret appended. Required for all write/auth methods.
+  parameters:
+    MethodParam:
+      name: method
+      in: query
+      required: true
+      schema:
+        type: string
+      description: |
+        Method name in `package.method` format (e.g. `track.getInfo`,
+        `chart.getTopArtists`, `user.getRecentTracks`).
+    ApiKeyParam:
+      name: api_key
+      in: query
+      required: true
+      schema: { type: string }
+      description: Your Last.fm API key.
+    FormatParam:
+      name: format
+      in: query
+      schema:
+        type: string
+        enum: [xml, json]
+        default: xml
+      description: Response format. Defaults to XML.
+    CallbackParam:
+      name: callback
+      in: query
+      schema: { type: string }
+      description: Optional JSONP callback function name when `format=json`.
+  requestBodies:
+    AlbumTagWrite:
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            required: [method, api_key, artist, album, tags, sk, api_sig]
+            properties:
+              method: { type: string, enum: [album.addTags, album.removeTag] }
+              api_key: { type: string }
+              artist: { type: string }
+              album: { type: string }
+              tags:
+                {
+                  type: string,
+                  description: Comma-separated tag list (max 10 for addTags).,
+                }
+              tag: { type: string, description: Single tag (for removeTag). }
+              sk: { type: string }
+              api_sig: { type: string }
+    ArtistTagWrite:
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            required: [method, api_key, artist, sk, api_sig]
+            properties:
+              method: { type: string, enum: [artist.addTags, artist.removeTag] }
+              api_key: { type: string }
+              artist: { type: string }
+              tags: { type: string }
+              tag: { type: string }
+              sk: { type: string }
+              api_sig: { type: string }
+    TrackTagWrite:
+      required: true
+      content:
+        application/x-www-form-urlencoded:
+          schema:
+            type: object
+            required: [method, api_key, artist, track, sk, api_sig]
+            properties:
+              method: { type: string, enum: [track.addTags, track.removeTag] }
+              api_key: { type: string }
+              artist: { type: string }
+              track: { type: string }
+              tags: { type: string }
+              tag: { type: string }
+              sk: { type: string }
+              api_sig: { type: string }
+  responses:
+    ErrorResponse:
+      description: Error response (status='failed').
+      content:
+        application/json:
+          schema: { $ref: "#/components/schemas/ErrorPayload" }
+        application/xml:
+          schema:
+            type: string
+            description: '`<lfm status="failed"><error code="N">message</error></lfm>`'
+  schemas:
+    WriteRequestBody:
+      type: object
+      required: [method, api_key]
+      properties:
+        method: { type: string }
+        api_key: { type: string }
+        sk:
+          {
+            type: string,
+            description: Session key returned by auth.getSession / auth.getMobileSession.,
+          }
+        api_sig:
+          { type: string, description: MD5 signature of params + secret. }
+      additionalProperties: true
+
+    WriteResponse:
+      type: object
+      properties:
+        status: { type: string, example: ok }
+
+    ErrorPayload:
+      type: object
+      properties:
+        error:
+          type: integer
+          description: |
+            Numeric Last.fm error code. Common: 2 invalid service, 3 invalid method,
+            4 authentication failed, 5 invalid format, 6 invalid parameters,
+            7 invalid resource, 8 operation failed, 9 invalid session key,
+            10 invalid api key, 11 service offline, 13 invalid method signature,
+            16 service temporarily unavailable, 26 suspended api key, 29 rate limit exceeded.
+        message: { type: string }
+
+    Image:
+      type: object
+      properties:
+        size: { type: string, enum: [small, medium, large, extralarge, mega] }
+        "#text": { type: string, format: uri }
+
+    Tag:
+      type: object
+      properties:
+        name: { type: string }
+        url: { type: string, format: uri }
+        count: { type: integer }
+
+    Wiki:
+      type: object
+      properties:
+        published: { type: string }
+        summary: { type: string }
+        content: { type: string }
+
+    Album:
+      type: object
+      properties:
+        artist: { type: string }
+        name: { type: string }
+        mbid: { type: string }
+        url: { type: string, format: uri }
+        image:
+          type: array
+          items: { $ref: "#/components/schemas/Image" }
+        listeners: { type: string }
+        playcount: { type: string }
+        tracks:
+          type: object
+          properties:
+            track:
+              type: array
+              items: { $ref: "#/components/schemas/Track" }
+        tags:
+          type: object
+          properties:
+            tag:
+              type: array
+              items: { $ref: "#/components/schemas/Tag" }
+        wiki: { $ref: "#/components/schemas/Wiki" }
+
+    Artist:
+      type: object
+      properties:
+        name: { type: string }
+        mbid: { type: string }
+        url: { type: string, format: uri }
+        image:
+          type: array
+          items: { $ref: "#/components/schemas/Image" }
+        streamable: { type: string }
+        ontour: { type: string }
+        stats:
+          type: object
+          properties:
+            listeners: { type: string }
+            playcount: { type: string }
+        similar:
+          type: object
+          properties:
+            artist:
+              type: array
+              items: { $ref: "#/components/schemas/Artist" }
+        tags:
+          type: object
+          properties:
+            tag:
+              type: array
+              items: { $ref: "#/components/schemas/Tag" }
+        bio: { $ref: "#/components/schemas/Wiki" }
+
+    Track:
+      type: object
+      properties:
+        name: { type: string }
+        mbid: { type: string }
+        url: { type: string, format: uri }
+        duration: { type: string }
+        artist: { $ref: "#/components/schemas/Artist" }
+        album:
+          type: object
+          properties:
+            artist: { type: string }
+            title: { type: string }
+            mbid: { type: string }
+            url: { type: string, format: uri }
+        listeners: { type: string }
+        playcount: { type: string }
+        userplaycount: { type: string }
+        userloved: { type: string, enum: ["0", "1"] }
+        toptags:
+          type: object
+          properties:
+            tag:
+              type: array
+              items: { $ref: "#/components/schemas/Tag" }
+        wiki: { $ref: "#/components/schemas/Wiki" }
+        "@attr":
+          type: object
+          properties:
+            nowplaying: { type: string }
+        date:
+          type: object
+          properties:
+            uts: { type: string }
+            "#text": { type: string }
+
+    UserProfile:
+      type: object
+      properties:
+        name: { type: string }
+        realname: { type: string }
+        url: { type: string, format: uri }
+        country: { type: string }
+        age: { type: string }
+        gender: { type: string }
+        subscriber: { type: string }
+        playcount: { type: string }
+        playlists: { type: string }
+        bootstrap: { type: string }
+        registered:
+          type: object
+          properties:
+            unixtime: { type: string }
+            "#text": { type: string }
+        image:
+          type: array
+          items: { $ref: "#/components/schemas/Image" }
+
+    AlbumInfoResponse:
+      type: object
+      properties:
+        album: { $ref: "#/components/schemas/Album" }
+
+    ArtistInfoResponse:
+      type: object
+      properties:
+        artist: { $ref: "#/components/schemas/Artist" }
+
+    TrackInfoResponse:
+      type: object
+      properties:
+        track: { $ref: "#/components/schemas/Track" }
+
+    UserInfoResponse:
+      type: object
+      properties:
+        user: { $ref: "#/components/schemas/UserProfile" }
+
+    TagInfoResponse:
+      type: object
+      properties:
+        tag:
+          type: object
+          properties:
+            name: { type: string }
+            total: { type: integer }
+            reach: { type: integer }
+            wiki: { $ref: "#/components/schemas/Wiki" }
+
+    TopTagsResponse:
+      type: object
+      properties:
+        toptags:
+          type: object
+          properties:
+            tag:
+              type: array
+              items: { $ref: "#/components/schemas/Tag" }
+
+    TagListResponse:
+      type: object
+      properties:
+        tags:
+          type: object
+          properties:
+            tag:
+              type: array
+              items: { $ref: "#/components/schemas/Tag" }
+
+    TopAlbumsResponse:
+      type: object
+      properties:
+        topalbums:
+          type: object
+          properties:
+            album:
+              type: array
+              items: { $ref: "#/components/schemas/Album" }
+
+    TopTracksResponse:
+      type: object
+      properties:
+        toptracks:
+          type: object
+          properties:
+            track:
+              type: array
+              items: { $ref: "#/components/schemas/Track" }
+
+    ChartResponse:
+      type: object
+      properties:
+        artists:
+          type: object
+          properties:
+            artist:
+              type: array
+              items: { $ref: "#/components/schemas/Artist" }
+
+    GeoResponse:
+      type: object
+      properties:
+        topartists:
+          type: object
+          properties:
+            artist:
+              type: array
+              items: { $ref: "#/components/schemas/Artist" }
+
+    SearchResponse:
+      type: object
+      properties:
+        results:
+          type: object
+          properties:
+            "opensearch:Query": { type: object, additionalProperties: true }
+            "opensearch:totalResults": { type: string }
+            "opensearch:startIndex": { type: string }
+            "opensearch:itemsPerPage": { type: string }
+            albummatches:
+              type: object
+              properties:
+                album:
+                  { type: array, items: { $ref: "#/components/schemas/Album" } }
+            artistmatches:
+              type: object
+              properties:
+                artist:
+                  {
+                    type: array,
+                    items: { $ref: "#/components/schemas/Artist" },
+                  }
+            trackmatches:
+              type: object
+              properties:
+                track:
+                  { type: array, items: { $ref: "#/components/schemas/Track" } }
+
+    RecentTracksResponse:
+      type: object
+      properties:
+        recenttracks:
+          type: object
+          properties:
+            track:
+              type: array
+              items: { $ref: "#/components/schemas/Track" }
+            "@attr":
+              type: object
+              properties:
+                user: { type: string }
+                page: { type: string }
+                perPage: { type: string }
+                totalPages: { type: string }
+                total: { type: string }
+
+    SessionResponse:
+      type: object
+      properties:
+        session:
+          type: object
+          properties:
+            name: { type: string }
+            key: { type: string }
+            subscriber: { type: integer }
+
+    ScrobbleResponse:
+      type: object
+      properties:
+        scrobbles:
+          type: object
+          properties:
+            "@attr":
+              type: object
+              properties:
+                accepted: { type: integer }
+                ignored: { type: integer }
+            scrobble:
+              type: array
+              items:
+                type: object
+                properties:
+                  artist:
+                    {
+                      type: object,
+                      properties:
+                        {
+                          "#text": { type: string },
+                          corrected: { type: string },
+                        },
+                    }
+                  album:
+                    {
+                      type: object,
+                      properties:
+                        {
+                          "#text": { type: string },
+                          corrected: { type: string },
+                        },
+                    }
+                  track:
+                    {
+                      type: object,
+                      properties:
+                        {
+                          "#text": { type: string },
+                          corrected: { type: string },
+                        },
+                    }
+                  timestamp: { type: string }
+                  ignoredMessage:
+                    type: object
+                    properties:
+                      code: { type: string }
+                      "#text": { type: string }
