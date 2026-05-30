@@ -1,12 +1,6 @@
 version: 3
 
 includes:
-  generator:
-    taskfile: packages/generator/Taskfile.yaml
-    dir: packages/generator
-  cli:
-    taskfile: packages/cli/Taskfile.yaml
-    dir: packages/cli
   website:
     taskfile: packages/website/Taskfile.yaml
     dir: packages/website
