@@ -1,6 +1,6 @@
 import { deepEqual } from "../help/deep-equal.ts"
 import { isOptional, type NameWithOptionality } from "./dsl.ts"
-import type { Nameable } from "./nameable.ts"
+import type { Nameable, NamedThunk } from "./nameable.ts"
 import type { Mime } from "./scope.ts"
 
 export type SchemaExtensionValue =
@@ -122,7 +122,16 @@ type Dict = Readonly<{
 }> &
   DictOpts
 
-interface OneOf extends SchemaOpts<unknown> {
+export interface Discriminator {
+  propertyName: string
+  mapping?: Record<string, NamedThunk<RawSchema>>
+}
+
+interface OneOfOpts extends SchemaOpts<unknown> {
+  discriminator?: Discriminator
+}
+
+interface OneOf extends OneOfOpts {
   oneOf: readonly Schema[]
 }
 
@@ -284,10 +293,10 @@ export const string = (opts?: StringsOpts): Str => {
   }
 }
 
-export const oneOf = (
-  schemas: readonly Schema[],
-  opts?: SchemaOpts<unknown>,
-): OneOf => ({ ...opts, oneOf: schemas })
+export const oneOf = (schemas: readonly Schema[], opts?: OneOfOpts): OneOf => ({
+  ...opts,
+  oneOf: schemas,
+})
 
 export const anyOf = (
   schemas: readonly Schema[],

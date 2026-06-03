@@ -1,6 +1,6 @@
 import type { oas31 } from "openapi3-ts"
 import { decodeNameable } from "../dsl/nameable.ts"
-import type { Obj, RawSchema, Schema } from "../dsl/schema.ts"
+import type { Discriminator, Obj, RawSchema, Schema } from "../dsl/schema.ts"
 import { deepEqual } from "../help/deep-equal.ts"
 import type { ComponentRegistryState } from "./components.ts"
 
@@ -12,6 +12,10 @@ type ObjectSchema = Extract<
   RawSchema,
   { type: "object"; properties: Record<string, Schema> }
 >
+interface EmittedDiscriminator {
+  propertyName: string
+  mapping?: Record<string, string>
+}
 
 export type EmittedSchema = oas31.SchemaObject | oas31.ReferenceObject
 
@@ -184,6 +188,32 @@ const emitNullableLeafExamples = (
 ): oas31.SchemaObject =>
   nullableLeafNeedsNullExample(schema) ? { ...out, examples: [null] } : out
 
+const emitDiscriminator = (
+  state: ComponentRegistryState,
+  discriminator: Discriminator,
+): EmittedDiscriminator => {
+  if (discriminator.mapping === undefined) {
+    return { propertyName: discriminator.propertyName }
+  }
+
+  return {
+    propertyName: discriminator.propertyName,
+    mapping: Object.fromEntries(
+      Object.entries(discriminator.mapping).map(([key, value]) => {
+        const emitted = emitSchemaRefOrValue(state, value)
+
+        const ref = "$ref" in emitted ? emitted.$ref : undefined
+
+        if (ref === undefined) {
+          throw new Error("Discriminator mapping values must be named schemas")
+        }
+
+        return [key, ref]
+      }),
+    ),
+  }
+}
+
 const getNullableAllOfInnerSchema = (
   schema: AnyOfSchema,
 ): AllOfSchema | undefined => {
@@ -218,6 +248,9 @@ const emitRawSchemaValue = (
   if ("oneOf" in schema) {
     const out: oas31.SchemaObject = {
       ...schemaBaseFields(state, schema),
+      ...(schema.discriminator !== undefined
+        ? { discriminator: emitDiscriminator(state, schema.discriminator) }
+        : {}),
       oneOf: schema.oneOf.map(item => emitSchemaRefOrValue(state, item)),
     }
 

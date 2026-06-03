@@ -45,4 +45,4 @@ export type {
   InlinePathParam,
   InlineQueryParam,
 } from "./dsl/params.ts"
-export type { Schema } from "./dsl/schema.ts"
+export type { Discriminator, Schema } from "./dsl/schema.ts"
