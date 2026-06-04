@@ -1,9 +1,6 @@
 version: 3
 
 includes:
-  website:
-    taskfile: packages/website/Taskfile.yaml
-    dir: packages/website
   hono:
     taskfile: packages/hono/Taskfile.yaml
     dir: packages/hono

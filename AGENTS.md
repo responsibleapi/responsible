@@ -7,7 +7,7 @@
 - Maintained packages in the shared root validation flow:
   - `packages/ts` as `@responsibleapi/ts`.
   - `packages/hono` as `@responsibleapi/hono`.
-- Legacy KDL packages and website remain in the repo, but root `task check`
+- Legacy KDL packages remain in the repo, but root `task check`
   should not depend on them.
 
 ## TypeScript

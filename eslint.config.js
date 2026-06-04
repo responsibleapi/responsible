@@ -6,13 +6,10 @@ import { defineConfig } from "eslint/config"
 import globals from "globals"
 
 const packageProjects = [
-  "./packages/cli/tsconfig.json",
-  "./packages/generator/tsconfig.json",
   "./packages/hono/tsconfig.json",
   "./packages/http-jsonschema/tsconfig.json",
   "./packages/polka/tsconfig.json",
   "./packages/ts/tsconfig.json",
-  "./packages/website/tsconfig.json",
 ]
 
 export default defineConfig([
@@ -21,7 +18,6 @@ export default defineConfig([
       "**/*.test.ts",
       "**/build.js",
       "**/dist/*",
-      "packages/website/src/kdl.js",
     ],
   },
   js.configs.recommended,

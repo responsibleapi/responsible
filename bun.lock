@@ -87,24 +87,6 @@
         "typescript": "^6.0.3",
       },
     },
-    "packages/website": {
-      "name": "@responsibleapi/website",
-      "version": "0.0.1",
-      "dependencies": {
-        "ace-builds": "^1.44.0",
-        "kdljs": "~0.3.0",
-        "solid-js": "^1.9.13",
-      },
-      "devDependencies": {
-        "@tailwindcss/typography": "^0.5.19",
-        "autoprefixer": "^10.5.0",
-        "postcss": "^8.5.15",
-        "tailwindcss": "^4.3.0",
-        "vite": "^8.0.14",
-        "vite-plugin-solid": "^2.11.12",
-        "wrangler": "^4.95.0",
-      },
-    },
   },
   "packages": {
     "@ampproject/remapping": ["@ampproject/remapping@2.3.0", "", { "dependencies": { "@jridgewell/gen-mapping": "^0.3.5", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-30iZtAPgz+LTIYoeivqYo853f02jBYSd5uGnGpkFV0M3xOt9aN73erkgYAmZU43x4VfqcnLxW9Kpg3R5LC4YYw=="],
@@ -430,8 +412,6 @@
     "@responsibleapi/polka": ["@responsibleapi/polka@workspace:packages/polka"],
 
     "@responsibleapi/ts": ["@responsibleapi/ts@workspace:packages/ts"],
-
-    "@responsibleapi/website": ["@responsibleapi/website@workspace:packages/website"],
 
     "@rolldown/binding-android-arm64": ["@rolldown/binding-android-arm64@1.0.2", "", { "os": "android", "cpu": "arm64" }, "sha512-ZS4D1JPGn/MYQN/SYDWftIE/nVsM8j/AFOYEzAoOE2O3NktQOZru+/vYXGbR/qtdLdIfGCP0lcoJiYVzsEz+iQ=="],
 
