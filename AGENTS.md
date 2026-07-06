@@ -26,4 +26,4 @@
   - `task release:ts` for `@responsibleapi/ts`.
   - `task release:hono` for `@responsibleapi/hono`.
 - Publish public packages with `bun publish --access public`.
-- Use package-scoped annotated tags, such as `ts-v1.0.8` and `hono-v1.1.2`.
+- Use package-scoped annotated tags, such as `ts-v<maj>.<min>.<ptch>` and `hono-v<maj>.<min>.<ptch>`.
