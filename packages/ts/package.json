@@ -38,17 +38,17 @@
   },
   "dependencies": {
     "fast-deep-equal": "^3.1.3",
-    "openapi3-ts": "^4.5.0"
+    "openapi3-ts": "^4.6.0"
   },
   "devDependencies": {
     "@seriousme/openapi-schema-validator": "^2.9.0",
     "@types/bun": "^1.3.14",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
-    "openapi-format": "^1.32.1",
-    "oxfmt": "^0.52.0",
-    "oxlint": "^1.67.0",
-    "oxlint-tsgolint": "^0.23.0",
+    "openapi-format": "^1.33.5",
+    "oxfmt": "^0.57.0",
+    "oxlint": "^1.72.0",
+    "oxlint-tsgolint": "^0.24.0",
     "typescript": "^6.0.3"
   },
   "engines": {
