@@ -782,6 +782,28 @@ function isObjectEventSchema(schema: RawSchema): schema is Obj {
 function readJsonEventTypeConst(eventSchema: Schema): string {
   const { value } = decodeNameable(eventSchema)
 
+  if ("oneOf" in value) {
+    let eventType: string | undefined
+
+    for (const nestedEventSchema of value.oneOf) {
+      const nestedEventType = readJsonEventTypeConst(nestedEventSchema)
+
+      if (eventType !== undefined && nestedEventType !== eventType) {
+        throw new Error(
+          "SSE JSON nested event schema must use a single event type",
+        )
+      }
+
+      eventType = nestedEventType
+    }
+
+    if (eventType === undefined) {
+      throw new Error("SSE JSON event schema oneOf must not be empty")
+    }
+
+    return eventType
+  }
+
   if (!isObjectEventSchema(value)) {
     throw new Error("SSE JSON event schema must be an object schema")
   }

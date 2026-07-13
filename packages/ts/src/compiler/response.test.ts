@@ -313,6 +313,109 @@ describe("response", () => {
     })
   })
 
+  test("sse response with JSON default supports nested event unions", () => {
+    function RSSImportProgressEvent() {
+      return object({
+        type: string({ const: "progress" }),
+        percent: integer({ minimum: 0, maximum: 100 }),
+      })
+    }
+
+    function RSSImportCompletedTerminalEvent() {
+      return object({
+        type: string({ const: "terminal" }),
+        status: string({ const: "completed" }),
+      })
+    }
+
+    function RSSImportFailedTerminalEvent() {
+      return object({
+        type: string({ const: "terminal" }),
+        status: string({ const: "failed" }),
+      })
+    }
+
+    function RSSImportTerminalEvent() {
+      return oneOf(
+        [RSSImportCompletedTerminalEvent, RSSImportFailedTerminalEvent],
+        {
+          discriminator: {
+            propertyName: "status",
+            mapping: {
+              completed: RSSImportCompletedTerminalEvent,
+              failed: RSSImportFailedTerminalEvent,
+            },
+          },
+        },
+      )
+    }
+
+    function RSSImportEvent() {
+      return oneOf([RSSImportProgressEvent, RSSImportTerminalEvent], {
+        discriminator: {
+          propertyName: "type",
+          mapping: {
+            progress: RSSImportProgressEvent,
+            terminal: RSSImportTerminalEvent,
+          },
+        },
+      })
+    }
+
+    const rapi = responsibleAPI({
+      partialDoc: {
+        openapi: "3.2.0",
+        info: { title: "Nested SSE JSON response", version: "1" },
+      },
+      forEachOp: { res: { mime: "application/json" } },
+      routes: {
+        "/stream": GET({
+          res: {
+            200: resp({
+              body: {
+                "text/event-stream": { itemSchema: RSSImportEvent },
+              },
+            }),
+          },
+        }),
+      },
+    })
+
+    expect(rapi.paths?.["/stream"]?.get?.responses?.["200"]).toMatchObject({
+      content: {
+        "text/event-stream": {
+          itemSchema: {
+            $ref: "#/components/schemas/RSSImportEvent",
+          },
+        },
+      },
+    })
+    expect(rapi.components?.schemas?.["RSSImportEvent"]).toMatchObject({
+      oneOf: [
+        {
+          properties: {
+            event: { const: "progress" },
+            data: {
+              contentSchema: {
+                $ref: "#/components/schemas/RSSImportProgressEvent",
+              },
+            },
+          },
+        },
+        {
+          properties: {
+            event: { const: "terminal" },
+            data: {
+              contentSchema: {
+                $ref: "#/components/schemas/RSSImportTerminalEvent",
+              },
+            },
+          },
+        },
+      ],
+    })
+  })
+
   test("forEachOp.res.mime controls semantic SSE response wrapping", () => {
     function streamRoutes() {
       return {
