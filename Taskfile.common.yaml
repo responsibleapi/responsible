@@ -5,6 +5,7 @@ vars:
 
 tasks:
   types:
+    run: once
     cmd: bun tsc
     sources:
       - "{{.LOCKFILE}}"
@@ -15,13 +16,35 @@ tasks:
       - tsconfig.tsbuildinfo
 
   lint:
-    cmd: bun eslint src/ --fix
+    run: once
+    cmd: bun oxlint --config ../../oxlint.config.ts src/
     sources:
       - "{{.LOCKFILE}}"
-      - ../../eslint.config.js
+      - ../../oxlint.config.ts
       - src/**/*
 
+  lint:fix:
+    cmd: bun oxlint --config ../../oxlint.config.ts src/ --fix
+    sources:
+      - "{{.LOCKFILE}}"
+      - ../../oxlint.config.ts
+      - src/**/*
+
+  fmt:
+    cmd: bun oxfmt src/
+    sources:
+      - src/**/*
+      - ../../.oxfmtrc.jsonc
+
+  fmt:check:
+    run: once
+    cmd: bun oxfmt --check src/
+    sources:
+      - src/**/*
+      - ../../.oxfmtrc.jsonc
+
   test:
+    run: once
     cmd: bun test
     sources:
       - "{{.LOCKFILE}}"
@@ -31,4 +54,5 @@ tasks:
     deps:
       - types
       - lint
+      - fmt:check
       - test

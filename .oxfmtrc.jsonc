@@ -14,16 +14,14 @@
     "lineWrappingStyle": "greedy"
   },
   /**
-   * Closest built-in replacement for prettier-plugin-organize-imports.
-   * Oxfmt sorts imports and specifiers, but it does not remove unused imports.
+   * Sort imports and specifiers without removing unused imports.
    */
   "sortImports": {
     "newlinesBetween": false,
     "partitionByNewline": true
   },
   /**
-   * Closest built-in replacement for prettier-plugin-packagejson.
-   * Oxfmt's package.json ordering is opinionated, not byte-for-byte identical.
+   * Apply Oxfmt's opinionated package.json ordering.
    */
   "sortPackageJson": {
     "sortScripts": true

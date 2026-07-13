@@ -3,7 +3,7 @@ import { contentToSchema, type MetaBody } from "./bodycompiler"
 import type { JsonResolver } from "./jsonresolver"
 import type { TypedSchema } from "./typedschema"
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+// oxlint-disable-next-line typescript/consistent-type-definitions
 type MutableObjSchema = {
   type: "object"
   properties: Record<string, oas31.SchemaObject | oas31.ReferenceObject>

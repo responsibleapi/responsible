@@ -27,9 +27,6 @@
       "name": "oxfmt"
     }
   },
-  "prettier": {
-    "allowed": false
-  },
   "languages": {
     "Taskfile": {
       /**

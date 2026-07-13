@@ -10,7 +10,7 @@ type NumberSchema =
       format?: "int32" | "int64"
     }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+// oxlint-disable-next-line typescript/consistent-type-definitions
 type StringSchema = {
   type: "string"
   format?:
@@ -25,13 +25,13 @@ type StringSchema = {
   pattern?: string
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+// oxlint-disable-next-line typescript/consistent-type-definitions
 type BigIntSchema = {
   type: "integer"
   format: "int64"
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+// oxlint-disable-next-line typescript/consistent-type-definitions
 type ObjectSchema<T extends object> = {
   type: "object"
   properties: {
@@ -40,7 +40,7 @@ type ObjectSchema<T extends object> = {
   required?: Array<keyof T>
 }
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+// oxlint-disable-next-line typescript/consistent-type-definitions
 type ArraySchema<Item> = {
   type: "array"
   items: UnionSchema<Item> | oas31.ReferenceObject

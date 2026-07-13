@@ -6,11 +6,14 @@ includes:
 
 tasks:
   check:
+    run: once
     deps:
       - common:types
       - common:lint
+      - common:fmt:check
 
   build:
+    run: once
     cmds:
       - rm -rf dist/
       - bun tsc --p tsconfig.publish.json --outDir dist/
