@@ -11,11 +11,181 @@ import {
   string,
   type Schema,
 } from "../dsl/schema.ts"
-import { validateSchema } from "../help/validate-schema.ts"
+import { validates, validateSchema } from "../help/validate-schema.ts"
 import { createComponentRegistryState } from "./components.ts"
 import { emitSchemaRefOrValue } from "./emit-schema.ts"
 
 describe("emitSchemaRefOrValue", () => {
+  test("preserves legacy object output when policy is omitted", () => {
+    expect(
+      validateSchema(
+        emitSchemaRefOrValue(
+          createComponentRegistryState(),
+          object({ id: string() }),
+        ),
+      ),
+    ).toEqual({
+      type: "object",
+      properties: {
+        id: { type: "string" },
+      },
+      required: ["id"],
+    })
+  })
+
+  test("closes object schemas and rejects unknown properties", () => {
+    const schema = validateSchema(
+      emitSchemaRefOrValue(
+        createComponentRegistryState(false),
+        object({ id: string() }),
+      ),
+    )
+
+    expect(schema).toEqual({
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        id: { type: "string" },
+      },
+      required: ["id"],
+    })
+    expect(validates(schema, { id: "article" })).toEqual(true)
+    expect(validates(schema, { id: "article", extra: true })).toEqual(false)
+  })
+
+  test("opens object schemas and accepts unknown properties", () => {
+    const schema = validateSchema(
+      emitSchemaRefOrValue(
+        createComponentRegistryState(true),
+        object({ id: string() }),
+      ),
+    )
+
+    expect(schema).toEqual({
+      type: "object",
+      additionalProperties: true,
+      properties: {
+        id: { type: "string" },
+      },
+      required: ["id"],
+    })
+    expect(validates(schema, { id: "article", extra: true })).toEqual(true)
+  })
+
+  test("closes nested object schemas", () => {
+    expect(
+      validateSchema(
+        emitSchemaRefOrValue(
+          createComponentRegistryState(false),
+          object({
+            metadata: object({ title: string() }),
+          }),
+        ),
+      ),
+    ).toEqual({
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        metadata: {
+          type: "object",
+          additionalProperties: false,
+          properties: {
+            title: { type: "string" },
+          },
+          required: ["title"],
+        },
+      },
+      required: ["metadata"],
+    })
+  })
+
+  test("keeps typed dictionary additional properties under closed policy", () => {
+    expect(
+      validateSchema(
+        emitSchemaRefOrValue(
+          createComponentRegistryState(false),
+          dict(string(), int32()),
+        ),
+      ),
+    ).toEqual({
+      type: "object",
+      additionalProperties: {
+        type: "integer",
+        format: "int32",
+      },
+    })
+  })
+
+  test("applies closed policy through arrays, unions, nullable objects, and components", () => {
+    const Article = named("Article", object({ id: string() }))
+    const state = createComponentRegistryState(false)
+
+    expect(
+      validateSchema(
+        emitSchemaRefOrValue(
+          state,
+          array(
+            oneOf([
+              Article,
+              nullable(object({ legacyID: string() })),
+            ]),
+          ),
+        ),
+      ),
+    ).toEqual({
+      type: "array",
+      items: {
+        oneOf: [
+          { $ref: "#/components/schemas/Article" },
+          {
+            type: ["object", "null"],
+            additionalProperties: false,
+            properties: {
+              legacyID: { type: "string" },
+            },
+            required: ["legacyID"],
+          },
+        ],
+      },
+    })
+    expect(state.components.schemas).toEqual({
+      Article: {
+        type: "object",
+        additionalProperties: false,
+        properties: {
+          id: { type: "string" },
+        },
+        required: ["id"],
+      },
+    })
+  })
+
+  test("compiles one reusable schema under different document policies", () => {
+    const Article = named("Article", object({ id: string() }))
+    const closedState = createComponentRegistryState(false)
+    const openState = createComponentRegistryState(true)
+
+    emitSchemaRefOrValue(closedState, Article)
+    emitSchemaRefOrValue(openState, Article)
+
+    expect(closedState.components.schemas).toEqual({
+      Article: {
+        type: "object",
+        additionalProperties: false,
+        properties: { id: { type: "string" } },
+        required: ["id"],
+      },
+    })
+    expect(openState.components.schemas).toEqual({
+      Article: {
+        type: "object",
+        additionalProperties: true,
+        properties: { id: { type: "string" } },
+        required: ["id"],
+      },
+    })
+  })
+
   test("emits object and dictionary helper fields", () => {
     expect(
       validateSchema(

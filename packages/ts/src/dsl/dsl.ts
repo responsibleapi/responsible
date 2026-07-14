@@ -35,6 +35,15 @@ export type PartialDoc = Partial<
 >
 
 export interface ResponsibleApiInput {
+  /**
+   * Sets `additionalProperties` for every schema created with the object
+   * helper. Omit to preserve legacy output without that keyword.
+   *
+   * @dsl
+   */
+  options?: {
+    objectAdditionalProperties: boolean
+  }
   partialDoc: PartialDoc
   forEachOp?: ScopeOpts
   forEachPath?: ForEachPath

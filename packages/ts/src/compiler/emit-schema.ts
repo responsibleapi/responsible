@@ -96,6 +96,9 @@ const emitObject = (
 ): oas31.SchemaObject => {
   const out: oas31.SchemaObject = {
     ...schemaBaseFields(state, schema),
+    ...(state.objectAdditionalProperties !== undefined
+      ? { additionalProperties: state.objectAdditionalProperties }
+      : {}),
     properties: Object.fromEntries(
       Object.entries(schema.properties).map(([key, value]) => [
         key,

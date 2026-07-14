@@ -1,6 +1,7 @@
 import type { oas31 } from "openapi3-ts"
 
 export interface ComponentRegistryState {
+  objectAdditionalProperties: boolean | undefined
   components: {
     schemas: oas31.SchemasObject
     parameters: Record<string, oas31.ParameterObject | oas31.ReferenceObject>
@@ -25,8 +26,11 @@ export interface ComponentRegistryState {
   anonymousSecuritySeq: number
 }
 
-export function createComponentRegistryState(): ComponentRegistryState {
+export function createComponentRegistryState(
+  objectAdditionalProperties?: boolean,
+): ComponentRegistryState {
   return {
+    objectAdditionalProperties,
     components: {
       schemas: {},
       parameters: {},

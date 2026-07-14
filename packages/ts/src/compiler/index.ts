@@ -1479,7 +1479,9 @@ export function compileResponsibleAPI(
     )
   }
 
-  const schemaState = createComponentRegistryState()
+  const schemaState = createComponentRegistryState(
+    api.options?.objectAdditionalProperties,
+  )
   const rootCtx = compileScopeContextFromScopeOpts(api.forEachOp ?? {})
   rootCtx.pathReq = scopePathLevelReqFromRoutes(api.forEachPath ?? {})
   const paths: oas31.PathsObject = {

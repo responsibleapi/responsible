@@ -54,6 +54,36 @@ const api = responsibleAPI({
 console.log(JSON.stringify(api, null, 2))
 ```
 
+## Object additional properties
+
+By default, schemas created with `object()` omit `additionalProperties`,
+preserving legacy output. Set a document-wide policy when explicit object
+openness is required:
+
+```ts
+const api = responsibleAPI({
+  options: {
+    objectAdditionalProperties: false,
+  },
+  partialDoc: {
+    openapi: "3.1.0",
+    info: {
+      title: "Example API",
+      version: "1.0.0",
+    },
+  },
+  routes: {
+    // ...
+  },
+})
+```
+
+`false` emits `additionalProperties: false` for every schema created with
+`object()`. `true` emits `additionalProperties: true`. The policy applies to
+nested objects and objects inside arrays, unions, nullable schemas, components,
+requests, and responses. It does not affect `dict()`, whose
+`additionalProperties` remains its value schema, or any non-object schema.
+
 ## YAML Output
 
 ```ts

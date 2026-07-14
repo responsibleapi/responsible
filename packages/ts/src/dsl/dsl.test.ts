@@ -10,6 +10,65 @@ const Err = object({ messsage: string() })
 const SomeSuccess = object({ one: int32() })
 
 describe("dsl", () => {
+  test("threads object additional-properties policy into compilation", async () => {
+    const rapi = responsibleAPI({
+      options: {
+        objectAdditionalProperties: false,
+      },
+      partialDoc: {
+        openapi: "3.1.0",
+        info: {
+          title: "Closed objects",
+          version: "1",
+        },
+      },
+      forEachOp: {
+        res: {
+          mime: "application/json",
+        },
+      },
+      routes: {
+        "/article": POST({
+          res: {
+            200: object({ id: string() }),
+          },
+        }),
+      },
+    })
+
+    expect(await validateDoc(rapi)).toEqual(rapi)
+    expect(rapi).toEqual({
+      openapi: "3.1.0",
+      info: {
+        title: "Closed objects",
+        version: "1",
+      },
+      paths: {
+        "/article": {
+          post: {
+            responses: {
+              "200": {
+                description: "200",
+                content: {
+                  "application/json": {
+                    schema: {
+                      type: "object",
+                      additionalProperties: false,
+                      properties: {
+                        id: { type: "string" },
+                      },
+                      required: ["id"],
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    } satisfies oas31.OpenAPIObject)
+  })
+
   test("tst", async () => {
     const rapi = responsibleAPI({
       partialDoc: {
