@@ -47,8 +47,9 @@ Use the richest DSL construct that states author intent directly:
   meaningful.
 - Prefer identifier thunks over `named(...)`. When the desired component name is
   a valid TypeScript/JavaScript identifier, name the thunk with that identifier
-  and pass the thunk itself. Use `named(...)` only when an exact stable component
-  name cannot be an identifier and component reuse is genuinely required.
+  and pass the thunk itself. Use `named(...)` only when an exact stable
+  component name cannot be an identifier and component reuse is genuinely
+  required.
 - Never convert identifier thunks to `named(...)` merely to match another named
   value. For response headers whose exact HTTP spelling cannot be an identifier,
   prefer an inline `headers` entry at the narrowest shared `res.defaults` or
@@ -74,10 +75,10 @@ Use the richest DSL construct that states author intent directly:
   references, or any other compiled field to repair the document after DSL
   compilation. After `responsibleAPI(...)`, only serialize or return the
   document.
-- Express the complete contract in the DSL. Ban post-compilation patches such
-  as replacing `itemSchema`, injecting `$ref`, or walking a compiled response
-  to change it. If the DSL cannot express a required construct, report or fix
-  the DSL limitation instead of patching its output.
+- Express the complete contract in the DSL. Ban post-compilation patches such as
+  replacing `itemSchema`, injecting `$ref`, or walking a compiled response to
+  change it. If the DSL cannot express a required construct, report or fix the
+  DSL limitation instead of patching its output.
 
 ## Minimal Example
 
@@ -423,22 +424,22 @@ Rules:
   `"100..599"`.
 - Use `res.add` for default statuses inherited by many operations.
 - One-off response headers go in `headers`.
-- Reusable response headers use identifier thunks with `responseHeader(...)`
-  and pass those thunks through `headerParams`. Do not mix named values and
+- Reusable response headers use identifier thunks with `responseHeader(...)` and
+  pass those thunks through `headerParams`. Do not mix named values and
   response-header thunks in one API.
 - When an exact HTTP header name cannot be a TypeScript/JavaScript identifier,
   first keep it inline under `headers` at the narrowest common `res.defaults` or
   operation level. Prefer repeating a small inline header declaration over
   converting otherwise valid response-header thunks to `named(...)`.
-- Use `named("header", responseHeader(...))` only as a last resort when the exact
-  component name and component reuse are both required and inline placement
-  cannot express the contract. If that last resort is necessary, keep other
-  response headers inline rather than combining the named header with reusable
-  response-header thunks.
+- Use `named("header", responseHeader(...))` only as a last resort when the
+  exact component name and component reuse are both required and inline
+  placement cannot express the contract. If that last resort is necessary, keep
+  other response headers inline rather than combining the named header with
+  reusable response-header thunks.
 - OpenAPI 3.1 and 3.2 can reference each Header Object, not an entire response
   `headers` map. Never abstract or spread a reusable headers map. Define each
-  shared header with `responseHeader(...)` and pass its thunk in
-  `headerParams`; keep one-off headers inline in `headers`.
+  shared header with `responseHeader(...)` and pass its thunk in `headerParams`;
+  keep one-off headers inline in `headers`.
 - Use `cookies` for response cookies.
 
 ## Parameters
