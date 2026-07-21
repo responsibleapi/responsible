@@ -2,7 +2,7 @@ import type { oas31 } from "openapi3-ts"
 import { describe, expect, test } from "vitest"
 import { validateDoc } from "../help/validate-doc.ts"
 import { responsibleAPI } from "../dsl/dsl.ts"
-import { GET } from "../dsl/methods.ts"
+import { GET, PATCH } from "../dsl/methods.ts"
 import { named } from "../dsl/nameable.ts"
 import { headerParam } from "../dsl/params.ts"
 import { int32, object, string } from "../dsl/schema.ts"
@@ -10,6 +10,42 @@ import { scope } from "../dsl/scope.ts"
 import { declareTags } from "../dsl/tags.ts"
 
 describe("compiler scope and path", () => {
+  test("compiles PATCH operations under the OpenAPI patch key", async () => {
+    const api = responsibleAPI({
+      partialDoc: {
+        openapi: "3.1.0",
+        info: { title: "PATCH API", version: "1" },
+      },
+      forEachOp: { req: { mime: "application/json" } },
+      routes: {
+        "/items": PATCH({
+          req: object({ name: string() }),
+          res: { 204: {} },
+        }),
+      },
+    })
+
+    const doc = await validateDoc(api)
+
+    expect(doc.paths?.["/items"]?.patch).toEqual({
+      requestBody: {
+        required: true,
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              properties: { name: { type: "string" } },
+              required: ["name"],
+            },
+          },
+        },
+      },
+      responses: {
+        "204": { description: "204" },
+      },
+    })
+  })
+
   test("nested scopes join paths, inherit req/res, convert :params, nearest tags", async () => {
     const tags = declareTags({ users: { description: "Users" } } as const)
     const Err = object({ message: string() })

@@ -8,6 +8,7 @@ type PlainMethodOp<TOp> = TOp & {
 export type MethodRoutes<TTags extends DeclaredTags = DeclaredTags> = {
   GET?: PlainMethodOp<GetOp<TTags>>
   POST?: PlainMethodOp<Op<TTags>>
+  PATCH?: PlainMethodOp<Op<TTags>>
   PUT?: PlainMethodOp<Op<TTags>>
   DELETE?: PlainMethodOp<Op<TTags>>
   HEAD?: PlainMethodOp<Op<TTags>>
@@ -36,6 +37,16 @@ export function POST(idOrOp: string | Op, maybeOp?: Op): OpWithMethod {
   }
 
   return { ...idOrOp, method: "POST" }
+}
+
+export function PATCH(op: Op): OpWithMethod
+export function PATCH(id: string, op: Op): OpWithMethod
+export function PATCH(idOrOp: string | Op, maybeOp?: Op): OpWithMethod {
+  if (typeof idOrOp === "string") {
+    return { ...maybeOp!, method: "PATCH", id: idOrOp }
+  }
+
+  return { ...idOrOp, method: "PATCH" }
 }
 
 export function PUT(op: Op): OpWithMethod

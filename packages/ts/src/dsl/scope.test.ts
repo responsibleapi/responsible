@@ -23,7 +23,7 @@ describe("scope", () => {
   test("accepts a pure scope with at least two methods", () => {
     type PureScope = {
       GET: TestOp
-      POST: TestOp
+      PATCH: TestOp
     }
 
     type _Test = Assert<OneExtendsTwo<PureScope, ScopeInput<PureScope>>>
@@ -143,6 +143,7 @@ describe("scope", () => {
       pathParams: { id: {} },
       params: [],
       GET: { res: { 200: {} } },
+      PATCH: { res: { 204: {} } },
       "/logs": { res: { 200: {} } },
     }) as CanonicalScope
 
@@ -154,6 +155,7 @@ describe("scope", () => {
       },
       routes: {
         GET: { res: { 200: {} } },
+        PATCH: { res: { 204: {} } },
         "/logs": { res: { 200: {} } },
       },
     })

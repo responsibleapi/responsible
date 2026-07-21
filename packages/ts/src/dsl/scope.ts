@@ -54,6 +54,7 @@ export type ScopeRoutes<TTags extends DeclaredTags = DeclaredTags> =
 const isHttpMethodKey = (key: string): key is HttpMethod =>
   key === "GET" ||
   key === "POST" ||
+  key === "PATCH" ||
   key === "PUT" ||
   key === "DELETE" ||
   key === "HEAD"

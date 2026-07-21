@@ -61,6 +61,7 @@ import {
 const OAS_METHOD: Record<HttpMethod, keyof oas31.PathItemObject> = {
   GET: "get",
   POST: "post",
+  PATCH: "patch",
   PUT: "put",
   DELETE: "delete",
   HEAD: "head",
@@ -205,7 +206,12 @@ function isDslSchema(x: unknown): x is Schema {
 
 function isHttpMethod(s: string): s is HttpMethod {
   return (
-    s === "GET" || s === "POST" || s === "PUT" || s === "DELETE" || s === "HEAD"
+    s === "GET" ||
+    s === "POST" ||
+    s === "PATCH" ||
+    s === "PUT" ||
+    s === "DELETE" ||
+    s === "HEAD"
   )
 }
 
