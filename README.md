@@ -3,6 +3,8 @@
 TypeScript tooling for defining OpenAPI 3.1 contracts and validating Hono
 handlers against them.
 
+[Blog post: How to OpenAPI](https://adelnz.com/writing/how-to-openapi/)
+
 ## Packages
 
 - [`@responsibleapi/ts`](packages/ts/) is the TypeScript DSL and compiler for
