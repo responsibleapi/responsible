@@ -582,7 +582,7 @@ export default responsibleAPI({
       termsOfService: "https://listenbox.app/terms",
     },
     servers: [
-      { url: "https://api.listenbox.app" },
+      { url: "https://v1.listenbox.app" },
       { url: "http://localhost:8080" },
     ],
   },
