@@ -1,0 +1,26 @@
+language: typescript
+layer: library
+tags: [node]
+toolchains:
+  default: system
+fileGroups:
+  sources:
+    - src/**/*.ts
+    - package.json
+    - tsconfig*.json
+tasks:
+  build:
+    command: aube exec tsc -p tsconfig.build.json
+    inputs: ['@group(sources)']
+    outputs: [dist/**/*]
+  typecheck:
+    command: aube exec tsc -p tsconfig.json
+    inputs: ['@group(sources)', scripts/**/*.ts]
+  lint:
+    script: |-
+      aube exec oxfmt src/dsl/json-schema.ts src/compiler/components.ts src/compiler/emit-schema.ts src/index.ts vitest.config.ts
+      aube exec oxlint
+    inputs: ['@group(sources)', oxlint.config.ts, scripts/**/*.ts]
+  test:
+    command: aube exec vitest run src
+    inputs: ['@group(sources)', vitest.config.ts, src/**/*.yaml]

@@ -2,6 +2,7 @@ import type { oas31 } from "openapi3-ts"
 
 export interface ComponentRegistryState {
   objectAdditionalProperties: boolean | undefined
+  schemaDialect: "openapi" | "json-schema"
   components: {
     schemas: oas31.SchemasObject
     parameters: Record<string, oas31.ParameterObject | oas31.ReferenceObject>
@@ -31,6 +32,7 @@ export function createComponentRegistryState(
 ): ComponentRegistryState {
   return {
     objectAdditionalProperties,
+    schemaDialect: "openapi",
     components: {
       schemas: {},
       parameters: {},

@@ -120,3 +120,24 @@ Bun YAML docs: <https://bun.com/docs/runtime/yaml>
 ## Development
 
 Use `bun`
+
+## Standalone JSON Schema
+
+Use `jsonSchema` when the contract is a configuration document rather than an HTTP API:
+
+```ts
+import { jsonSchema, object, string } from "@responsibleapi/ts"
+
+const Config = () => object({ endpoint: string({ format: "uri" }) })
+const schema = jsonSchema(Config, {
+  objectAdditionalProperties: false,
+  title: "Application configuration",
+})
+console.log(JSON.stringify(schema, null, 2))
+```
+
+The result is JSON Schema draft 2020-12, with an inline root and local `$defs`
+for reusable schemas. References use `#/$defs/` throughout, including recursive
+schemas. Tagged unions validate through `oneOf` and their constant tags;
+OpenAPI's `discriminator` annotation is omitted. `responsibleAPI` continues
+to emit OpenAPI documents using the same schema definitions.

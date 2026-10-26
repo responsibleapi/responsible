@@ -1,4 +1,9 @@
 export { responsibleAPI } from "./dsl/dsl.ts"
+export { jsonSchema } from "./dsl/json-schema.ts"
+export type {
+  JSONSchemaDocument,
+  JSONSchemaOptions,
+} from "./dsl/json-schema.ts"
 export { DELETE, GET, HEAD, PATCH, POST, PUT } from "./dsl/methods.ts"
 export { named, ref } from "./dsl/nameable.ts"
 export { resp } from "./dsl/operation.ts"

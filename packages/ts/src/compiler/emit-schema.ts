@@ -19,18 +19,22 @@ interface EmittedDiscriminator {
 
 export type EmittedSchema = oas31.SchemaObject | oas31.ReferenceObject
 
-const schemaRef = (name: string): oas31.ReferenceObject => ({
-  $ref: `#/components/schemas/${name}`,
+const schemaRef = (
+  state: ComponentRegistryState,
+  name: string,
+): oas31.ReferenceObject => ({
+  $ref: `${state.schemaDialect === "json-schema" ? "#/$defs/" : "#/components/schemas/"}${name.replaceAll("~", "~0").replaceAll("/", "~1")}`,
 })
 
 const schemaRefWithSiblings = (
+  state: ComponentRegistryState,
   name: string,
   siblings: {
     summary?: string
     description?: string
   },
 ): oas31.ReferenceObject => ({
-  ...schemaRef(name),
+  ...schemaRef(state, name),
   ...(siblings.summary !== undefined ? { summary: siblings.summary } : {}),
   ...(siblings.description !== undefined
     ? { description: siblings.description }
@@ -59,6 +63,9 @@ const schemaBaseFields = (
   schema: object,
 ): Record<string, unknown> => {
   const out = Object.fromEntries(Object.entries(schema))
+  if (state.schemaDialect === "json-schema") {
+    delete out["discriminator"]
+  }
   const boxed = schema as {
     contentSchema?: Schema
     enum?: readonly unknown[]
@@ -251,7 +258,8 @@ const emitRawSchemaValue = (
   if ("oneOf" in schema) {
     const out: oas31.SchemaObject = {
       ...schemaBaseFields(state, schema),
-      ...(schema.discriminator !== undefined
+      ...(schema.discriminator !== undefined &&
+      state.schemaDialect === "openapi"
         ? { discriminator: emitDiscriminator(state, schema.discriminator) }
         : {}),
       oneOf: schema.oneOf.map(item => emitSchemaRefOrValue(state, item)),
@@ -349,7 +357,7 @@ export function emitSchemaRefOrValue(
   }
 
   if (state.inProgress.schemas.has(name)) {
-    return schemaRefWithSiblings(name, refSiblings)
+    return schemaRefWithSiblings(state, name, refSiblings)
   }
 
   const existing = state.components.schemas[name]
@@ -371,7 +379,7 @@ export function emitSchemaRefOrValue(
       state.inProgress.schemas.delete(name)
     }
 
-    return schemaRefWithSiblings(name, refSiblings)
+    return schemaRefWithSiblings(state, name, refSiblings)
   }
 
   state.inProgress.schemas.add(name)
@@ -382,5 +390,5 @@ export function emitSchemaRefOrValue(
     state.inProgress.schemas.delete(name)
   }
 
-  return schemaRefWithSiblings(name, refSiblings)
+  return schemaRefWithSiblings(state, name, refSiblings)
 }

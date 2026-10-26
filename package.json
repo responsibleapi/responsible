@@ -10,6 +10,7 @@
     "oxlint": "^1.72.0",
     "oxlint-tsgolint": "^0.24.0",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.10"
+    "vitest": "^4.1.10",
+    "yaml": "^2.9.0"
   }
 }
