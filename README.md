@@ -1,6 +1,6 @@
 # ResponsibleAPI
 
-TypeScript tooling for defining OpenAPI 3.1 contracts and validating Hono
+TypeScript tooling for defining OpenAPI 3.2 contracts and validating Hono
 handlers against them.
 
 [Blog post: How to OpenAPI](https://adelnz.com/writing/how-to-openapi/)
@@ -8,7 +8,7 @@ handlers against them.
 ## Packages
 
 - [`@responsibleapi/ts`](packages/ts/) is the TypeScript DSL and compiler for
-  OpenAPI 3.1 documents.
+  OpenAPI 3.2 documents.
 - [`@responsibleapi/hono`](packages/hono/) validates Hono requests and responses
   against OpenAPI documents.
 
@@ -23,7 +23,7 @@ import { GET, object, responsibleAPI, resp, string } from "@responsibleapi/ts"
 
 export const api = responsibleAPI({
   partialDoc: {
-    openapi: "3.1.0",
+    openapi: "3.2.0",
     info: {
       title: "Example API",
       version: "1.0.0",
